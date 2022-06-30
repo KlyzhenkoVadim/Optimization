@@ -8,6 +8,9 @@ private:
 	Eigen::Vector3d t1; // единичный касательный вектор начальной точки
 	Eigen::Vector3d t2; // единичный касательный вектор конечной точки дуги
 
+	// condition??
+	
+
 	double teta; // значения зенитного угла (в градусах) касательного вектора t1 начальной точке
 	double phi; // значения азимутального угла (в градусах) касательного вектора t1 начальной точке
 	double R; // радиус кривизны траектории (R>0)
@@ -23,7 +26,9 @@ public:
 	void fit() override;
 	void points(CoordinateSystem coordinateSystem) override;
 	double length() override;
-
 	double getAlpha();
+	
+	Eigen::Vector3d getInitPoint();
+	Eigen::Vector3d getTargetPoint();
 };
 

@@ -8,6 +8,7 @@ CurveHold::CurveHold(const Eigen::Vector3d& p1, const Eigen::Vector3d& p3, doubl
 	this->t1 = calcTangentVector(phi, teta);
 	this->R = R;
 	this->nums = nums;
+	
 }
 
 //void CurveHold::fit() {
@@ -65,10 +66,10 @@ double CurveHold::getAlpha() {
 }
 
 void CurveHold::fit() {
-	Eigen::Vector3d moduleP{ fabs(p1[0] - p3[0]), fabs(p1[1] - p3[1]), fabs(p1[2] - p3[2]) };
+	//Eigen::Vector3d moduleP{ fabs(p1[0] - p3[0]), fabs(p1[1] - p3[1]), fabs(p1[2] - p3[2]) };
 	Eigen::Vector3d b1 = -t1.cross(p3 - p1);
 	Eigen::Vector3d n1 = t1.cross(b1);
-
+	
 	if (n1.dot(n1) > EPSILON) {
 		n1.normalize();
 	}
@@ -80,15 +81,15 @@ void CurveHold::fit() {
 		throw std::runtime_error("Target point lies inside  the sphere.");
 	}
 
-	double psiSqr = moduleP.dot(moduleP);
+	double psi = (p3-p1).norm();
 	double etta = t1.dot(p3 - p1);
-	double ksi = sqrt(psiSqr - etta * etta);
+	double ksi = sqrt(psi*psi - etta * etta);
 
 	if (etta <= EPSILON and fabs(ksi - 2 * R) <= EPSILON) {
 		throw std::runtime_error("error: alpha >= pi");
 	}
 
-	double bettaSqr = psiSqr - 2 * R * ksi > 0.0 ? sqrt(psiSqr - 2 * R * ksi) : 0.0;
+	double bettaSqr = psi * psi - 2 * R * ksi;
 	betta = 0.0;
 
 	if (bettaSqr > 0.0) {
@@ -112,6 +113,14 @@ void CurveHold::fit() {
 	}
 }
 
+Eigen::Vector3d CurveHold::getInitPoint() {
+	return this->p1;
+}
+
+Eigen::Vector3d CurveHold::getTargetPoint() {
+	return this->p3;
+}
+
 void CurveHold::points(CoordinateSystem coordinateSystem) {
 	double h = length() / nums;
 	double arc = alpha * R;
@@ -130,7 +139,7 @@ void CurveHold::points(CoordinateSystem coordinateSystem) {
 
 		pointsCartesian = curvePoints;
 
-		std::copy(holdPoints.begin(), holdPoints.end(), std::back_inserter(pointsCartesian));
+		std::copy(holdPoints.begin(), holdPoints.end(), std::back_inserter(pointsCartesian)); // vstack
 	}
 	else {
 		std::vector<Eigen::Vector4d> curvePoints = calcInterpolMDPoints(p1, t1, t2, R, alpha, num);

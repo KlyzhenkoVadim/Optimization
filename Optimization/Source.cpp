@@ -20,6 +20,7 @@ public:
 	}
 };
 
+
 int main()
 {
 	auto isSegmentIntersect = [](const Eigen::Vector3d& p1, const Eigen::Vector3d& p2, const Eigen::Vector3d& p3, const Eigen::Vector3d& p4) {
@@ -89,6 +90,8 @@ int main()
 
 	calcs[0]->calc();
 	calcs[1]->calc();
+
+
 
 	return 0;
 }
