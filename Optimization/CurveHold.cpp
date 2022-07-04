@@ -149,10 +149,10 @@ void CurveHold::points(CoordinateSystem coordinateSystem) {
 			holdPoints[idx] = { (arc + betta * idx / stepHold) , t2[0], t2[1], t2[2] };
 		}
 
-		pointsMD = curvePoints;
+		pointsMd = curvePoints;
 
 		if (fabs(betta) > EPSILON) {
-			std::copy(holdPoints.begin(), holdPoints.end(), std::back_inserter(pointsMD));
+			std::copy(holdPoints.begin(), holdPoints.end(), std::back_inserter(pointsMd));
 		}
 	}
 }

@@ -20,6 +20,9 @@ public:
 	virtual void points(CoordinateSystem coordinateSystem) = 0;
 	virtual double length() = 0;
 
+	std::vector<Eigen::Vector3d> pointsCartesian;
+	std::vector<Eigen::Vector4d> pointsMd;
+
 	Eigen::Vector3d calcTangentVector(double azimuth, double inclination);
 
 	std::vector<Eigen::Vector3d> calcInterpolCartesianPoints(const Eigen::Vector3d& p1,

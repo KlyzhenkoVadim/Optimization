@@ -9,8 +9,8 @@ private:
 	Eigen::Vector3d delta;
 	size_t nums;
 
-	std::vector<Eigen::Vector3d> pointsCartesian;
-	std::vector<Eigen::Vector4d> pointsMd;
+	//std::vector<Eigen::Vector3d> pointsCartesian;
+	//std::vector<Eigen::Vector4d> pointsMd;
 
 public:
 	Hold(const Eigen::Vector3d& pi, const Eigen::Vector3d& pf, size_t nums = 10);

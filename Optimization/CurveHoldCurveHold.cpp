@@ -175,11 +175,19 @@ void CurveHoldCurveHold::points(CoordinateSystem coordinateSystem) {
 		for (size_t idx = 0; idx < nHold2 + 1; ++idx) {
 			pointsHold2[idx] = pInter + idx * betta / nHold2 * t4;
 		}
-
+		/*
 		pointsCartesian.pointsArc1 = pointsArc1;
 		pointsCartesian.pointsHold1 = pointsHold1;
 		pointsCartesian.pointsArc2 = pointsArc2;
-		pointsCartesian.pointsHold2 = pointsHold2;
+		pointsCartesian.pointsHold2 = pointsHold2;*/
+		pointsCartesian = pointsArc1;
+			if (holdLength > EPSILON) {
+				std::copy(pointsHold1.begin(), pointsHold1.end(), std::back_inserter(pointsCartesian));
+			}
+			std::copy(pointsArc2.begin(), pointsArc2.end(), std::back_inserter(pointsCartesian));
+			if (betta > EPSILON) {
+				std::copy(pointsHold2.begin(), pointsHold2.end(), std::back_inserter(pointsCartesian));
+			}
 	}
 	else {
 		std::vector<Eigen::Vector4d> pointsArc1 = calcInterpolMDPoints(p1, t1, t, R1, alpha1, std::max(10, int(arc1 / h)));
@@ -202,13 +210,22 @@ void CurveHoldCurveHold::points(CoordinateSystem coordinateSystem) {
 		for (size_t idx = 0; idx < nHold2 + 1; ++idx) {
 			pointsHold2[idx] = { arc1 + idx * holdLength / nHold1, t4[0], t4[1], t4[2] };
 		}
-
+		/*
 		pointsMD.pointsArc1 = pointsArc1;
 		pointsMD.pointsHold1 = pointsHold1;
 		pointsMD.pointsArc2 = pointsArc2;
-		pointsMD.pointsHold2 = pointsHold2;
+		pointsMD.pointsHold2 = pointsHold2;*/
+		pointsMd = pointsArc1;
+		if (holdLength > EPSILON) {
+			std::copy(pointsHold1.begin(), pointsHold1.end(), std::back_inserter(pointsMd));
+		}
+		std::copy(pointsArc2.begin(), pointsArc2.end(), std::back_inserter(pointsMd));
+		if (betta > EPSILON) {
+			std::copy(pointsHold2.begin(), pointsHold2.end(), std::back_inserter(pointsMd));
+		}
 	}
 }
+
 
 double CurveHoldCurveHold::length() {
 	double arc1 = R1 * alpha1;

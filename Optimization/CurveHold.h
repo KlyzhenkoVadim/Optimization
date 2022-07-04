@@ -16,8 +16,8 @@ private:
 	double R; // радиус кривизны траектории (R>0)
 	size_t nums;// число точек траектории
 
-	std::vector<Eigen::Vector3d> pointsCartesian;
-	std::vector<Eigen::Vector4d> pointsMD;
+	//std::vector<Eigen::Vector3d> pointsCartesian;
+	//std::vector<Eigen::Vector4d> pointsMD;
 	double alpha;
 	double betta;
 
