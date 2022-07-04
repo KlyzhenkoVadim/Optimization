@@ -19,19 +19,19 @@ struct PointsMD {
 class CurveHoldCurveHold : public TrajectoryTemplate
 {
 private:
-	Eigen::Vector3d p1; // координата начальной точки траектории (координаты N,E,V)
-	Eigen::Vector3d p4; // координата конечной точки траектории (координаты N,E,V)
+	Eigen::Vector3d p1; // координаты начальной точки траектории (координаты N,E,V)
+	Eigen::Vector3d p4; // координаты конечной точки траектории (координаты N,E,V)
 	Eigen::Vector3d t1; // единичный касательный вектор начальной точки
-	Eigen::Vector3d t4;
+	Eigen::Vector3d t4;	// единичный касательный вектор конечной точки
 	Eigen::Vector3d pInter;
 
-	Eigen::Vector3d r1;
-	Eigen::Vector3d r4;
+	Eigen::Vector3d r1; // координаты центра окружности первого участка curve
+	Eigen::Vector3d r4; // координаты центра окружности второго участка curve
 
-	double tetta1; // значения зенитного угла (в градусах) касательного вектора t1 начальной точке
-	double phi1; // значения азимутального угла (в градусах) касательного вектора t1 начальной точке
-	double tetta4; // значения зенитного угла (в градусах) касательного вектора t1 конечной точке
-	double phi4; // значения азимутального угла (в градусах) касательного вектора t1 конечной точке
+	double tetta1; // значение зенитного угла (в градусах) касательного вектора t1 начальной точке
+	double phi1; // значение азимутального угла (в градусах) касательного вектора t1 начальной точке
+	double tetta4; // значение зенитного угла (в градусах) касательного вектора t1 конечной точке
+	double phi4; // значение азимутального угла (в градусах) касательного вектора t1 конечной точке
 
 	double R1; // радиус кривизны дуги к p1
 	double R2; // радиус кривизны дуги к p4
@@ -40,8 +40,8 @@ private:
 	PointsCartesian pointsCartesian;
 	PointsMD pointsMD;
 
-	double betta;
-	double eps;
+	double betta; // длина финального участка стабилизации hold, если betta = 0. то шаблон CurveHoldCurve
+	double eps; 
 
 	Eigen::Vector3d t;
 	Eigen::Vector3d p1Inter;
@@ -57,5 +57,8 @@ public:
 	void fit() override;
 	void points(CoordinateSystem coordinateSystem) override;
 	double length() override;
+
+	Eigen::Vector3d getInitPoint();
+	Eigen::Vector3d getTargetPoint();
 };
 

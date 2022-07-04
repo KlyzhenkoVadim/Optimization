@@ -22,12 +22,12 @@ CurveHoldCurveHold::CurveHoldCurveHold(const Eigen::Vector3d& p1, double tetta1,
 
 void CurveHoldCurveHold::fit() {
 	//ѕроверка на пересечение окружностей
-	Eigen::Vector3d b1 = -t1.cross(p1 - pInter);
+	Eigen::Vector3d b1 = (pInter - p1).cross(t1);
 	Eigen::Vector3d n1 = t1.cross(b1);
 	n1.normalize();
 
-	Eigen::Vector3d b4 = -t4.cross(p4 - pInter);
-	Eigen::Vector3d n4 = t1.cross(b4);
+	Eigen::Vector3d b4 = (p1 - pInter).cross(-t4);
+	Eigen::Vector3d n4 = -t4.cross(b4);
 	n4.normalize();
 
 	r1 = p1 + R1 * n1;
@@ -78,12 +78,14 @@ void CurveHoldCurveHold::fit() {
 		throw std::runtime_error("Error: Cannot reach p1/p4 from p4/p1 using Curve-hold!");
 	}
 
+	/*
 	if (((r1 - r4).norm() < R1 + R2) and true == isSegmentIntersect(r1, r4, p1, pInter)) {
 		throw std::runtime_error("Intersection of circles");
 	}
-	
-	std::vector<double> aplphaFirst(2);
-	std::vector<double> aplphaSecond(2);
+	*/
+
+	std::vector<double> alphaFirst(2);
+	std::vector<double> alphaSecond(2);
 
 	auto getaAlphaCurrCurvate = [&](bool flag, const auto& p) { // flag = 0 - first curveHold
 		if (false == flag) {
@@ -98,35 +100,36 @@ void CurveHoldCurveHold::fit() {
 		}
 	};
 
-	aplphaFirst[0] = getaAlphaCurrCurvate(0, pInter);
-	Eigen::Vector3d p1j = p1 + R1 * tan(aplphaFirst[0] / 2) * t1;
-	aplphaSecond[0] = getaAlphaCurrCurvate(1, p1j);
-	Eigen::Vector3d pInterj = pInter - R2 * tan(aplphaSecond[0] / 2) * t4;
+	alphaFirst[0] = getaAlphaCurrCurvate(0, pInter);
+	Eigen::Vector3d p1j = p1 + R1 * tan(alphaFirst[0] / 2) * t1;
+	alphaSecond[0] = getaAlphaCurrCurvate(1, p1j);
+	Eigen::Vector3d pInterj = pInter - R2 * tan(alphaSecond[0] / 2) * t4;
 
 	const size_t maxIter = 10e3;
 	size_t iter = 0;
 
 	while (iter < maxIter) {
-		aplphaFirst[1] = getaAlphaCurrCurvate(0, pInterj);
-		p1j = p1 + R1 * tan(aplphaFirst[1] / 2) * t1;
-		aplphaSecond[1] = getaAlphaCurrCurvate(1, p1j);
-		pInterj = pInter - R2 * tan(aplphaSecond[1] / 2) * t4;
+		alphaFirst[1] = getaAlphaCurrCurvate(0, pInterj);
+		p1j = p1 + R1 * tan(alphaFirst[1] / 2) * t1;
+		alphaSecond[1] = getaAlphaCurrCurvate(1, p1j);
+		pInterj = pInter - R2 * tan(alphaSecond[1] / 2) * t4;
 
-		if (sqrt((aplphaFirst[1] - aplphaFirst[0]) * (aplphaFirst[1] - aplphaFirst[0]) + (aplphaSecond[1] - aplphaSecond[0]) * (aplphaSecond[1] - aplphaSecond[0])) < eps) {
+		if (sqrt((alphaFirst[1] - alphaFirst[0]) * (alphaFirst[1] - alphaFirst[0]) + (alphaSecond[1] - alphaSecond[0]) * (alphaSecond[1] - alphaSecond[0])) < eps) {
 			break;
 		}
 
-		std::reverse(aplphaFirst.begin(), aplphaFirst.end());
-		std::reverse(aplphaSecond.begin(), aplphaSecond.end());
+		std::reverse(alphaFirst.begin(), alphaFirst.end());
+		std::reverse(alphaSecond.begin(), alphaSecond.end());
 	}
 
 	if (iter == 999){
 		throw std::runtime_error("Error: Iterations do not converge!");
 	}
 
-	t = (pInterj - p1j) / (pInterj - p1j).norm();
-	alpha1 = aplphaFirst[1];
-	alpha2 = aplphaSecond[1];
+	t = (pInterj - p1j);
+	t.normalize();
+	alpha1 = alphaFirst[1];
+	alpha2 = alphaSecond[1];
 	p1Inter = p1 + R1 * tan(alpha1 / 2) * (t1 + t);
 	p4Inter = pInter - R2 * tan(alpha2 / 2) * (t4 + t);
 	holdLength = (p4Inter - p1Inter).norm();
@@ -138,6 +141,14 @@ void CurveHoldCurveHold::fit() {
 			throw std::runtime_error("Error: Cannot reach the Target!");
 		}
 	}
+}
+
+Eigen::Vector3d CurveHoldCurveHold::getInitPoint() {
+	return this->p1;
+}
+
+Eigen::Vector3d CurveHoldCurveHold::getTargetPoint() {
+	return this->p4;
 }
 
 void CurveHoldCurveHold::points(CoordinateSystem coordinateSystem) {
@@ -154,9 +165,8 @@ void CurveHoldCurveHold::points(CoordinateSystem coordinateSystem) {
 			pointsHold1[idx] = p1Inter + idx * holdLength / nHold1 * t;
 		}
 
-		std::vector<Eigen::Vector3d> tmp = calcInterpolCartesianPoints(pInter, -t4, -t, R2, alpha2, std::max(10, int(arc2 / h)));
+		std::vector<Eigen::Vector3d> pointsArc2 = calcInterpolCartesianPoints(p4Inter, t, t4, R2, alpha2, std::max(10, int(arc2 / h)));
 
-		std::vector<Eigen::Vector3d> pointsArc2(tmp.rbegin(), tmp.rend());
 
 		double nHold2 = std::max(2, int(betta / h));
 
@@ -176,10 +186,8 @@ void CurveHoldCurveHold::points(CoordinateSystem coordinateSystem) {
 		double nHold1 = std::max(2, int(holdLength / h));
 		std::vector<Eigen::Vector4d> pointsHold1(nHold1 + 1);
 
-		std::vector<Eigen::Vector4d> tmp = calcInterpolMDPoints(pInter, -t4, -t, R2, alpha2, std::max(10, int(arc2 / h)));
-
-		std::vector<Eigen::Vector4d> pointsArc2(tmp.rbegin(), tmp.rend());
-
+		std::vector<Eigen::Vector4d> pointsArc2 = calcInterpolMDPoints(p4Inter, t, t4, R2, alpha2, std::max(10, int(arc2 / h)));
+		
 		double nHold2 = std::max(2, int(betta / h));
 
 		std::vector<Eigen::Vector4d> pointsHold2(nHold2 + 1);
@@ -187,15 +195,12 @@ void CurveHoldCurveHold::points(CoordinateSystem coordinateSystem) {
 		for (size_t idx = 0; idx < nHold1 + 1; ++idx) {
 			pointsHold1[idx] = { arc1 + idx * holdLength / nHold1, t[0], t[1], t[2] };
 		}
-
-		std::reverse(pointsArc2.begin(), pointsArc2.end());
-
 		for (size_t idx = 0; idx < pointsArc2.size(); ++idx) {
 			pointsArc2[idx][0] += arc1 + holdLength;
 		}
 
 		for (size_t idx = 0; idx < nHold2 + 1; ++idx) {
-			pointsHold2[idx] = { arc1 + idx * holdLength / nHold1, t[0], t[1], t[2] };
+			pointsHold2[idx] = { arc1 + idx * holdLength / nHold1, t4[0], t4[1], t4[2] };
 		}
 
 		pointsMD.pointsArc1 = pointsArc1;

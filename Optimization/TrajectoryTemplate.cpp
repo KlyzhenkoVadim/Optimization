@@ -11,7 +11,7 @@ Eigen::Vector3d TrajectoryTemplate::calcTangentVector(double azimuth, double inc
 							 fabs(z) > EPSILON ? z : 0.0
 	};
 }
-
+// 
 interpolatedValueType TrajectoryTemplate::calcInterpolPoints(const Eigen::Vector3d& t1, const Eigen::Vector3d& t2, double alpha, size_t nums) {
 
 	std::vector<double> alphaSegment;
@@ -55,7 +55,7 @@ std::vector<Eigen::Vector3d> TrajectoryTemplate::calcInterpolCartesianPoints(con
 	const auto& [alphaInter, tInter] = interValues;
 
 	for (size_t idx = 1; idx < nums; ++idx) {
-		pointsCartesian[idx] = pointsCartesian[idx - 1] + R * tan(alphaInter[idx] / 2.0) * (tInter[idx] + tInter[0]);
+		pointsCartesian[idx] = pointsCartesian[0] + R * tan(alphaInter[idx] / 2.0) * (tInter[idx] + tInter[0]);
 	}
 
 	return pointsCartesian;
