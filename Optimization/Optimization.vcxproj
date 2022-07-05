@@ -155,6 +155,9 @@
     <ClInclude Include="Hold.h" />
     <ClInclude Include="TrajectoryTemplate.h" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="output.txt" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
 </Project>
