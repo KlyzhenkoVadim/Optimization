@@ -36,3 +36,9 @@ public:
 		double R, double alpha, size_t nums = 100);
 };	
 
+
+double allLength(std::vector<TrajectoryTemplate*>& Well);
+
+std::vector<Eigen::Vector3d> allPointsCartesian(std::vector<TrajectoryTemplate*>& Well);
+
+std::vector<Eigen::Vector4d> allPointsMD(std::vector<TrajectoryTemplate* >& Well);

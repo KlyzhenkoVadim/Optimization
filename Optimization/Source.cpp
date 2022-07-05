@@ -1,6 +1,7 @@
 #include "Eigen/Dense"
 #include <iostream>
 #include <vector>
+#include "TrajectoryTemplate.h"
 
 class Calculator {
 public:
@@ -95,3 +96,4 @@ int main()
 
 	return 0;
 }
+

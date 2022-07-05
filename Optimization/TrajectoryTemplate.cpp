@@ -15,7 +15,7 @@ Eigen::Vector3d TrajectoryTemplate::calcTangentVector(double azimuth, double inc
 interpolatedValueType TrajectoryTemplate::calcInterpolPoints(const Eigen::Vector3d& t1, const Eigen::Vector3d& t2, double alpha, size_t nums) {
 
 	std::vector<double> alphaSegment;
-	std::vector<Eigen::Vector3d> tInter(nums); // здесь можно просто Eigen::Vector3d tInter;
+	std::vector<Eigen::Vector3d> tInter(nums); 
 	double eps = 1e-3;
 
 	tInter[0] = t1; 
@@ -81,3 +81,47 @@ std::vector<Eigen::Vector4d> TrajectoryTemplate::calcInterpolMDPoints(const Eige
 
 	return pointsMD;
 }
+
+// AllPoint AllLength Solve
+
+double allLength(std::vector<TrajectoryTemplate*>& Well) {
+	double trajectoryLength = 0.;
+	for (size_t idx = 0; idx < Well.size(); ++idx) {
+		trajectoryLength += Well[idx]->length();
+	}
+	return trajectoryLength;
+}
+
+std::vector<Eigen::Vector3d> allPointsCartesian(std::vector<TrajectoryTemplate*>& Well) {
+	std::vector<Eigen::Vector3d> pointsCartesian;
+	for (size_t idx = 0; idx < Well.size(); ++idx) {
+		Well[idx]->points(CoordinateSystem::CARTESIAN);
+		pointsCartesian.insert(pointsCartesian.end(), Well[idx]->pointsCartesian.begin(), Well[idx]->pointsCartesian.end());
+	}
+	return pointsCartesian;
+}
+
+std::vector<Eigen::Vector4d> allPointsMD(std::vector<TrajectoryTemplate* >& Well) {
+	std::vector<Eigen::Vector4d> pointsMD;
+	double lastMD = 0.;
+	for (size_t idx = 0; idx < Well.size(); ++idx) {
+		Well[idx]->points(CoordinateSystem::MD);
+		std::vector<Eigen::Vector4d> tmp = Well[idx]->pointsMd;
+		for (size_t i = 0; i < tmp.size(); ++i) {
+			pointsMD.push_back({ (lastMD + tmp[i][0]), tmp[i][1], tmp[i][2], tmp[i][3] });
+		}
+		lastMD = pointsMD.back()[0];
+	}
+	return pointsMD;
+}
+
+/*
+void solve(std::vector<TrajectoryTemplate*> Well) {
+	for (size_t idx = 0; idx < Well.size(); ++idx) {
+		try {
+			Well[idx]->fit();
+		}
+		catch (const std::runtime_error& error) {
+
+		}
+}*/

@@ -226,7 +226,6 @@ void CurveHoldCurveHold::points(CoordinateSystem coordinateSystem) {
 	}
 }
 
-
 double CurveHoldCurveHold::length() {
 	double arc1 = R1 * alpha1;
 	double arc2 = R2 * alpha2;
