@@ -143,6 +143,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CostFuncs.cpp" />
     <ClCompile Include="CurveHold.cpp" />
     <ClCompile Include="CurveHoldCurveHold.cpp" />
     <ClCompile Include="Hold.cpp" />
@@ -150,6 +151,7 @@
     <ClCompile Include="TrajectoryTemplate.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CostFuncs.h" />
     <ClInclude Include="CurveHold.h" />
     <ClInclude Include="CurveHoldCurveHold.h" />
     <ClInclude Include="Hold.h" />
