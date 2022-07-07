@@ -15,7 +15,7 @@ int signum(double x) {
 
 double sepFactor(std::vector<Eigen::Vector3d>& pCartesianW1,
 	std::vector<Eigen::Vector4d>& pMDW1,
-	std::vector<Eigen::Vector3d>& pCartesianW2, bool actFunc = true, double penalty = 100) {
+	std::vector<Eigen::Vector3d>& pCartesianW2, bool actFunc, double penalty) {
 	size_t n = pCartesianW1.size(), m = pCartesianW2.size();
 	Eigen::MatrixXd distanceMatrix(n, m);//std::vector<std::vector<double>> distanceMatrix;
 	Eigen::MatrixXd scalarProdMatrix(n, m); //std::vector<std::vector<double>> scalarProdMatrix;
@@ -98,7 +98,7 @@ double Tortuosity(std::vector<Eigen::Vector4d>& pointsMD) {
 	return tortuos;
 }
 
-double DDI(std::vector<Eigen::Vector3d>& pCartesian,std::vector<Eigen::Vector4d>& pMD, bool actFunc = true, double penalty = 10.) {
+double DDI(std::vector<Eigen::Vector3d>& pCartesian,std::vector<Eigen::Vector4d>& pMD, bool actFunc, double penalty) {
 	double toruos = Tortuosity(pMD);
 	double DDI;
 	std::vector<double> pX, pY;
@@ -117,14 +117,13 @@ double DDI(std::vector<Eigen::Vector3d>& pCartesian,std::vector<Eigen::Vector4d>
 }	
 
 
-double orderScore(std::vector<TrajectoryTemplate*>& mainWell, std::vector<std::vector<TrajectoryTemplate*>>& Trajectories, double penalty = 1000) {
+double orderScore(std::vector<TrajectoryTemplate*>& mainWell, std::vector<std::vector<TrajectoryTemplate*>>& Trajectories, double penalty) {
 	double mainLength, mainDDI,rSepFactor = 0;
-	try {
-		mainLength = allLength(mainWell); // здесь нужен fit,  a в роли аргументов должен быть динам. массив...
+	int condition = solve(mainWell);
+	if (condition != 0) {
+		return penalty * condition/mainWell.size(); // penalty * percent of incorrect templates.
 	}
-	catch (std::runtime_error err) {
-		return penalty;
-	}
+	mainLength = allLength(mainWell);
 	Eigen::Vector3d tmpVec = mainWell.back()->pointsCartesian.back() - mainWell[0]->pointsCartesian[0];
 	std::vector<Eigen::Vector3d> mainPCartesian = allPointsCartesian(mainWell);
 	std::vector<Eigen::Vector4d> mainPMD = allPointsMD(mainWell);

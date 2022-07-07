@@ -115,13 +115,15 @@ std::vector<Eigen::Vector4d> allPointsMD(std::vector<TrajectoryTemplate* >& Well
 	return pointsMD;
 }
 
-/*
-void solve(std::vector<TrajectoryTemplate*> Well) {
+int solve(std::vector<TrajectoryTemplate*>& Well) {
+	int numErrors = 0;
 	for (size_t idx = 0; idx < Well.size(); ++idx) {
 		try {
 			Well[idx]->fit();
 		}
 		catch (const std::runtime_error& error) {
-
+			numErrors += 1;
 		}
-}*/
+	}
+	return numErrors;
+}

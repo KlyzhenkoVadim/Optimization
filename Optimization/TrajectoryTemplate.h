@@ -42,3 +42,5 @@ double allLength(std::vector<TrajectoryTemplate*>& Well);
 std::vector<Eigen::Vector3d> allPointsCartesian(std::vector<TrajectoryTemplate*>& Well);
 
 std::vector<Eigen::Vector4d> allPointsMD(std::vector<TrajectoryTemplate* >& Well);
+
+int solve(std::vector<TrajectoryTemplate*>& Well);

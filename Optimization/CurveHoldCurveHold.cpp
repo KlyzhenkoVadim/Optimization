@@ -48,7 +48,6 @@ void CurveHoldCurveHold::fit() {
 			}
 			return false;
 		};
-
 		int d1 = direction(p3, p4, p1);
 		int d2 = direction(p3, p4, p2);
 		int d3 = direction(p1, p2, p3);

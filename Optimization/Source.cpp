@@ -79,24 +79,19 @@ int main()
 	ch2->points(CoordinateSystem::MD);
 	double ch1DDI = DDI(ch1->pointsCartesian, ch1->pointsMd, false, 10);
 	//std::cout << "DDI is: " << ch1DDI << std::endl;
-	std::vector<TrajectoryTemplate*> tT;
-	tT.push_back(ch1);
+	std::vector<TrajectoryTemplate*> tMain,tT;
+	tMain.push_back(ch1);
+	tT.push_back(ch2);
 	//std::cout << "allLength: " << allLength(tT) << std::endl;
+	double sumScore;
+	std::vector < std::vector<TrajectoryTemplate*>> trajectories;
+	std::cout << trajectories.size();
+	trajectories.push_back(tT);
 	
-	double sf = sepFactor(ch1->pointsCartesian, ch1->pointsMd, ch2->pointsCartesian, false, 100);
-	//std::cout << "sepFactor: " << sf << std::endl;
-	size_t dim = 10,numIterations = 200;
-	std::vector<double> minValues(dim, -5.12);
-	std::vector<double> maxValues(dim, 5.12);
-	std::vector<double> inertia(numIterations, 0.9);
-	
-	PSOvalueType pso = PSO(Rastrigin, minValues, maxValues, 50, dim, 0.3, 0.5, numIterations, inertia);
-	Eigen::VectorXd gBest;
-	std::cout << "bestCost: " << pso.second << std::endl;
-	std::cout << "bestPos: ";
-	for (auto x : pso.first)
-		std::cout << x << ", ";
+	sumScore = orderScore(tMain, trajectories);
 
+	std::cout << "SumScore : " << sumScore;
+	
 
 	return 0;
 }
