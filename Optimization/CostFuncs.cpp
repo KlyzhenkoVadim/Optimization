@@ -61,14 +61,11 @@ double sepFactor(std::vector<Eigen::Vector3d>& pCartesianW1,
 		return sepFactor;
 	}
 	
-	// ...
 
 
 double AHD(std::vector<double>& pX, std::vector<double>& pY) {
 	double AHD = 0;
-	if (pX.size() != pY.size()) {
-		throw(std::exception("length pX and pY must be equal"));
-	}
+	assert("length pX and pY must be equal", pX.size() != pY.size());
 	for (size_t i = 1; i < pX.size(); ++i) {
 		
 		AHD += sqrt((pX[i] - pX[i - 1])*(pX[i] - pX[i - 1]) + (pY[i] - pY[i - 1])*(pY[i] - pY[i - 1]));

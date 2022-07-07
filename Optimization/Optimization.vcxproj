@@ -147,6 +147,7 @@
     <ClCompile Include="CurveHold.cpp" />
     <ClCompile Include="CurveHoldCurveHold.cpp" />
     <ClCompile Include="Hold.cpp" />
+    <ClCompile Include="PSO.cpp" />
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="TrajectoryTemplate.cpp" />
   </ItemGroup>
@@ -155,6 +156,7 @@
     <ClInclude Include="CurveHold.h" />
     <ClInclude Include="CurveHoldCurveHold.h" />
     <ClInclude Include="Hold.h" />
+    <ClInclude Include="PSO.h" />
     <ClInclude Include="TrajectoryTemplate.h" />
   </ItemGroup>
   <ItemGroup>

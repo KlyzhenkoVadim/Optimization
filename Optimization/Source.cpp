@@ -5,6 +5,9 @@
 #include "CurveHold.h"
 #include <fstream>
 #include "CostFuncs.h"
+#include "PSO.h"
+#include <cmath>
+
 class Calculator {
 public:
 	virtual void calc() = 0;
@@ -24,6 +27,23 @@ public:
 };
 
 void writeData(std::vector<Eigen::Vector3d>& pointsCartesian, std::string filename);
+
+double Rastrigin(Eigen::VectorXd x) {
+	size_t n = x.size();
+	double result = 10. * n;
+	for (size_t i = 0; i < n; ++i)
+		result += x(i) * x(i) - 10 * cos(2 * PI * x(i));
+	return result;
+
+}
+
+double Sphere(Eigen::VectorXd x) {
+	size_t n = x.size();
+	double result = 0.;
+	for (size_t idx = 0; idx < n; ++idx)
+		result += x(idx) * x(idx);
+	return result;
+}
 
 int main()
 {
@@ -58,13 +78,25 @@ int main()
 	ch2->points(CoordinateSystem::CARTESIAN);
 	ch2->points(CoordinateSystem::MD);
 	double ch1DDI = DDI(ch1->pointsCartesian, ch1->pointsMd, false, 10);
-	std::cout << "DDI is: " << ch1DDI << std::endl;
+	//std::cout << "DDI is: " << ch1DDI << std::endl;
 	std::vector<TrajectoryTemplate*> tT;
 	tT.push_back(ch1);
-	std::cout << "allLength: " << allLength(tT) << std::endl;
+	//std::cout << "allLength: " << allLength(tT) << std::endl;
 	
 	double sf = sepFactor(ch1->pointsCartesian, ch1->pointsMd, ch2->pointsCartesian, false, 100);
-	std::cout << "sepFactor: " << sf << std::endl;
+	//std::cout << "sepFactor: " << sf << std::endl;
+	size_t dim = 10,numIterations = 200;
+	std::vector<double> minValues(dim, -5.12);
+	std::vector<double> maxValues(dim, 5.12);
+	std::vector<double> inertia(numIterations, 0.9);
+	
+	PSOvalueType pso = PSO(Rastrigin, minValues, maxValues, 50, dim, 0.3, 0.5, numIterations, inertia);
+	Eigen::VectorXd gBest;
+	std::cout << "bestCost: " << pso.second << std::endl;
+	std::cout << "bestPos: ";
+	for (auto x : pso.first)
+		std::cout << x << ", ";
+
 
 	return 0;
 }
