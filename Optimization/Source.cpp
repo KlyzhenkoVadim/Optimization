@@ -85,12 +85,21 @@ int main()
 	//std::cout << "allLength: " << allLength(tT) << std::endl;
 	double sumScore;
 	std::vector < std::vector<TrajectoryTemplate*>> trajectories;
-	std::cout << trajectories.size();
 	trajectories.push_back(tT);
-	
-	sumScore = orderScore(tMain, trajectories);
-
-	std::cout << "SumScore : " << sumScore;
+	auto Score = [&](Eigen::VectorXd& x) {
+		TrajectoryTemplate* ptrMWell = new CurveHold(x, pTarget, theta, phi, R);
+		tMain[0] = ptrMWell;
+		return orderScore(tMain, trajectories);
+	};
+	std::vector<double> minValues(2, -50.);
+	std::vector<double> maxValues(2, 50.);
+	std::vector<double> inert(100, .9);
+	Eigen::VectorXd vec{0,0,0};
+	double s = Score(vec);
+	//PSOvalueType structPSO = PSO(Score, minValues, maxValues, 4, 2, inert);
+	//std::cout << "gBestCost: " << structPSO.second << std::endl;
+	//for (auto x : structPSO.first)
+	//	std::cout << "gBestPos: " << x << ", ";
 	
 
 	return 0;
@@ -104,3 +113,4 @@ void writeData(std::vector<Eigen::Vector3d>& pointsCartesian, std::string filena
 	}
 	output.close();
 }
+
