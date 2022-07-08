@@ -1,6 +1,6 @@
 #include "CostFuncs.h"
 #include <cmath>
-
+#include <iostream>
 double sigmoid(double x, double penalty, double alpha, double x0) {
 	return penalty / (1 + exp(alpha * (x - x0)));
 }
@@ -121,12 +121,15 @@ double orderScore(std::vector<TrajectoryTemplate*>& mainWell, std::vector<std::v
 	double mainLength, mainDDI,rSepFactor = 0;
 	int condition = solve(mainWell);
 	if (condition != 0) {
+		std::cout << "penalty" << "\n";
 		return penalty * condition/mainWell.size(); // penalty * percent of incorrect templates.
 	}
+	std::cout << "!" << std::endl;
 	mainLength = allLength(mainWell);
-	Eigen::Vector3d tmpVec = mainWell.back()->pointsCartesian.back() - mainWell[0]->pointsCartesian[0];
+	std::cout << "?" << std::endl;
 	std::vector<Eigen::Vector3d> mainPCartesian = allPointsCartesian(mainWell);
 	std::vector<Eigen::Vector4d> mainPMD = allPointsMD(mainWell);
+	Eigen::Vector3d tmpVec = mainWell.back()->pointsCartesian.back() - mainWell[0]->pointsCartesian[0];
 	mainLength /= tmpVec.norm();
 	mainDDI = DDI(mainPCartesian, mainPMD);
 	if (Trajectories.size() == 0) {

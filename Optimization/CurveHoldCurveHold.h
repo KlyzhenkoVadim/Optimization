@@ -1,21 +1,7 @@
 #pragma once
 #include "TrajectoryTemplate.h"
 #include "CurveHold.h"
-/*
-struct PointsCartesian {
-	std::vector<Eigen::Vector3d> pointsArc1;
-	std::vector<Eigen::Vector3d> pointsHold1;
-	std::vector<Eigen::Vector3d> pointsArc2;
-	std::vector<Eigen::Vector3d> pointsHold2;
-};
 
-struct PointsMD {
-	std::vector<Eigen::Vector4d> pointsArc1;
-	std::vector<Eigen::Vector4d> pointsHold1;
-	std::vector<Eigen::Vector4d> pointsArc2;
-	std::vector<Eigen::Vector4d> pointsHold2;
-};
-*/
 class CurveHoldCurveHold : public TrajectoryTemplate
 {
 private:
@@ -37,8 +23,6 @@ private:
 	double R2; // радиус кривизны дуги к p4
 	size_t nums;// число точек траектории
 
-	//PointsCartesian pointsCartesian;
-	//PointsMD pointsMD;
 
 	double betta; // длина финального участка стабилизации hold, если betta = 0. то шаблон CurveHoldCurve
 	double eps; 

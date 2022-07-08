@@ -13,64 +13,76 @@ PSOvalueType PSO(std::function<double(Eigen::VectorXd)> func, std::vector<double
 	for (size_t idx = 0; idx < dimension; ++idx) {
 		vMax.push_back(fabs(maxValues[idx] - minValues[idx]) / 2);
 	}
-	Eigen::MatrixXd Xposition(numAgents,dimension);
-	Eigen::MatrixXd Velocities(numAgents,dimension);
+	Eigen::VectorXd tmp(dimension);
+	std::vector<Eigen::VectorXd> Xposition(numAgents,tmp); //(numAgents,dimension)
+	std::vector<Eigen::VectorXd> Velocities(numAgents, tmp);//(numAgents,dimension);
 	Eigen::VectorXd gBestPos(dimension);
-	Eigen::MatrixXd pBestPos(numAgents,dimension);
-
+	std::vector<Eigen::VectorXd> pBestPos;//(numAgents,dimension);
+	
 	std::random_device rd;
 	std::mt19937 gen(rd());
 	std::uniform_real_distribution distCoefs(0., 1.);
-
+	std::vector<std::uniform_real_distribution<double>> distrPos;
+	std::vector<std::uniform_real_distribution<double>> distrVel;
 	for (size_t i = 0; i < dimension; ++i) {
-		std::uniform_real_distribution distPos(minValues[i], maxValues[i]);
-		std::uniform_real_distribution distVel(-vMax[i], vMax[i]);
-		for (size_t j = 0; j < numAgents; ++j) {
-			Xposition(j,i) = distPos(gen);
-			Velocities(j,i) = distVel(gen);
+		distrPos.push_back(std::uniform_real_distribution(minValues[i], maxValues[i]));
+		distrVel.push_back(std::uniform_real_distribution(-vMax[i], vMax[i]));
+	}
+
+	for (size_t i = 0; i < numAgents; ++i) {
+		for (size_t j = 0; j < dimension; ++j) {
+			Xposition[i](j) = distrPos[j](gen);
+			Velocities[i](j) = distrVel[j](gen);
 		}
 	}
 
 	pBestPos = Xposition;
 	size_t idxgBest = 0;
-	double minFunc = func(Xposition.row(0));
+	double minFunc = func(Xposition[0]);
 	for (size_t k = 1; k < numAgents; ++k) {
-		double tmp = func(Xposition.row(k));
+		double tmp = func(Xposition[k]);
 		if (tmp - minFunc < 1e-10){
 			minFunc = tmp;
 			idxgBest = k;
 		}
 	}
-	gBestPos = Xposition.row(idxgBest);
-
+	gBestPos = Xposition[idxgBest];
+		
 	for (size_t iteration = 0; iteration < numIterations; ++iteration) {
 		// r1 r2 
+		//std::cout  <<"Iteration: " <<iteration <<"/"<<numIterations;
 		for (size_t idAg = 0; idAg < numAgents; ++idAg) {
 			double r1 = distCoefs(gen), r2 = distCoefs(gen);
 			for (size_t idim = 0; idim < dimension; ++idim) {
-				Velocities(idAg, idim) = (inertia[iteration] * Velocities(idAg, idim) +
-					r1 * indCoef * (pBestPos(idAg, idim) - Xposition(idAg, idim)) +
-					r2 * socCoef * (gBestPos[idim] - Xposition(idAg, idim)));
-				if (Velocities(idAg, idim) - vMax[idim] > 1e-10)
-					Velocities(idAg, idim) = vMax[idim];
-				else if (Velocities(idAg, idim) + vMax[idim] < -1e-10)
-					Velocities(idAg, idim) = -vMax[idim];
-				if ((Xposition(idAg, idim) + Velocities(idAg, idim) - maxValues[idim] <= 1e-10) and
-					(Xposition(idAg, idim) + Velocities(idAg, idim) - minValues[idim] >= 1e-10))
-					Xposition(idAg, idim) += Velocities(idAg, idim);
-				else if((Xposition(idAg, idim) - Velocities(idAg, idim) - maxValues[idim] <= 1e-10) and
-					(Xposition(idAg, idim) - Velocities(idAg, idim) - minValues[idim] >= 1e-10))
-					Xposition(idAg, idim) -= Velocities(idAg, idim);
+				Velocities[idAg](idim) = (inertia[iteration] * Velocities[idAg](idim) +
+					r1 * indCoef * (pBestPos[idAg](idim) - Xposition[idAg](idim)) +
+					r2 * socCoef * (gBestPos[idim] - Xposition[idAg](idim)));
+				if (Velocities[idAg](idim) - vMax[idim] > 1e-10)
+					Velocities[idAg](idim) = vMax[idim];
+				else if (Velocities[idAg](idim) + vMax[idim] < -1e-10)
+					Velocities[idAg](idim) = -vMax[idim];
+				if ((Xposition[idAg](idim) + Velocities[idAg](idim) - maxValues[idim] <= 1e-10) and
+					(Xposition[idAg](idim) + Velocities[idAg](idim) - minValues[idim] >= 1e-10))
+					Xposition[idAg](idim) += Velocities[idAg](idim);
+				else if((Xposition[idAg](idim) - Velocities[idAg](idim) - maxValues[idim] <= 1e-10) and
+					(Xposition[idAg](idim) - Velocities[idAg](idim) - minValues[idim] >= 1e-10))
+					Xposition[idAg](idim) -= Velocities[idAg](idim);
 			}
 		}
 		for (size_t idxAg = 0; idxAg < numAgents; ++ idxAg){
-			double tmpfuncMean = func(Xposition.row(idxAg)); 
-			if (tmpfuncMean - func(pBestPos.row(idxAg)) < 1e-10)
-				pBestPos.row(idxAg) = Xposition.row(idxAg);
+			double tmpfuncMean = func(Xposition[idxAg]); 
+			if (tmpfuncMean - func(pBestPos[idxAg]) < 1e-10)
+				pBestPos[idxAg]= Xposition[idxAg];
 			if (tmpfuncMean - func(gBestPos) < 1e-10)
-				gBestPos = Xposition.row(idxAg);
+				gBestPos = Xposition[idxAg];
 		}
+		/*std::string tmpS = std::to_string(iteration);
+		tmpS.append(std::to_string(numIterations));
+		tmpS.append("Iteration: ");
+		for (size_t s = 0; s <= tmpS.size(); ++s) 
+				std::cout << "\b" << " " << "\b";*/
 	}
+	//std::cout << "Iteration" << numIterations << "/" << numIterations << std::endl;
 	return { gBestPos, func(gBestPos) };
 
 }

@@ -1,6 +1,7 @@
 #pragma once
 #include "Eigen\Dense"
 #include <random>
+#include <iostream>
 
 using PSOvalueType =  std::pair<Eigen::VectorXd , double>;
 

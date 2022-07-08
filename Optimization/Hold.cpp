@@ -19,17 +19,19 @@ Eigen::Vector3d Hold::getTargetPoint() {
 	return this->pf;
 }
 
+void Hold::fit() {}
+
 void Hold::points(CoordinateSystem coordinateSystem) {
 	if (coordinateSystem == CoordinateSystem::CARTESIAN) {
 		for (size_t i = 0; i < nums; ++i) {
-			pointsCartesian[i] = pi + delta * i / (nums - 1);
+			pointsCartesian.push_back(pi + delta * i / (nums - 1));
 		}
 	}
 	else {
 		Eigen::Vector3d t = delta;
 		t.normalize();
 		for (size_t id = 0; id < nums; ++id) {
-			pointsMd[id] = {(delta.norm() * id / (nums - 1)),t[0],t[1],t[2]};
+			pointsMd.push_back({ (delta.norm() * id / (nums - 1)), t[0], t[1], t[2] });
 		}
 	}
 }

@@ -6,12 +6,12 @@ CurveHoldCurveHold::CurveHoldCurveHold(const Eigen::Vector3d& p1, double tetta1,
 
 	this->p1 = p1;
 	this->p4 = p4;
-	this->t1 = calcTangentVector(tetta1, phi1);
+	this->t1 = calcTangentVector(phi1,tetta1);
 	this->phi1 = phi1;
 	this->phi4 = phi4;
 	this->tetta1 = tetta1;
 	this->tetta4 = tetta4;
-	this->t4 = calcTangentVector(tetta4, phi4);
+	this->t4 = calcTangentVector(phi4,tetta4);
 	this->R1 = R1;
 	this->R2 = R2;
 	this->eps = eps;

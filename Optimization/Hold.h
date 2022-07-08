@@ -14,8 +14,7 @@ private:
 
 public:
 	Hold(const Eigen::Vector3d& pi, const Eigen::Vector3d& pf, size_t nums = 10);
-
-	void fit() = 0;
+	void fit() override;
 	void points(CoordinateSystem coordinateSystem) override;
 	double length() override;
 
