@@ -28,8 +28,8 @@ public:
 	}
 };
 
-void writeData(std::vector<Eigen::Vector3d>& pointsCartesian, std::string filename);
-
+void writeDataCartesian(std::vector<Eigen::Vector3d>& pointsCartesian, std::string filename);
+void writeDataMD(std::vector<Eigen::Vector4d>& pointsMD, std::string filename);
 double Rastrigin(Eigen::VectorXd x) {
 	size_t n = x.size();
 	double result = 10. * n;
@@ -111,8 +111,8 @@ int main()
 	Eigen::VectorXd arg{ {113.486, 157.638, 1565.62, 63.4603, 205.079, 113.979} };
 	std::vector<TrajectoryTemplate *> well = Well1(arg);
 	int cond = solve(well);
-	std::vector<Eigen::Vector3d> pS = allPointsCartesian(well);
-	writeData(pS,"output.txt");
+	std::vector<Eigen::Vector4d> pS = allPointsMD(well);
+	writeDataMD(pS,"output.txt");
 	
 	std::time_t start = time(NULL);
 	/*
@@ -137,7 +137,7 @@ void getOptData(PSOvalueType op) {
 	std::cout << std::endl;
 }
 
-void writeData(std::vector<Eigen::Vector3d>& pointsCartesian, std::string filename) {
+void writeDataCartesian(std::vector<Eigen::Vector3d>& pointsCartesian, std::string filename) {
 	std::ofstream output;
 	output.open(filename);
 	for (size_t i = 0; i < pointsCartesian.size(); ++i) {
@@ -146,3 +146,11 @@ void writeData(std::vector<Eigen::Vector3d>& pointsCartesian, std::string filena
 	output.close();
 }
 
+void writeDataMD(std::vector<Eigen::Vector4d>& pointsMD, std::string filename) {
+	std::ofstream output;
+	output.open(filename);
+	for (size_t i = 0; i < pointsMD.size(); ++i) {
+		output << pointsMD[i][0] << "," << pointsMD[i][1] << "," << pointsMD[i][2] <<"," << pointsMD[i][3] << std::endl;
+	}
+	output.close();
+}

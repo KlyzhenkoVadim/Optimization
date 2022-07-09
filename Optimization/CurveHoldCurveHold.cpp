@@ -213,7 +213,7 @@ void CurveHoldCurveHold::points(CoordinateSystem coordinateSystem) {
 		}
 
 		for (size_t idx = 0; idx < nHold2 + 1; ++idx) {
-			pointsHold2[idx] = { arc1 + idx * holdLength / nHold1, t4[0], t4[1], t4[2] };
+			pointsHold2[idx] = { arc1 +arc2 + holdLength + idx * betta/ nHold2, t4[0], t4[1], t4[2] };
 		}
 		/*
 		pointsMD.pointsArc1 = pointsArc1;
