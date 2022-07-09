@@ -108,32 +108,32 @@ int main()
 	mainWell.push_back(Well1);
 	mainWell.push_back(Well2);
 	mainWell.push_back(Well3);
-	Eigen::VectorXd veC{{-279.84622622,23.74792932,1691.45621205,61.38279895 ,167.29107441,107.54223499}};
-	//std::vector<TrajectoryTemplate*> tmp = Well1(veC);
-	//std::cout << orderScore(tmp, trajectories);
+	Eigen::VectorXd arg{ {113.486, 157.638, 1565.62, 63.4603, 205.079, 113.979} };
+	std::vector<TrajectoryTemplate *> well = Well1(arg);
+	int cond = solve(well);
+	std::vector<Eigen::Vector3d> pS = allPointsCartesian(well);
+	writeData(pS,"output.txt");
 	
-	for (size_t i = 0; i < mainWell.size()-2; ++i) {
+	std::time_t start = time(NULL);
+	/*
+	for (size_t i = 0; i < mainWell.size(); ++i) {
 		std::function<double(Eigen::VectorXd)> score = [&](Eigen::VectorXd x) {
 			std::vector<TrajectoryTemplate*> tmp = mainWell[i](x);
 			return orderScore(tmp, trajectories); };
 		PSOvalueType opt = PSO(score, minValues, maxValues,7 , 6, inert);
-		//trajectories.push_back(mainWell[i](opt.first));
-		//getOptData(opt);
+		trajectories.push_back(mainWell[i](opt.first));
+		getOptData(opt);
 	}
-	//Eigen::Vector3d pInit(0, 0, 100);
-	//Eigen::Vector3d pTarg(600,50,2500);
-	//TrajectoryTemplate* ptr = new CurveHoldCurveHold(pInit, 0, 0, m, m, pTarg,90, 0, 500);
-	//ptr->fit();
-	//ptr->points(CoordinateSystem::CARTESIAN);
-	//writeData(ptr->pointsCartesian, "output.txt");
-
+	std::cout << "Time: " << time(NULL) - start << std::endl;
+	*/
 	return 0;
 }
 
 void getOptData(PSOvalueType op) {
 	std::cout << "gBestCost: " << op.second << std::endl;
+	std::cout << "gBestPos: ";
 	for (auto x : op.first)
-		std::cout << "gBestPos: " << x << ", ";
+		 std::cout<< x << ", ";
 	std::cout << std::endl;
 }
 

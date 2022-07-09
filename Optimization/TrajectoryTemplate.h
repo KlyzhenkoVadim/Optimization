@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include "Eigen/Dense"
+#include <iostream>
 
 // все обозначения сохранены из статьи: A compendium of directional calculations based on minimum curvature method. Sawaryn, Thorogood.
 

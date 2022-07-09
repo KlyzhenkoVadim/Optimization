@@ -14,7 +14,7 @@ PSOvalueType PSO(std::function<double(Eigen::VectorXd)> func, std::vector<double
 		vMax.push_back(fabs(maxValues[idx] - minValues[idx]) / 2);
 	}
 	Eigen::VectorXd tmp(dimension);
-	std::vector<Eigen::VectorXd> Xposition(numAgents,tmp); //(numAgents,dimension)
+	std::vector<Eigen::VectorXd> Xposition(numAgents,tmp);//(numAgents,dimension)
 	std::vector<Eigen::VectorXd> Velocities(numAgents, tmp);//(numAgents,dimension);
 	Eigen::VectorXd gBestPos(dimension);
 	std::vector<Eigen::VectorXd> pBestPos;//(numAgents,dimension);
@@ -47,7 +47,7 @@ PSOvalueType PSO(std::function<double(Eigen::VectorXd)> func, std::vector<double
 		}
 	}
 	gBestPos = Xposition[idxgBest];
-		
+
 	for (size_t iteration = 0; iteration < numIterations; ++iteration) {
 		// r1 r2 
 		//std::cout  <<"Iteration: " <<iteration <<"/"<<numIterations;
@@ -69,12 +69,14 @@ PSOvalueType PSO(std::function<double(Eigen::VectorXd)> func, std::vector<double
 					Xposition[idAg](idim) -= Velocities[idAg](idim);
 			}
 		}
-		for (size_t idxAg = 0; idxAg < numAgents; ++ idxAg){
-			double tmpfuncMean = func(Xposition[idxAg]); 
+		for (size_t idxAg = 0; idxAg < numAgents; ++idxAg) {
+			double tmpfuncMean = func(Xposition[idxAg]);
 			if (tmpfuncMean - func(pBestPos[idxAg]) < 1e-10)
-				pBestPos[idxAg]= Xposition[idxAg];
-			if (tmpfuncMean - func(gBestPos) < 1e-10)
+				pBestPos[idxAg] = Xposition[idxAg];
+			if (tmpfuncMean - minFunc < 1e-10) {
 				gBestPos = Xposition[idxAg];
+				minFunc = func(gBestPos);
+			}
 		}
 		/*std::string tmpS = std::to_string(iteration);
 		tmpS.append(std::to_string(numIterations));
@@ -83,6 +85,6 @@ PSOvalueType PSO(std::function<double(Eigen::VectorXd)> func, std::vector<double
 				std::cout << "\b" << " " << "\b";*/
 	}
 	//std::cout << "Iteration" << numIterations << "/" << numIterations << std::endl;
-	return { gBestPos, func(gBestPos) };
+	return {gBestPos,minFunc};
 
 }

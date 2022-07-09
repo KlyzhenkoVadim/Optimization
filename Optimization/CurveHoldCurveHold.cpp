@@ -89,12 +89,22 @@ void CurveHoldCurveHold::fit() {
 	auto getaAlphaCurrCurvate = [&](bool flag, const auto& p) { // flag = 0 - first curveHold
 		if (false == flag) {
 			CurveHold firstCurveHold(p1, p, tetta1, phi1, R1);
-			firstCurveHold.fit();
+			try {
+				firstCurveHold.fit();
+			}
+			catch (std::runtime_error& err) {
+				std::cout << "err";
+			}
 			return firstCurveHold.getAlpha();
 		}
 		else {
 			CurveHold secondCurveHold(pInter, p, 180.0 - tetta4, 180.0 + phi1, R2);
-			secondCurveHold.fit();
+			try {
+				secondCurveHold.fit();
+			}
+			catch (std::runtime_error& err) {
+				std::cout << "err";
+			}
 			return secondCurveHold.getAlpha();
 		}
 	};
@@ -119,6 +129,7 @@ void CurveHoldCurveHold::fit() {
 
 		std::reverse(alphaFirst.begin(), alphaFirst.end());
 		std::reverse(alphaSecond.begin(), alphaSecond.end());
+		iter += 1;  // !!!
 	}
 
 	if (iter == 999){
@@ -174,11 +185,6 @@ void CurveHoldCurveHold::points(CoordinateSystem coordinateSystem) {
 		for (size_t idx = 0; idx < nHold2 + 1; ++idx) {
 			pointsHold2[idx] = pInter + idx * betta / nHold2 * t4;
 		}
-		/*
-		pointsCartesian.pointsArc1 = pointsArc1;
-		pointsCartesian.pointsHold1 = pointsHold1;
-		pointsCartesian.pointsArc2 = pointsArc2;
-		pointsCartesian.pointsHold2 = pointsHold2;*/
 		pointsCartesian = pointsArc1;
 			if (holdLength > EPSILON) {
 				std::copy(pointsHold1.begin(), pointsHold1.end(), std::back_inserter(pointsCartesian));

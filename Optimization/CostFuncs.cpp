@@ -61,8 +61,6 @@ double sepFactor(std::vector<Eigen::Vector3d>& pCartesianW1,
 		return sepFactor;
 	}
 	
-
-
 double AHD(std::vector<double>& pX, std::vector<double>& pY) {
 	double AHD = 0;
 	assert("length pX and pY must be equal", pX.size() != pY.size());
@@ -116,20 +114,18 @@ double DDI(std::vector<Eigen::Vector3d>& pCartesian,std::vector<Eigen::Vector4d>
 	return DDI;
 }	
 
-
 double orderScore(std::vector<TrajectoryTemplate*>& mainWell, std::vector<std::vector<TrajectoryTemplate*>>& Trajectories, double penalty) {
 	double mainLength, mainDDI,rSepFactor = 0;
 	int condition = solve(mainWell);
 	if (condition != 0) {
-		std::cout << "penalty" << "\n";
 		return penalty * condition/mainWell.size(); // penalty * percent of incorrect templates.
 	}
-	std::cout << "!" << std::endl;
 	mainLength = allLength(mainWell);
-	std::cout << "?" << std::endl;
 	std::vector<Eigen::Vector3d> mainPCartesian = allPointsCartesian(mainWell);
 	std::vector<Eigen::Vector4d> mainPMD = allPointsMD(mainWell);
 	Eigen::Vector3d tmpVec = mainWell.back()->pointsCartesian.back() - mainWell[0]->pointsCartesian[0];
+	if (tmpVec.norm() == 0)
+		return 0.;
 	mainLength /= tmpVec.norm();
 	mainDDI = DDI(mainPCartesian, mainPMD);
 	if (Trajectories.size() == 0) {

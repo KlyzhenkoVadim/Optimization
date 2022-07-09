@@ -77,7 +77,7 @@ void CurveHold::fit() {
 	Eigen::Vector3d r = p1 + R * n1;
 	double norm = (p3 - r).norm();
 
-	if (norm < R) {
+	if (norm - R < EPSILON) {
 		throw std::runtime_error("Target point lies inside  the sphere.");
 	}
 
