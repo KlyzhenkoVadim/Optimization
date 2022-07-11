@@ -10,6 +10,19 @@
 #include "PSO.h"
 #include <cmath>
 
+
+//std::cout << -p1;
+
+	//Calculator* c1 = new Calculater();
+	//Calculator* c2 = new Calculatir();
+
+	//std::vector<Calculator*> calcs;
+
+	//calcs.push_back(c1);
+	//calcs.push_back(c2);
+
+	//calcs[0]->calc();
+	//calcs[1]->calc();
 class Calculator {
 public:
 	virtual void calc() = 0;
@@ -49,22 +62,9 @@ double Sphere(Eigen::VectorXd x) {
 
 void getOptData(PSOvalueType op);
 
+
 int main()
 {
-	//std::cout << -p1;
-
-	Calculator* c1 = new Calculater();
-	Calculator* c2 = new Calculatir();
-
-	std::vector<Calculator*> calcs;
-
-	calcs.push_back(c1);
-	calcs.push_back(c2);
-
-	//calcs[0]->calc();
-	//calcs[1]->calc();
-
-
 	double m = 1800 / PI;
 	std::vector<double> minValues = { -1000., -1000., 100., 60., 0., 100. };
 	std::vector<double> maxValues = { 1000., 1000., 2000., 70., 360., 1000. };
@@ -108,14 +108,19 @@ int main()
 	mainWell.push_back(Well1);
 	mainWell.push_back(Well2);
 	mainWell.push_back(Well3);
-	Eigen::VectorXd arg{ {113.486, 157.638, 1565.62, 63.4603, 205.079, 113.979} };
+	/*Eigen::VectorXd arg{{113.486, 157.638, 1565.62, 63.4603, 205.079, 113.979}};
 	std::vector<TrajectoryTemplate *> well = Well1(arg);
-	int cond = solve(well);
+	Eigen::Vector3d pIchch = { 0,0,0 };
+	Eigen::Vector3d PTchch = { 100,100,1000};
+	TrajectoryTemplate* chch = well[1];
+	chch->fit();
+	chch->points(CoordinateSystem::CARTESIAN);
+	std::vector<Eigen::Vector3d>pCchch1 = chch->pointsCartesian;
 	std::vector<Eigen::Vector4d> pS = allPointsMD(well);
-	writeDataMD(pS,"output.txt");
-	
+	writeDataCartesian(pCchch1,"output.txt");
+	*/
 	std::time_t start = time(NULL);
-	/*
+
 	for (size_t i = 0; i < mainWell.size(); ++i) {
 		std::function<double(Eigen::VectorXd)> score = [&](Eigen::VectorXd x) {
 			std::vector<TrajectoryTemplate*> tmp = mainWell[i](x);
@@ -125,7 +130,7 @@ int main()
 		getOptData(opt);
 	}
 	std::cout << "Time: " << time(NULL) - start << std::endl;
-	*/
+	
 	return 0;
 }
 

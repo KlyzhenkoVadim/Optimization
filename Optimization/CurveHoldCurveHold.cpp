@@ -89,22 +89,12 @@ void CurveHoldCurveHold::fit() {
 	auto getaAlphaCurrCurvate = [&](bool flag, const auto& p) { // flag = 0 - first curveHold
 		if (false == flag) {
 			CurveHold firstCurveHold(p1, p, tetta1, phi1, R1);
-			try {
-				firstCurveHold.fit();
-			}
-			catch (std::runtime_error& err) {
-				std::cout << "err";
-			}
+			firstCurveHold.fit();
 			return firstCurveHold.getAlpha();
 		}
 		else {
-			CurveHold secondCurveHold(pInter, p, 180.0 - tetta4, 180.0 + phi1, R2);
-			try {
-				secondCurveHold.fit();
-			}
-			catch (std::runtime_error& err) {
-				std::cout << "err";
-			}
+			CurveHold secondCurveHold(pInter, p, 180.0 - tetta4, 180.0 + phi4, R2);
+			secondCurveHold.fit();
 			return secondCurveHold.getAlpha();
 		}
 	};

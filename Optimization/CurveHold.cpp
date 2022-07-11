@@ -67,13 +67,9 @@ double CurveHold::getAlpha() {
 
 void CurveHold::fit() {
 	//Eigen::Vector3d moduleP{ fabs(p1[0] - p3[0]), fabs(p1[1] - p3[1]), fabs(p1[2] - p3[2]) };
-	Eigen::Vector3d b1 = -t1.cross(p3 - p1);
+	Eigen::Vector3d b1 = (p3 - p1).cross(t1);
 	Eigen::Vector3d n1 = t1.cross(b1);
-	
-	if (n1.dot(n1) > EPSILON) {
-		n1.normalize();
-	}
-
+	n1.normalize();
 	Eigen::Vector3d r = p1 + R * n1;
 	double norm = (p3 - r).norm();
 
@@ -85,19 +81,19 @@ void CurveHold::fit() {
 	double etta = t1.dot(p3 - p1);
 	double ksi = sqrt(psi*psi - etta * etta);
 
-	if (etta <= EPSILON and fabs(ksi - 2 * R) <= EPSILON) {
+	if (etta <= EPSILON and ksi - 2 * R <= EPSILON) {
 		throw std::runtime_error("error: alpha >= pi");
 	}
 
 	double bettaSqr = psi * psi - 2 * R * ksi;
 	betta = 0.0;
 
-	if (bettaSqr > 0.0) {
+	if (bettaSqr > 0.) {
 		betta = sqrt(bettaSqr);
 	}
 
 	if (fabs(2 * R - ksi) < EPSILON) {
-		alpha = 2 * atan(0.5 * ksi / etta);
+		alpha = 2 * atan(0.5 * ksi / etta); // 2 * atan(0.5 * ksi / etta);
 	}
 	else {
 		alpha = 2 * atan((etta - betta) / (2 * R - ksi));
