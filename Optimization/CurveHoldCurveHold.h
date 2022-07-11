@@ -38,6 +38,8 @@ public:
 	CurveHoldCurveHold(const Eigen::Vector3d& p1, double tetta1, double phi1, double R1, double R2, const Eigen::Vector3d& p4, 
 		double tetta4, double phi4, double betta = 0.0, double eps = 10e-4, size_t nums = 100);
 
+	CurveHoldCurveHold(const Eigen::Vector3d& p1, double tetta1, double phi1, double R1, double R2, const Eigen::Vector3d& pT1, const Eigen::Vector3d& pT3, double eps = 10e-4, size_t nums = 100);
+
 	void fit() override;
 	void points(CoordinateSystem coordinateSystem) override;
 	double length() override;

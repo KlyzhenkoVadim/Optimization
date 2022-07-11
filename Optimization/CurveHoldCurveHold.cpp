@@ -6,18 +6,39 @@ CurveHoldCurveHold::CurveHoldCurveHold(const Eigen::Vector3d& p1, double tetta1,
 
 	this->p1 = p1;
 	this->p4 = p4;
-	this->t1 = calcTangentVector(phi1,tetta1);
+	this->t1 = calcTangentVector(phi1, tetta1);
 	this->phi1 = phi1;
 	this->phi4 = phi4;
 	this->tetta1 = tetta1;
 	this->tetta4 = tetta4;
-	this->t4 = calcTangentVector(phi4,tetta4);
+	this->t4 = calcTangentVector(phi4, tetta4);
 	this->R1 = R1;
 	this->R2 = R2;
 	this->eps = eps;
 	this->nums = nums;
 	this->betta = betta;
 	this->pInter = p4 - t4 * betta;
+};
+
+CurveHoldCurveHold::CurveHoldCurveHold(const Eigen::Vector3d& p1, double tetta1, double phi1, double R1, double R2, const Eigen::Vector3d& pT1,
+	const Eigen::Vector3d& pT3, double eps, size_t nums) {
+	
+	this->p1 = p1;
+	this->p4 = pT3;
+	this->pInter = pT1;
+	this->phi1 = phi1;
+	this->phi4 = 0; // ??
+	this->tetta1 = tetta1;
+	this->t1 = calcTangentVector(phi1, tetta1);
+	this->tetta4 = 0; // ??
+	Eigen::Vector3d tmpVec = pT3 - pT1;
+	this->betta = tmpVec.norm();
+	tmpVec.normalize();
+	this->t4 = tmpVec;
+	this->R1 = R1;
+	this->R2 = R2;
+	this->nums = nums;
+	this->eps = eps;
 }
 
 void CurveHoldCurveHold::fit() {
