@@ -8,7 +8,14 @@ CurveHold::CurveHold(const Eigen::Vector3d& p1, const Eigen::Vector3d& p3, doubl
 	this->t1 = calcTangentVector(phi, teta);
 	this->R = R;
 	this->nums = nums;
-	
+};
+
+CurveHold::CurveHold(const Eigen::Vector3d& p1, const Eigen::Vector3d& p3, const Eigen::Vector3d& t1, double R, size_t nums) {
+	this->p1 = p1;
+	this->p3 = p3;
+	this->t1 = t1;
+	this->R = R;
+	this->nums = nums;
 }
 
 //void CurveHold::fit() {
@@ -145,10 +152,10 @@ void CurveHold::points(CoordinateSystem coordinateSystem) {
 			holdPoints[idx] = { (arc + betta * idx / stepHold) , t2[0], t2[1], t2[2] };
 		}
 
-		pointsMd = curvePoints;
+		pointsMD = curvePoints;
 
 		if (fabs(betta) > EPSILON) {
-			std::copy(holdPoints.begin(), holdPoints.end(), std::back_inserter(pointsMd));
+			std::copy(holdPoints.begin(), holdPoints.end(), std::back_inserter(pointsMD));
 		}
 	}
 }

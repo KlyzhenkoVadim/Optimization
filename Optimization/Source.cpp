@@ -76,11 +76,11 @@ int main()
 		Eigen::Vector3d pTHold = { 0,0,x(5)};
 		Eigen::Vector3d pChch1 = {x(0),x(1),x(2) };
 		Eigen::Vector3d pT1Chch2 = { 400.0,8.0,3000.0 };
-		Eigen::Vector3d pT3Chch2 = {1500 ,8 ,3010 };
+		Eigen::Vector3d pT3Chch2 = {1500. ,8.0 ,3010.0 };
 		well1.push_back(new Hold(pIHold, pTHold));
 		well1.push_back(new CurveHoldCurveHold(pTHold, 0, 0, m, m, pChch1, x[3], x[4], 110.));
-		//well1.push_back(new CurveHoldCurveHold(pChch1,x[3], x[4], m, m, pT3Chch2, 89.479, 0., 1100.04545));
-		well1.push_back(new CurveHoldCurveHold(pChch1, x[3], x[4], m, m, pT1Chch2, pT3Chch2));
+		well1.push_back(new CurveHoldCurveHold(pChch1,x[3], x[4], m, m, pT3Chch2, 89.479, 0., 1100.04545));
+		//well1.push_back(new CurveHoldCurveHold(pChch1, x[3], x[4], m, m, pT1Chch2, pT3Chch2));
 		return well1;
 	};
 	std::function<std::vector<TrajectoryTemplate*>(Eigen::VectorXd& x)> Well2 = [&](Eigen::VectorXd& x) {
@@ -116,11 +116,11 @@ int main()
 	Eigen::Vector3d PTchch = { 100,100,1000};
 	TrajectoryTemplate* chch = well[2];
 	chch->fit();
-	chch->points(CoordinateSystem::CARTESIAN);
-	std::vector<Eigen::Vector3d>pCchch1 = chch->pointsCartesian;
+	chch->points(CoordinateSystem::MD);
+	std::vector<Eigen::Vector4d>pMDchch1 = chch->pointsMD;
 	int cond = solve(well);
 	std::vector<Eigen::Vector3d> pS = allPointsCartesian(well);
-	writeDataCartesian(pCchch1,"output.txt");
+	writeDataMD(pMDchch1,"output.txt");
 	
 	std::time_t start = time(NULL);
 	/*

@@ -31,7 +31,7 @@ void Hold::points(CoordinateSystem coordinateSystem) {
 		Eigen::Vector3d t = delta;
 		t.normalize();
 		for (size_t id = 0; id < nums; ++id) {
-			pointsMd.push_back({ (delta.norm() * id / (nums - 1)), t[0], t[1], t[2] });
+			pointsMD.push_back({ (delta.norm() * id / (nums - 1)), t[0], t[1], t[2] });
 		}
 	}
 }

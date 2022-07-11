@@ -106,7 +106,7 @@ std::vector<Eigen::Vector4d> allPointsMD(std::vector<TrajectoryTemplate* >& Well
 	double lastMD = 0.;
 	for (size_t idx = 0; idx < Well.size(); ++idx) {
 		Well[idx]->points(CoordinateSystem::MD);
-		std::vector<Eigen::Vector4d> tmp = Well[idx]->pointsMd;
+		std::vector<Eigen::Vector4d> tmp = Well[idx]->pointsMD;
 		for (size_t i = 0; i < tmp.size(); ++i) {
 			pointsMD.push_back({ (lastMD + tmp[i][0]), tmp[i][1], tmp[i][2], tmp[i][3] });
 		}

@@ -22,15 +22,15 @@ CurveHoldCurveHold::CurveHoldCurveHold(const Eigen::Vector3d& p1, double tetta1,
 
 CurveHoldCurveHold::CurveHoldCurveHold(const Eigen::Vector3d& p1, double tetta1, double phi1, double R1, double R2, const Eigen::Vector3d& pT1,
 	const Eigen::Vector3d& pT3, double eps, size_t nums) {
-	
+
 	this->p1 = p1;
 	this->p4 = pT3;
 	this->pInter = pT1;
 	this->phi1 = phi1;
-	this->phi4 = 0; // ??
 	this->tetta1 = tetta1;
+	this->tetta4 = 0.;
+	this->phi4 = 0.;
 	this->t1 = calcTangentVector(phi1, tetta1);
-	this->tetta4 = 0; // ??
 	Eigen::Vector3d tmpVec = pT3 - pT1;
 	this->betta = tmpVec.norm();
 	tmpVec.normalize();
@@ -39,7 +39,7 @@ CurveHoldCurveHold::CurveHoldCurveHold(const Eigen::Vector3d& p1, double tetta1,
 	this->R2 = R2;
 	this->nums = nums;
 	this->eps = eps;
-}
+};
 
 void CurveHoldCurveHold::fit() {
 	//ѕроверка на пересечение окружностей
@@ -109,12 +109,12 @@ void CurveHoldCurveHold::fit() {
 
 	auto getaAlphaCurrCurvate = [&](bool flag, const auto& p) { // flag = 0 - first curveHold
 		if (false == flag) {
-			CurveHold firstCurveHold(p1, p, tetta1, phi1, R1);
+			CurveHold firstCurveHold(p1,p,t1,R1);
 			firstCurveHold.fit();
 			return firstCurveHold.getAlpha();
 		}
 		else {
-			CurveHold secondCurveHold(pInter, p, 180.0 - tetta4, 180.0 + phi4, R2);
+			CurveHold secondCurveHold(pInter, p, -t4, R2);
 			secondCurveHold.fit();
 			return secondCurveHold.getAlpha();
 		}
@@ -231,13 +231,13 @@ void CurveHoldCurveHold::points(CoordinateSystem coordinateSystem) {
 		pointsMD.pointsHold1 = pointsHold1;
 		pointsMD.pointsArc2 = pointsArc2;
 		pointsMD.pointsHold2 = pointsHold2;*/
-		pointsMd = pointsArc1;
+		pointsMD = pointsArc1;
 		if (holdLength > EPSILON) {
-			std::copy(pointsHold1.begin(), pointsHold1.end(), std::back_inserter(pointsMd));
+			std::copy(pointsHold1.begin(), pointsHold1.end(), std::back_inserter(pointsMD));
 		}
-		std::copy(pointsArc2.begin(), pointsArc2.end(), std::back_inserter(pointsMd));
+		std::copy(pointsArc2.begin(), pointsArc2.end(), std::back_inserter(pointsMD));
 		if (betta > EPSILON) {
-			std::copy(pointsHold2.begin(), pointsHold2.end(), std::back_inserter(pointsMd));
+			std::copy(pointsHold2.begin(), pointsHold2.end(), std::back_inserter(pointsMD));
 		}
 	}
 }

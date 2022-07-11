@@ -10,6 +10,8 @@ private:
 	Eigen::Vector3d t1; // единичный касательный вектор начальной точки
 	Eigen::Vector3d t4;	// единичный касательный вектор конечной точки
 	Eigen::Vector3d pInter;
+	Eigen::Vector3d pT1;
+	Eigen::Vector3d pT3;
 
 	Eigen::Vector3d r1; // координаты центра окружности первого участка curve
 	Eigen::Vector3d r4; // координаты центра окружности второго участка curve
@@ -35,10 +37,12 @@ private:
 	double holdLength;
 
 public:
+	CurveHoldCurveHold(const Eigen::Vector3d& p1, double tetta1, double phi1, double R1, double R2, const Eigen::Vector3d& pT1,
+		const Eigen::Vector3d& pT3, double eps = 10e-4, size_t nums = 100);
+
 	CurveHoldCurveHold(const Eigen::Vector3d& p1, double tetta1, double phi1, double R1, double R2, const Eigen::Vector3d& p4, 
 		double tetta4, double phi4, double betta = 0.0, double eps = 10e-4, size_t nums = 100);
-
-	CurveHoldCurveHold(const Eigen::Vector3d& p1, double tetta1, double phi1, double R1, double R2, const Eigen::Vector3d& pT1, const Eigen::Vector3d& pT3, double eps = 10e-4, size_t nums = 100);
+	
 
 	void fit() override;
 	void points(CoordinateSystem coordinateSystem) override;
