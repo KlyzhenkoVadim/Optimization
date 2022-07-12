@@ -115,7 +115,7 @@ double DDI(std::vector<Eigen::Vector3d>& pCartesian,std::vector<Eigen::Vector4d>
 }	
 
 double orderScore(std::vector<TrajectoryTemplate*>& mainWell, std::vector<std::vector<TrajectoryTemplate*>>& Trajectories, double penalty) {
-	double mainLength, mainDDI,rSepFactor = 0;
+	double mainLength, mainDDI,rSepFactor = 0.;
 	int condition = solve(mainWell);
 	if (condition != 0) {
 		return penalty * condition/mainWell.size(); // penalty * percent of incorrect templates.
