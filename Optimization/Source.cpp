@@ -83,7 +83,7 @@ int main()
 	mainWell.push_back(Well2);
 	mainWell.push_back(Well3);
 	std::vector<std::vector<size_t>> order = {{1,2,3},{1,3,2},{2,1,3},{2,3,1},{3,1,2},{3,2,1}};
-	for (size_t idx = 0; idx < 6; ++idx) {
+	/*for (size_t idx = 0; idx < 6; ++idx) {
 		for (auto ord : order[idx]) {
 			std::function<double(Eigen::VectorXd)> score = [&](Eigen::VectorXd x) {
 				std::vector<TrajectoryTemplate*> tmp = mainWell[ord - 1](x);
@@ -98,7 +98,14 @@ int main()
 			writeDataOpt(order[idx], ord, opt);
 		}
 		trajectories.clear();
-	}
+	}*/
+	Eigen::VectorXd arg1{ {-346.702, 190.616, 1582.23, 60.6974 ,149.54, 974.232} },
+		arg2{ {84.8843, -411.808, 856.599, 64.9406, 279.866 ,247.553} }, arg3{ {266.87, 324.09, 1470.35, 60.8709, 51.2091, 862.812} };
+	std::vector<std::vector<TrajectoryTemplate*>> wells = { mainWell[0](arg1),mainWell[1](arg2),mainWell[2](arg3) };
+	for (size_t i = 0; i < wells.size(); ++i)
+		int cond = solve(wells[i]);
+	std::vector<Eigen::Vector3d> pCartesian = allPointsCartesian(wells[2]);
+	writeDataCartesian(pCartesian, "output.txt");
 	return 0;
 }
 

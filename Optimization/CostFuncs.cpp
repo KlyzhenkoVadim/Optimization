@@ -19,7 +19,7 @@ double sepFactor(std::vector<Eigen::Vector3d>& pCartesianW1,
 	size_t n = pCartesianW1.size(), m = pCartesianW2.size();
 	Eigen::MatrixXd distanceMatrix(n, m);//std::vector<std::vector<double>> distanceMatrix;
 	Eigen::MatrixXd scalarProdMatrix(n, m); //std::vector<std::vector<double>> scalarProdMatrix;
-	double sgm = 5e-3;
+	double sgm = 2e-3;
 	double eps = 1e-6;
 	bool flg = true;
 	for (size_t i = 0; i < n; ++i) {
