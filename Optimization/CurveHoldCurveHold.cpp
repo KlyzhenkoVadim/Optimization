@@ -6,19 +6,40 @@ CurveHoldCurveHold::CurveHoldCurveHold(const Eigen::Vector3d& p1, double tetta1,
 
 	this->p1 = p1;
 	this->p4 = p4;
-	this->t1 = calcTangentVector(phi1,tetta1);
+	this->t1 = calcTangentVector(phi1, tetta1);
 	this->phi1 = phi1;
 	this->phi4 = phi4;
 	this->tetta1 = tetta1;
 	this->tetta4 = tetta4;
-	this->t4 = calcTangentVector(phi4,tetta4);
+	this->t4 = calcTangentVector(phi4, tetta4);
 	this->R1 = R1;
 	this->R2 = R2;
 	this->eps = eps;
 	this->nums = nums;
 	this->betta = betta;
 	this->pInter = p4 - t4 * betta;
-}
+};
+
+CurveHoldCurveHold::CurveHoldCurveHold(const Eigen::Vector3d& p1, double tetta1, double phi1, double R1, double R2, const Eigen::Vector3d& pT1,
+	const Eigen::Vector3d& pT3, double eps, size_t nums) {
+
+	this->p1 = p1;
+	this->p4 = pT3;
+	this->pInter = pT1;
+	this->phi1 = phi1;
+	this->tetta1 = tetta1;
+	this->tetta4 = 0.;
+	this->phi4 = 0.;
+	this->t1 = calcTangentVector(phi1, tetta1);
+	Eigen::Vector3d tmpVec = pT3 - pT1;
+	this->betta = tmpVec.norm();
+	tmpVec.normalize();
+	this->t4 = tmpVec;
+	this->R1 = R1;
+	this->R2 = R2;
+	this->nums = nums;
+	this->eps = eps;
+};
 
 void CurveHoldCurveHold::fit() {
 	//ѕроверка на пересечение окружностей
@@ -88,23 +109,13 @@ void CurveHoldCurveHold::fit() {
 
 	auto getaAlphaCurrCurvate = [&](bool flag, const auto& p) { // flag = 0 - first curveHold
 		if (false == flag) {
-			CurveHold firstCurveHold(p1, p, tetta1, phi1, R1);
-			try {
-				firstCurveHold.fit();
-			}
-			catch (std::runtime_error& err) {
-				std::cout << "err";
-			}
+			CurveHold firstCurveHold(p1,p,t1,R1);
+			firstCurveHold.fit();
 			return firstCurveHold.getAlpha();
 		}
 		else {
-			CurveHold secondCurveHold(pInter, p, 180.0 - tetta4, 180.0 + phi1, R2);
-			try {
-				secondCurveHold.fit();
-			}
-			catch (std::runtime_error& err) {
-				std::cout << "err";
-			}
+			CurveHold secondCurveHold(pInter, p, -t4, R2);
+			secondCurveHold.fit();
 			return secondCurveHold.getAlpha();
 		}
 	};
@@ -213,20 +224,20 @@ void CurveHoldCurveHold::points(CoordinateSystem coordinateSystem) {
 		}
 
 		for (size_t idx = 0; idx < nHold2 + 1; ++idx) {
-			pointsHold2[idx] = { arc1 + idx * holdLength / nHold1, t4[0], t4[1], t4[2] };
+			pointsHold2[idx] = { arc1 +arc2 + holdLength + idx * betta/ nHold2, t4[0], t4[1], t4[2] };
 		}
 		/*
 		pointsMD.pointsArc1 = pointsArc1;
 		pointsMD.pointsHold1 = pointsHold1;
 		pointsMD.pointsArc2 = pointsArc2;
 		pointsMD.pointsHold2 = pointsHold2;*/
-		pointsMd = pointsArc1;
+		pointsMD = pointsArc1;
 		if (holdLength > EPSILON) {
-			std::copy(pointsHold1.begin(), pointsHold1.end(), std::back_inserter(pointsMd));
+			std::copy(pointsHold1.begin(), pointsHold1.end(), std::back_inserter(pointsMD));
 		}
-		std::copy(pointsArc2.begin(), pointsArc2.end(), std::back_inserter(pointsMd));
+		std::copy(pointsArc2.begin(), pointsArc2.end(), std::back_inserter(pointsMD));
 		if (betta > EPSILON) {
-			std::copy(pointsHold2.begin(), pointsHold2.end(), std::back_inserter(pointsMd));
+			std::copy(pointsHold2.begin(), pointsHold2.end(), std::back_inserter(pointsMD));
 		}
 	}
 }

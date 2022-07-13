@@ -10,6 +10,19 @@
 #include "PSO.h"
 #include <cmath>
 
+
+//std::cout << -p1;
+
+	//Calculator* c1 = new Calculater();
+	//Calculator* c2 = new Calculatir();
+
+	//std::vector<Calculator*> calcs;
+
+	//calcs.push_back(c1);
+	//calcs.push_back(c2);
+
+	//calcs[0]->calc();
+	//calcs[1]->calc();
 class Calculator {
 public:
 	virtual void calc() = 0;
@@ -28,8 +41,8 @@ public:
 	}
 };
 
-void writeData(std::vector<Eigen::Vector3d>& pointsCartesian, std::string filename);
-
+void writeDataCartesian(std::vector<Eigen::Vector3d>& pointsCartesian, std::string filename);
+void writeDataMD(std::vector<Eigen::Vector4d>& pointsMD, std::string filename);
 double Rastrigin(Eigen::VectorXd x) {
 	size_t n = x.size();
 	double result = 10. * n;
@@ -49,22 +62,10 @@ double Sphere(Eigen::VectorXd x) {
 
 void getOptData(PSOvalueType op);
 
+void writeDataOpt(std::vector<size_t> order, size_t wellNum, PSOvalueType Opt);
+
 int main()
 {
-	//std::cout << -p1;
-
-	Calculator* c1 = new Calculater();
-	Calculator* c2 = new Calculatir();
-
-	std::vector<Calculator*> calcs;
-
-	calcs.push_back(c1);
-	calcs.push_back(c2);
-
-	//calcs[0]->calc();
-	//calcs[1]->calc();
-
-
 	double m = 1800 / PI;
 	std::vector<double> minValues = { -1000., -1000., 100., 60., 0., 100. };
 	std::vector<double> maxValues = { 1000., 1000., 2000., 70., 360., 1000. };
@@ -75,10 +76,12 @@ int main()
 		Eigen::Vector3d pIHold = { 0,0,0 };
 		Eigen::Vector3d pTHold = { 0,0,x(5)};
 		Eigen::Vector3d pChch1 = {x(0),x(1),x(2) };
-		Eigen::Vector3d pTChch2 = {1500 ,8 ,3010 };
+		Eigen::Vector3d pT1Chch2 = { 400.0,8.0,3000.0 };
+		Eigen::Vector3d pT3Chch2 = {1500. ,8.0 ,3010.0 };
 		well1.push_back(new Hold(pIHold, pTHold));
 		well1.push_back(new CurveHoldCurveHold(pTHold, 0, 0, m, m, pChch1, x[3], x[4], 110.));
-		well1.push_back(new CurveHoldCurveHold(pChch1,x[3], x[4], m, m, pTChch2, 89.479, 0., 1100.04545));
+		//well1.push_back(new CurveHoldCurveHold(pChch1,x[3], x[4], m, m, pT3Chch2, 89.479, 0., 1100.04545));
+		well1.push_back(new CurveHoldCurveHold(pChch1, x[3], x[4], m, m, pT1Chch2, pT3Chch2));
 		return well1;
 	};
 	std::function<std::vector<TrajectoryTemplate*>(Eigen::VectorXd& x)> Well2 = [&](Eigen::VectorXd& x) {
@@ -86,10 +89,11 @@ int main()
 		Eigen::Vector3d pIHold = { 0,15,0 };
 		Eigen::Vector3d pTHold = { 0,15,x[5] };
 		Eigen::Vector3d pChch1 = { x[0],x[1],x[2] };
-		Eigen::Vector3d pTChch2 = { -1500,8,3010 };
+		Eigen::Vector3d pT1Chch2 = { -700,8.0,3000. };
+		Eigen::Vector3d pT3Chch2 = { -1500,8,3010 };
 		well2.push_back(new Hold(pIHold, pTHold));
 		well2.push_back(new CurveHoldCurveHold(pTHold, 0, 0, m, m, pChch1, x[3], x[4], 110.));
-		well2.push_back(new CurveHoldCurveHold(pChch1, x[3], x[4], m, m, pTChch2, 89.28, 180., 800.06));
+		well2.push_back(new CurveHoldCurveHold(pChch1, x[3], x[4], m, m,pT1Chch2 ,pT3Chch2));
 		return well2;
 	};
 	std::function<std::vector<TrajectoryTemplate*>(Eigen::VectorXd& x)> Well3 = [&](Eigen::VectorXd& x) {
@@ -97,10 +101,11 @@ int main()
 		Eigen::Vector3d pIHold = { 0,20,0 };
 		Eigen::Vector3d pTHold = { 0,20,x[5] };
 		Eigen::Vector3d pChch1 = { x[0],x[1],x[2] };
-		Eigen::Vector3d pTChch2 = { -1500,420,3010 };
+		Eigen::Vector3d pT1Chch2{ -650.,420.,3000. };
+		Eigen::Vector3d pT3Chch2 = { -1500,420,3010 };
 		well3.push_back(new Hold(pIHold, pTHold));
 		well3.push_back(new CurveHoldCurveHold(pTHold, 0, 0, m, m, pChch1, x[3], x[4], 110.));
-		well3.push_back(new CurveHoldCurveHold(pChch1, x[3], x[4], m, m, pTChch2, 89.326, 180., 850.06));
+		well3.push_back(new CurveHoldCurveHold(pChch1, x[3], x[4], m, m, pT1Chch2,pT3Chch2));
 		return well3;
 	};
 	std::vector < std::function<std::vector<TrajectoryTemplate*>(Eigen::VectorXd&)>> mainWell;
@@ -108,23 +113,45 @@ int main()
 	mainWell.push_back(Well1);
 	mainWell.push_back(Well2);
 	mainWell.push_back(Well3);
-	Eigen::VectorXd arg{ {113.486, 157.638, 1565.62, 63.4603, 205.079, 113.979} };
+	/*
+	Eigen::VectorXd arg{{-381.313, -82.6248, 1523.74, 60.8638, 192.592, 839.657}};
 	std::vector<TrajectoryTemplate *> well = Well1(arg);
+	Eigen::Vector3d pIchch = { 0,0,0 };
+	Eigen::Vector3d PTchch = { 100,100,1000};
+	TrajectoryTemplate* chch = well[2];
+	chch->fit();
+	chch->points(CoordinateSystem::MD);
+	std::vector<Eigen::Vector4d>pMDchch1 = chch->pointsMD;
 	int cond = solve(well);
 	std::vector<Eigen::Vector3d> pS = allPointsCartesian(well);
-	writeData(pS,"output.txt");
+	writeDataMD(pMDchch1,"output.txt");*/
 	
 	std::time_t start = time(NULL);
-	/*
-	for (size_t i = 0; i < mainWell.size(); ++i) {
-		std::function<double(Eigen::VectorXd)> score = [&](Eigen::VectorXd x) {
-			std::vector<TrajectoryTemplate*> tmp = mainWell[i](x);
-			return orderScore(tmp, trajectories); };
-		PSOvalueType opt = PSO(score, minValues, maxValues,7 , 6, inert);
-		trajectories.push_back(mainWell[i](opt.first));
-		getOptData(opt);
+	std::vector<std::vector<size_t>> order = {{1,2,3},{1,3,2},{2,1,3},{2,3,1},{3,1,2},{3,2,1}};
+	for (size_t idx = 0; idx < 6; ++idx) {
+		for (auto ord : order[idx]) {
+			std::function<double(Eigen::VectorXd)> score = [&](Eigen::VectorXd x) {
+				std::vector<TrajectoryTemplate*> tmp = mainWell[ord-1](x);
+				return orderScore(tmp, trajectories); };
+			PSOvalueType opt = PSO(score, minValues, maxValues, 7, 6, inert);
+			trajectories.push_back(mainWell[ord - 1](opt.first));
+			int cond = solve(trajectories.back());
+			if (cond > 0) {
+				break;
+				std::cout << "Unbuild Trajectory\n";
+			}
+			writeDataOpt(order[idx], ord, opt);
+		}
+		trajectories.clear();
+		
 	}
 	std::cout << "Time: " << time(NULL) - start << std::endl;
+	/*
+	std::vector<size_t> order = { 1,2,3 };
+	Eigen::VectorXd v1{ { 0,0,0 } }, v2{ {3,5,1 } }, v3{ {1,1,1 } };
+	std::vector<Eigen::VectorXd> optVecs =  { v1,v2,v3} ;
+	PSOvalueType opt0{ v1,10. };
+	writeDataOpt(order, 1, opt0);
 	*/
 	return 0;
 }
@@ -137,7 +164,7 @@ void getOptData(PSOvalueType op) {
 	std::cout << std::endl;
 }
 
-void writeData(std::vector<Eigen::Vector3d>& pointsCartesian, std::string filename) {
+void writeDataCartesian(std::vector<Eigen::Vector3d>& pointsCartesian, std::string filename) {
 	std::ofstream output;
 	output.open(filename);
 	for (size_t i = 0; i < pointsCartesian.size(); ++i) {
@@ -146,3 +173,30 @@ void writeData(std::vector<Eigen::Vector3d>& pointsCartesian, std::string filena
 	output.close();
 }
 
+void writeDataMD(std::vector<Eigen::Vector4d>& pointsMD, std::string filename) {
+	std::ofstream output;
+	output.open(filename);
+	for (size_t i = 0; i < pointsMD.size(); ++i) {
+		output << pointsMD[i][0] << "," << pointsMD[i][1] << "," << pointsMD[i][2] <<"," << pointsMD[i][3] << std::endl;
+	}
+	output.close();
+}
+
+void writeDataOpt(std::vector<size_t> order,size_t wellNum, PSOvalueType Opt) {
+	std::fstream file;
+	file.open("C:/Users/klyzhenko.vs/0CET/optDataCpp.csv", std::ios::out | std::ios::app);
+	file << "[";
+	for (size_t i = 0; i < order.size(); ++i) {
+		file << order[i];
+		if(i!=order.size()-1)
+			file << " ";
+	}
+	file << "]," << wellNum << ",[";
+	for (size_t i = 0; i < Opt.first.size(); ++i) {
+		file << Opt.first[i];
+		if (i != Opt.first.size() - 1)
+			file << " ";
+	}
+	file << "]," << Opt.second << std::endl;
+	file.close();
+}

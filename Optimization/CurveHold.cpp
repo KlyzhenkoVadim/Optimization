@@ -8,7 +8,14 @@ CurveHold::CurveHold(const Eigen::Vector3d& p1, const Eigen::Vector3d& p3, doubl
 	this->t1 = calcTangentVector(phi, teta);
 	this->R = R;
 	this->nums = nums;
-	
+};
+
+CurveHold::CurveHold(const Eigen::Vector3d& p1, const Eigen::Vector3d& p3, const Eigen::Vector3d& t1, double R, size_t nums) {
+	this->p1 = p1;
+	this->p3 = p3;
+	this->t1 = t1;
+	this->R = R;
+	this->nums = nums;
 }
 
 //void CurveHold::fit() {
@@ -67,13 +74,9 @@ double CurveHold::getAlpha() {
 
 void CurveHold::fit() {
 	//Eigen::Vector3d moduleP{ fabs(p1[0] - p3[0]), fabs(p1[1] - p3[1]), fabs(p1[2] - p3[2]) };
-	Eigen::Vector3d b1 = -t1.cross(p3 - p1);
+	Eigen::Vector3d b1 = (p3 - p1).cross(t1);
 	Eigen::Vector3d n1 = t1.cross(b1);
-	
-	if (n1.dot(n1) > EPSILON) {
-		n1.normalize();
-	}
-
+	n1.normalize();
 	Eigen::Vector3d r = p1 + R * n1;
 	double norm = (p3 - r).norm();
 
@@ -85,19 +88,19 @@ void CurveHold::fit() {
 	double etta = t1.dot(p3 - p1);
 	double ksi = sqrt(psi*psi - etta * etta);
 
-	if (etta <= EPSILON and fabs(ksi - 2 * R) <= EPSILON) {
+	if (etta <= EPSILON and ksi - 2 * R <= EPSILON) {
 		throw std::runtime_error("error: alpha >= pi");
 	}
 
 	double bettaSqr = psi * psi - 2 * R * ksi;
 	betta = 0.0;
 
-	if (bettaSqr > 0.0) {
+	if (bettaSqr > 0.) {
 		betta = sqrt(bettaSqr);
 	}
 
 	if (fabs(2 * R - ksi) < EPSILON) {
-		alpha = 2 * atan(0.5 * ksi / etta);
+		alpha = 2 * atan(0.5 * ksi / etta); // 2 * atan(0.5 * ksi / etta);
 	}
 	else {
 		alpha = 2 * atan((etta - betta) / (2 * R - ksi));
@@ -149,10 +152,10 @@ void CurveHold::points(CoordinateSystem coordinateSystem) {
 			holdPoints[idx] = { (arc + betta * idx / stepHold) , t2[0], t2[1], t2[2] };
 		}
 
-		pointsMd = curvePoints;
+		pointsMD = curvePoints;
 
 		if (fabs(betta) > EPSILON) {
-			std::copy(holdPoints.begin(), holdPoints.end(), std::back_inserter(pointsMd));
+			std::copy(holdPoints.begin(), holdPoints.end(), std::back_inserter(pointsMD));
 		}
 	}
 }

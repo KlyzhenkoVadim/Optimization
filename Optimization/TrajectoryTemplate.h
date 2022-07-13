@@ -22,7 +22,7 @@ public:
 	virtual double length() = 0;
 
 	std::vector<Eigen::Vector3d> pointsCartesian;
-	std::vector<Eigen::Vector4d> pointsMd;
+	std::vector<Eigen::Vector4d> pointsMD;
 
 	Eigen::Vector3d calcTangentVector(double azimuth, double inclination);
 
