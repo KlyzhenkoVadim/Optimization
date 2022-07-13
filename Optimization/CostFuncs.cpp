@@ -15,12 +15,13 @@ int signum(double x) {
 
 double sepFactor(std::vector<Eigen::Vector3d>& pCartesianW1,
 	std::vector<Eigen::Vector4d>& pMDW1,
-	std::vector<Eigen::Vector3d>& pCartesianW2, bool actFunc, double penalty) {
+	std::vector<Eigen::Vector3d>& pCartesianW2,std::vector<Eigen::Vector4d>& pMDW2, bool actFunc, double penalty) {
 	size_t n = pCartesianW1.size(), m = pCartesianW2.size();
 	Eigen::MatrixXd distanceMatrix(n, m);//std::vector<std::vector<double>> distanceMatrix;
 	Eigen::MatrixXd scalarProdMatrix(n, m); //std::vector<std::vector<double>> scalarProdMatrix;
-	double sgm = 4 * 5e-3;
+	double sgm = 5e-3;
 	double eps = 1e-6;
+	bool flg = true;
 	for (size_t i = 0; i < n; ++i) {
 		scalarProdMatrix(i,0) = -1.;
 		for (size_t j = 0; j < m; ++j) {
@@ -29,7 +30,6 @@ double sepFactor(std::vector<Eigen::Vector3d>& pCartesianW1,
 	}	
 	size_t k = 2;
 	for (size_t idxN = 1; idxN < n; ++idxN) {
-		bool flg = true;
 		for (size_t idxM = k - 1; idxM < m; ++idxM) {
 			Eigen::Vector3d diffVector = pCartesianW2[idxM] - pCartesianW1[idxN];
 			Eigen::Vector3d tangentW1 = { pMDW1[idxN][1], pMDW1[idxN][2], pMDW1[idxN][3] };
@@ -40,13 +40,14 @@ double sepFactor(std::vector<Eigen::Vector3d>& pCartesianW1,
 				scalarProdMatrix(idxN, idxM) = round(tangentW1.dot(diffVector) / tangentW1.norm() / diffVector.norm() * 100000) / 100000;
 			}
 			if ((signum(scalarProdMatrix(idxN, idxM)) != signum(scalarProdMatrix(idxN, idxM - 1)) and idxM > 1)) {
-				distanceMatrix(idxN, idxM) = diffVector.norm() / (sgm * pMDW1[idxN][0]);
+				distanceMatrix(idxN, idxM) = diffVector.norm() / (sgm * (pMDW1[idxN][0]+pMDW2[idxM][0]));
 				if (flg) {
 					k = idxM;
 					flg = false;
 				}
 			}
 		}
+		flg = true;
 	}
 		double sepFactor = 1e3;
 		for (size_t i = 0; i < n; ++i){
@@ -133,7 +134,8 @@ double orderScore(std::vector<TrajectoryTemplate*>& mainWell, std::vector<std::v
 	}
 	for (size_t idx = 0; idx < Trajectories.size(); ++idx) {
 		std::vector<Eigen::Vector3d> pCartesianTrajectory = allPointsCartesian(Trajectories[idx]);
-		rSepFactor += sepFactor(mainPCartesian, mainPMD, pCartesianTrajectory);
+		std::vector<Eigen::Vector4d> pMDTrajectory = allPointsMD(Trajectories[idx]);
+		rSepFactor += sepFactor(mainPCartesian, mainPMD, pCartesianTrajectory,pMDTrajectory);
 	}
 	return mainLength + mainDDI + rSepFactor;
 

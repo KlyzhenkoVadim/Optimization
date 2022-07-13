@@ -4,8 +4,8 @@
 class Hold : public TrajectoryTemplate
 {
 private:
-	Eigen::Vector3d pi;
-	Eigen::Vector3d pf;
+	Eigen::Vector3d pi; // Декартова координата начала Hold'a
+	Eigen::Vector3d pf; // Декартова координата конца Hold'a
 	Eigen::Vector3d delta;
 	size_t nums;
 

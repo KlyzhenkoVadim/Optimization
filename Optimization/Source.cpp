@@ -10,37 +10,6 @@
 #include "PSO.h"
 #include <cmath>
 
-
-//std::cout << -p1;
-
-	//Calculator* c1 = new Calculater();
-	//Calculator* c2 = new Calculatir();
-
-	//std::vector<Calculator*> calcs;
-
-	//calcs.push_back(c1);
-	//calcs.push_back(c2);
-
-	//calcs[0]->calc();
-	//calcs[1]->calc();
-class Calculator {
-public:
-	virtual void calc() = 0;
-};
-class Calculater : public Calculator {
-public:
-	void calc() override {
-		std::cout << "Calculater " << std::endl;
-	}
-};
-class Calculatir : public Calculator {
-public:
-	void calc() override {
-		std::cout << "Calculatir " << std::endl;
-
-	}
-};
-
 void writeDataCartesian(std::vector<Eigen::Vector3d>& pointsCartesian, std::string filename);
 void writeDataMD(std::vector<Eigen::Vector4d>& pointsMD, std::string filename);
 double Rastrigin(Eigen::VectorXd x) {
@@ -51,7 +20,6 @@ double Rastrigin(Eigen::VectorXd x) {
 	return result;
 
 }
-
 double Sphere(Eigen::VectorXd x) {
 	size_t n = x.size();
 	double result = 0.;
@@ -59,9 +27,7 @@ double Sphere(Eigen::VectorXd x) {
 		result += x(idx) * x(idx);
 	return result;
 }
-
 void getOptData(PSOvalueType op);
-
 void writeDataOpt(std::vector<size_t> order, size_t wellNum, PSOvalueType Opt);
 
 int main()
@@ -89,11 +55,12 @@ int main()
 		Eigen::Vector3d pIHold = { 0,15,0 };
 		Eigen::Vector3d pTHold = { 0,15,x[5] };
 		Eigen::Vector3d pChch1 = { x[0],x[1],x[2] };
-		Eigen::Vector3d pT1Chch2 = { -700,8.0,3000. };
-		Eigen::Vector3d pT3Chch2 = { -1500,8,3010 };
+		Eigen::Vector3d pT1Chch2 = { -700.,8.0,3000. };
+		Eigen::Vector3d pT3Chch2 = { -1500.,8,3010. };
 		well2.push_back(new Hold(pIHold, pTHold));
 		well2.push_back(new CurveHoldCurveHold(pTHold, 0, 0, m, m, pChch1, x[3], x[4], 110.));
 		well2.push_back(new CurveHoldCurveHold(pChch1, x[3], x[4], m, m,pT1Chch2 ,pT3Chch2));
+		//well2.push_back(new CurveHoldCurveHold(pChch1,x[3], x[4], m, m, pT3Chch2, 89.28384005452959, 180.0,800.0624975587845));
 		return well2;
 	};
 	std::function<std::vector<TrajectoryTemplate*>(Eigen::VectorXd& x)> Well3 = [&](Eigen::VectorXd& x) {
@@ -102,10 +69,12 @@ int main()
 		Eigen::Vector3d pTHold = { 0,20,x[5] };
 		Eigen::Vector3d pChch1 = { x[0],x[1],x[2] };
 		Eigen::Vector3d pT1Chch2{ -650.,420.,3000. };
-		Eigen::Vector3d pT3Chch2 = { -1500,420,3010 };
+		Eigen::Vector3d pT3Chch2 = { -1500.,420.,3010. };
 		well3.push_back(new Hold(pIHold, pTHold));
 		well3.push_back(new CurveHoldCurveHold(pTHold, 0, 0, m, m, pChch1, x[3], x[4], 110.));
 		well3.push_back(new CurveHoldCurveHold(pChch1, x[3], x[4], m, m, pT1Chch2,pT3Chch2));
+		//well3.push_back(new CurveHoldCurveHold(pChch1,x[3], x[4], m, m, pT3Chch2, 89.32596310201549, 180.0,850.0588214941364));
+
 		return well3;
 	};
 	std::vector < std::function<std::vector<TrajectoryTemplate*>(Eigen::VectorXd&)>> mainWell;
@@ -113,27 +82,13 @@ int main()
 	mainWell.push_back(Well1);
 	mainWell.push_back(Well2);
 	mainWell.push_back(Well3);
-	/*
-	Eigen::VectorXd arg{{-381.313, -82.6248, 1523.74, 60.8638, 192.592, 839.657}};
-	std::vector<TrajectoryTemplate *> well = Well1(arg);
-	Eigen::Vector3d pIchch = { 0,0,0 };
-	Eigen::Vector3d PTchch = { 100,100,1000};
-	TrajectoryTemplate* chch = well[2];
-	chch->fit();
-	chch->points(CoordinateSystem::MD);
-	std::vector<Eigen::Vector4d>pMDchch1 = chch->pointsMD;
-	int cond = solve(well);
-	std::vector<Eigen::Vector3d> pS = allPointsCartesian(well);
-	writeDataMD(pMDchch1,"output.txt");*/
-	
-	std::time_t start = time(NULL);
 	std::vector<std::vector<size_t>> order = {{1,2,3},{1,3,2},{2,1,3},{2,3,1},{3,1,2},{3,2,1}};
 	for (size_t idx = 0; idx < 6; ++idx) {
 		for (auto ord : order[idx]) {
 			std::function<double(Eigen::VectorXd)> score = [&](Eigen::VectorXd x) {
-				std::vector<TrajectoryTemplate*> tmp = mainWell[ord-1](x);
+				std::vector<TrajectoryTemplate*> tmp = mainWell[ord - 1](x);
 				return orderScore(tmp, trajectories); };
-			PSOvalueType opt = PSO(score, minValues, maxValues, 7, 6, inert);
+			PSOvalueType opt = PSO(score, minValues, maxValues, 12, 6, inert,0.3,0.5,100);
 			trajectories.push_back(mainWell[ord - 1](opt.first));
 			int cond = solve(trajectories.back());
 			if (cond > 0) {
@@ -143,16 +98,7 @@ int main()
 			writeDataOpt(order[idx], ord, opt);
 		}
 		trajectories.clear();
-		
 	}
-	std::cout << "Time: " << time(NULL) - start << std::endl;
-	/*
-	std::vector<size_t> order = { 1,2,3 };
-	Eigen::VectorXd v1{ { 0,0,0 } }, v2{ {3,5,1 } }, v3{ {1,1,1 } };
-	std::vector<Eigen::VectorXd> optVecs =  { v1,v2,v3} ;
-	PSOvalueType opt0{ v1,10. };
-	writeDataOpt(order, 1, opt0);
-	*/
 	return 0;
 }
 

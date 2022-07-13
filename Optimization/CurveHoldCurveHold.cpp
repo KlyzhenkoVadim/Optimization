@@ -226,11 +226,6 @@ void CurveHoldCurveHold::points(CoordinateSystem coordinateSystem) {
 		for (size_t idx = 0; idx < nHold2 + 1; ++idx) {
 			pointsHold2[idx] = { arc1 +arc2 + holdLength + idx * betta/ nHold2, t4[0], t4[1], t4[2] };
 		}
-		/*
-		pointsMD.pointsArc1 = pointsArc1;
-		pointsMD.pointsHold1 = pointsHold1;
-		pointsMD.pointsArc2 = pointsArc2;
-		pointsMD.pointsHold2 = pointsHold2;*/
 		pointsMD = pointsArc1;
 		if (holdLength > EPSILON) {
 			std::copy(pointsHold1.begin(), pointsHold1.end(), std::back_inserter(pointsMD));

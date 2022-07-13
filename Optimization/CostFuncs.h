@@ -3,8 +3,10 @@
 
 double sigmoid(double x, double penalty, double alpha, double x0);
 
+int signum(double x);
+
 double sepFactor(std::vector<Eigen::Vector3d>& pCartesianW1,std::vector<Eigen::Vector4d>& pMDW1,
-				std::vector<Eigen::Vector3d>& pCartesianW2, bool actFunc = true , double penalty = 100);
+				std::vector<Eigen::Vector3d>& pCartesianW2, std::vector<Eigen::Vector4d>& pMDW2, bool actFunc = true , double penalty = 100);
 
 double AHD(std::vector<Eigen::Vector3d>& pX, std::vector<Eigen::Vector3d>& pY);
 

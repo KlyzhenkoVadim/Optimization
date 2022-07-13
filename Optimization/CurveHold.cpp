@@ -18,51 +18,6 @@ CurveHold::CurveHold(const Eigen::Vector3d& p1, const Eigen::Vector3d& p3, const
 	this->nums = nums;
 }
 
-//void CurveHold::fit() {
-//	Eigen::Vector3d moduleP { fabs(p1[0] - p3[0]), fabs(p1[1] - p3[1]), fabs(p1[2] - p3[2]) };
-//	double psiSqr = moduleP.dot(moduleP);
-//	double etta = t1.dot(p3 - p1);
-//	double ksi = sqrt(psiSqr - etta * etta);
-//
-//	if (ksi < EPSILON) { // ksi = 0, значит t1 || p3-p1, следовательно прямая
-//		alpha = 0;
-//		points.push_back(p1);
-//		points.push_back(p3);
-//	}
-//
-//	double betta = psiSqr - 2 * R * ksi > 0.0 ? sqrt(psiSqr - 2 * R * ksi) : 0.0;
-//
-//	double denominator = 2 * R - ksi;
-//
-//	if (denominator < EPSILON) {
-//		if (etta <= EPSILON) {
-//			alpha = PI;
-//		}
-//		else {
-//			alpha = 2 * atan(ksi / (2 * etta));
-//		}
-//	}
-//	else {
-//		alpha = 2 * atan((etta - betta) / denominator);
-//		if (alpha < EPSILON) {
-//			alpha += 2 * PI;
-//		}
-//	}
-//	
-//	if (fabs(alpha - PI) < EPSILON) {
-//		t2 = -t1;
-//	}
-//	else {
-//		t2 = (p3 - p1 - R * tan(alpha / 2.0) * t1) / (betta + R * tan(alpha / 2.0));
-//	}
-//
-//	for (auto& it : t2) {
-//		if (it < EPSILON) {
-//			it = 0.0;
-//		}
-//	}
-//}
-
 double CurveHold::length() {
 	double arc = alpha * R;
 	return arc + betta;
@@ -73,7 +28,6 @@ double CurveHold::getAlpha() {
 }
 
 void CurveHold::fit() {
-	//Eigen::Vector3d moduleP{ fabs(p1[0] - p3[0]), fabs(p1[1] - p3[1]), fabs(p1[2] - p3[2]) };
 	Eigen::Vector3d b1 = (p3 - p1).cross(t1);
 	Eigen::Vector3d n1 = t1.cross(b1);
 	n1.normalize();
@@ -100,7 +54,7 @@ void CurveHold::fit() {
 	}
 
 	if (fabs(2 * R - ksi) < EPSILON) {
-		alpha = 2 * atan(0.5 * ksi / etta); // 2 * atan(0.5 * ksi / etta);
+		alpha = 2 * atan(0.5 * ksi / etta);
 	}
 	else {
 		alpha = 2 * atan((etta - betta) / (2 * R - ksi));
