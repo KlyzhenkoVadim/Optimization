@@ -206,11 +206,11 @@ void CurveHoldCurveHold::points(CoordinateSystem coordinateSystem) {
 			}
 	}
 	else {
-		std::vector<Eigen::Vector4d> pointsArc1 = calcInterpolMDPoints(p1, t1, t, R1, alpha1, std::max(10, int(arc1 / h)));
+		std::vector<Eigen::Vector4d> pointsArc1 = calcInterpolMDPoints(p1, t1, t, R1, alpha1, std::max(25, int(arc1 / h)));
 		double nHold1 = std::max(2, int(holdLength / h));
 		std::vector<Eigen::Vector4d> pointsHold1(nHold1 + 1);
 
-		std::vector<Eigen::Vector4d> pointsArc2 = calcInterpolMDPoints(p4Inter, t, t4, R2, alpha2, std::max(10, int(arc2 / h)));
+		std::vector<Eigen::Vector4d> pointsArc2 = calcInterpolMDPoints(p4Inter, t, t4, R2, alpha2, std::max(25, int(arc2 / h)));
 		
 		double nHold2 = std::max(2, int(betta / h));
 

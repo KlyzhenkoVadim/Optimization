@@ -28,22 +28,25 @@ PSOvalueType PSO(std::function<double(Eigen::VectorXd)> func, std::vector<double
 		distrPos.push_back(std::uniform_real_distribution(minValues[i], maxValues[i]));
 		distrVel.push_back(std::uniform_real_distribution(-vMax[i], vMax[i]));
 	}
-
-	for (size_t i = 0; i < numAgents; ++i) {
-		for (size_t j = 0; j < dimension; ++j) {
-			Xposition[i](j) = distrPos[j](gen);
-			Velocities[i](j) = distrVel[j](gen);
+	double minFunc = 1e3;
+	size_t idxgBest;
+	while (minFunc > 200.) {
+		for (size_t i = 0; i < numAgents; ++i) {
+			for (size_t j = 0; j < dimension; ++j) {
+				Xposition[i](j) = distrPos[j](gen);
+				Velocities[i](j) = distrVel[j](gen);
+			}
 		}
-	}
 
-	pBestPos = Xposition;
-	size_t idxgBest = 0;
-	double minFunc = func(Xposition[0]);
-	for (size_t k = 1; k < numAgents; ++k) {
-		double tmp = func(Xposition[k]);
-		if (tmp - minFunc < 1e-10){
-			minFunc = tmp;
-			idxgBest = k;
+		pBestPos = Xposition;
+		idxgBest = 0;
+		minFunc = func(Xposition[0]);
+		for (size_t k = 1; k < numAgents; ++k) {
+			double tmp = func(Xposition[k]);
+			if (tmp - minFunc < 1e-10) {
+				minFunc = tmp;
+				idxgBest = k;
+			}
 		}
 	}
 	gBestPos = Xposition[idxgBest];

@@ -19,7 +19,7 @@ double sepFactor(std::vector<Eigen::Vector3d>& pCartesianW1,
 	size_t n = pCartesianW1.size(), m = pCartesianW2.size();
 	Eigen::MatrixXd distanceMatrix(n, m);//std::vector<std::vector<double>> distanceMatrix;
 	Eigen::MatrixXd scalarProdMatrix(n, m); //std::vector<std::vector<double>> scalarProdMatrix;
-	double sgm = 2e-3;
+	double sgm = 1e-3;
 	double eps = 1e-6;
 	bool flg = true;
 	for (size_t i = 0; i < n; ++i) {
@@ -28,22 +28,24 @@ double sepFactor(std::vector<Eigen::Vector3d>& pCartesianW1,
 			distanceMatrix(i,j) = 1e3;
 		}
 	}	
-	size_t k = 2;
-	for (size_t idxN = 1; idxN < n; ++idxN) {
+	size_t k = 1;
+	for (size_t idxN = 0; idxN < n; ++idxN) {
 		for (size_t idxM = k - 1; idxM < m; ++idxM) {
 			Eigen::Vector3d diffVector = pCartesianW2[idxM] - pCartesianW1[idxN];
 			Eigen::Vector3d tangentW1 = { pMDW1[idxN][1], pMDW1[idxN][2], pMDW1[idxN][3] };
-			if (tangentW1.norm() < eps or diffVector.norm() < eps) {
-				scalarProdMatrix(idxN, idxM) = 0.;
+			if (diffVector.norm() < eps) {
+				scalarProdMatrix(idxN, idxM) = 0;
+				distanceMatrix(idxN, idxM) = 0.;
 			}
 			else {
 				scalarProdMatrix(idxN, idxM) = round(tangentW1.dot(diffVector) / tangentW1.norm() / diffVector.norm() * 100000) / 100000;
-			}
-			if ((signum(scalarProdMatrix(idxN, idxM)) != signum(scalarProdMatrix(idxN, idxM - 1)) and idxM > 1)) {
-				distanceMatrix(idxN, idxM) = diffVector.norm() / (sgm * (pMDW1[idxN][0]+pMDW2[idxM][0]));
-				if (flg) {
-					k = idxM;
-					flg = false;
+				if (idxM > 1 and (signum(scalarProdMatrix(idxN, idxM)) != signum(scalarProdMatrix(idxN, idxM - 1)))) {
+					if (pMDW1[idxN][0] + pMDW2[idxM][0] > eps)
+						distanceMatrix(idxN, idxM) = diffVector.norm() / (sgm * (pMDW1[idxN][0] + pMDW2[idxM][0]));
+					if (flg) {
+						k = idxM;
+						flg = false;
+					}
 				}
 			}
 		}
@@ -57,7 +59,7 @@ double sepFactor(std::vector<Eigen::Vector3d>& pCartesianW1,
 		}
 
 		if (actFunc) {
-			return sigmoid(sepFactor, penalty, 10, 1.5);
+			return sigmoid(sepFactor, penalty, 1, 1.5);
 		}
 		return sepFactor;
 	}
@@ -110,7 +112,7 @@ double DDI(std::vector<Eigen::Vector3d>& pCartesian,std::vector<Eigen::Vector4d>
 	double TVD = pCartesian.back()[2] - pCartesian[0][2] ;
 	DDI = log10((1. / 0.305) * ahd * MD * toruos / TVD);
 	if (actFunc) {
-		return sigmoid(DDI, penalty, -30, 6.4);
+		return sigmoid(DDI, penalty, -1, 6.4);
 	}
 	return DDI;
 }	
@@ -130,14 +132,14 @@ double orderScore(std::vector<TrajectoryTemplate*>& mainWell, std::vector<std::v
 	mainLength /= tmpVec.norm();
 	mainDDI = DDI(mainPCartesian, mainPMD);
 	if (Trajectories.size() == 0) {
-		return mainLength + mainDDI;
+		return mainLength +mainDDI;
 	}
 	for (size_t idx = 0; idx < Trajectories.size(); ++idx) {
 		std::vector<Eigen::Vector3d> pCartesianTrajectory = allPointsCartesian(Trajectories[idx]);
 		std::vector<Eigen::Vector4d> pMDTrajectory = allPointsMD(Trajectories[idx]);
 		rSepFactor += sepFactor(mainPCartesian, mainPMD, pCartesianTrajectory,pMDTrajectory);
 	}
-	return mainLength + mainDDI + rSepFactor;
+	return mainLength + rSepFactor +mainDDI;
 
 }
 
