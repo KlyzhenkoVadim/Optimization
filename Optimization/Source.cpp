@@ -42,14 +42,33 @@ Eigen::Vector3d calcTangentVector(double azimuth, double inclination) {
 	};
 };
 
+std::pair<double,double> sqrtVar(std::vector<double> v) {
+	double mean=0, var=0;
+	size_t n = v.size();
+	for (size_t i = 0; i < n; ++i) {
+		mean += v[i] / n;
+	}
+	for (size_t i = 0; i < n; ++i) {
+		var += (v[i] - mean) * (v[i] - mean)/n;
+	}
+	return { mean,sqrt(var) };
+}
+
+void normTransformer(Eigen::VectorXd& x) {
+	x[0] *= 1000;
+	x[1] *= 1000;
+	x[2] *= 1000;
+	x[5] *= 1000;
+	x[3] *= 180./ PI;
+	x[4] *= 180. / PI;
+}
+
 int main()
 {
 	double m = 1800 / PI;
-	//std::vector<double> minValues = { -1000., -1000., 100., 60., 0., 100. };
-	//std::vector<double> maxValues = { 1000., 1000., 2000., 70., 360., 1000. };
-	std::vector<double> inert(100, .9);
-	// x = x,y,z,inc,azi,beta
 	
+	
+	// x = x,y,z,inc,azi,beta
 	std::function<std::vector<TrajectoryTemplate*>(Eigen::VectorXd& x)> Well1 = [&](Eigen::VectorXd& x) {
 		std::vector<TrajectoryTemplate*> well1;
 		Eigen::Vector3d pIHold = { 0,0,0 };
@@ -155,9 +174,11 @@ int main()
 	mainWell.push_back(Well1);
 	mainWell.push_back(Well2);
 	mainWell.push_back(Well3);
-	std::vector<double> minValues = {-100., -100., 100., 60., -180., 100. }; // {-1000,-1000,100,60,0,100}
-	std::vector<double> maxValues = {100., 100., 3010., 70., 180., 2000. }; // {1000,1000,1000,70,360,1000}
-	std::vector<std::vector<size_t>> order = {{1,2,3},{1,3,2},{2,1,3},{2,3,1},{3,1,2},{3,2,1}};
+	std::vector<double> inert(100, .9);
+	//std::vector<double> minValues = {-1, -1.,2.74, 60./180.*PI, -PI, .1 }; // {-1000., -1000.,2940, 60., -180., 100. }
+	//std::vector<double> maxValues = {1, 1., 2.955, 70./180.*PI, PI, 2. }; // {1000., 1000., 2955., 70., 180., 2000. }
+	std::vector<double> minValues = { -1000., -1000., 2840, 60., -180., 100. };
+	std::vector<double> maxValues = { 1000., 1000., 2955., 70., 180., 1000. };
 	/*for (size_t i = 0; i < 1; ++i) {
 		std::function<double(Eigen::VectorXd)> score = [&](Eigen::VectorXd x) {
 			std::vector<TrajectoryTemplate*> tmp = Well1(x);
@@ -172,16 +193,19 @@ int main()
 		getOptData(opt);
 	}
 	trajectories.clear();*/
-	size_t  N = 3;
+	size_t  N = 2;
+	std::vector<double> lens;
 	bool opt_ON = true;
 	if (opt_ON) {
-		for (size_t i = 0; i < 50; ++i) {
-			for (size_t idx = 0; idx < 1; ++idx) {
+		for (size_t i = 0; i < 10; ++i) {
+			for (size_t idx = 0; idx < 2; ++idx) {
 				std::function<double(Eigen::VectorXd)> score = [&](Eigen::VectorXd x) {
-					std::vector<TrajectoryTemplate*> tmp = mainWell[0](x);
+					//normTransformer(x);
+					std::vector<TrajectoryTemplate*> tmp = mainWell[idx](x);
 					return orderScore(tmp, trajectories); };
-				PSOvalueType opt = PSO(score, minValues, maxValues, 12, 6, inert, 0.3, 0.5, 100);
-				trajectories.push_back(mainWell[0](opt.first));
+				PSOvalueType opt = PSO(score, minValues, maxValues, 30, 6, inert, 0.3, 0.5, 100);
+				//normTransformer(opt.first);
+				trajectories.push_back(mainWell[idx](opt.first));
 				int cond = solve(trajectories.back());
 				//getOptData(opt);
 				if (cond > 0) {
@@ -189,23 +213,29 @@ int main()
 					break;
 				}
 				else {
-					std::cout << allLength(trajectories.back()) << ",";
-					//std::cout << "Length: " << allLength(trajectories.back()) << std::endl;
+					//double tmplen = allLength(trajectories.back());
+					//lens.push_back(tmplen);
+					//std::cout << tmplen << ",";
+					//std::cout << "Length: " << allLength(trajectories.back()) << std::endl << std::endl;
 					if (idx > 0) {
 						std::vector<Eigen::Vector3d> pCartMain = allPointsCartesian(trajectories.back());
 						std::vector<Eigen::Vector4d> pMDmain = allPointsMD(trajectories.back());
 						for (size_t idd = 0; idd < idx; ++idd) {
 							std::vector<Eigen::Vector3d> tmpPCart = allPointsCartesian(trajectories[idd]);
 							std::vector<Eigen::Vector4d> tmpPMD = allPointsMD(trajectories[idd]);
-							std::cout << "Separation Factor" << idx << idd << ": " << sepFactor(pCartMain, pMDmain, tmpPCart, tmpPMD, false) << std::endl;;
+							//std::cout << "Separation Factor" << idx << idd << ": " << sepFactor(pCartMain, pMDmain, tmpPCart, tmpPMD, false) << std::endl;;
+							std::cout << sepFactor(pCartMain, pMDmain, tmpPCart, tmpPMD, false) << ",";
+							//std::cout << std::endl;
 						}
-					}	
 					}
-					//writeDataOpt(order[idx], ord, opt);
 				}
+				//writeDataOpt(order[idx], ord, opt);
 			}
 			trajectories.clear();
 		}
+		std::pair<double, double> Value = sqrtVar(lens);
+		//std::cout <<"\nMean: "<< Value.first << " Variance: " << Value.second;
+	}
 	/*gBestCost: 1.55296
 gBestPos: 55.4293, 17.9913, 2891.62, 60.1587, -5.14966, 896.473,
 Length: 4557.13

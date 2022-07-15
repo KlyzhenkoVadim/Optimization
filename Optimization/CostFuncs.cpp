@@ -139,7 +139,7 @@ double orderScore(std::vector<TrajectoryTemplate*>& mainWell, std::vector<std::v
 		std::vector<Eigen::Vector4d> pMDTrajectory = allPointsMD(Trajectories[idx]);
 		rSepFactor += sepFactor(mainPCartesian, mainPMD, pCartesianTrajectory,pMDTrajectory);
 	}
-	return mainLength + rSepFactor +mainDDI;
+	return mainLength + rSepFactor +mainDDI; //!!!
 
 }
 

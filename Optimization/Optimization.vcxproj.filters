@@ -62,4 +62,9 @@
       <Filter>Исходные файлы</Filter>
     </Text>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="dataPSO.csv">
+      <Filter>Исходные файлы</Filter>
+    </None>
+  </ItemGroup>
 </Project>

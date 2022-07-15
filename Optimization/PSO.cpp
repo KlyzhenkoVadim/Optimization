@@ -1,4 +1,6 @@
 #include "PSO.h"
+#include <fstream>
+void writePSO(double func, size_t iter, std::string filename);
 
 PSOvalueType PSO(std::function<double(Eigen::VectorXd)> func, std::vector<double>& minValues, std::vector<double>& maxValues,
 	size_t numAgents, size_t dimension, std::vector<double>& inertia, double socCoef, double indCoef, size_t numIterations){
@@ -30,11 +32,12 @@ PSOvalueType PSO(std::function<double(Eigen::VectorXd)> func, std::vector<double
 	}
 	double minFunc = 1e3;
 	size_t idxgBest;
-	while (minFunc > 200.) {
 		for (size_t i = 0; i < numAgents; ++i) {
 			for (size_t j = 0; j < dimension; ++j) {
 				Xposition[i](j) = distrPos[j](gen);
 				Velocities[i](j) = distrVel[j](gen);
+				//Velocities[i][j] = 0.;
+				
 			}
 		}
 
@@ -48,7 +51,7 @@ PSOvalueType PSO(std::function<double(Eigen::VectorXd)> func, std::vector<double
 				idxgBest = k;
 			}
 		}
-	}
+	
 	gBestPos = Xposition[idxgBest];
 
 	for (size_t iteration = 0; iteration < numIterations; ++iteration) {
@@ -81,6 +84,7 @@ PSOvalueType PSO(std::function<double(Eigen::VectorXd)> func, std::vector<double
 				minFunc = func(gBestPos);
 			}
 		}
+		writePSO(minFunc, iteration,"dataPSO.csv");
 		/*std::string tmpS = std::to_string(iteration);
 		tmpS.append(std::to_string(numIterations));
 		tmpS.append("Iteration: ");
@@ -90,4 +94,11 @@ PSOvalueType PSO(std::function<double(Eigen::VectorXd)> func, std::vector<double
 	//std::cout << "Iteration" << numIterations << "/" << numIterations << std::endl;
 	return {gBestPos,minFunc};
 
+}
+
+void writePSO(double func, size_t iter, std::string filename) {
+	std::fstream file;
+	file.open(filename, std::ios::out | std::ios::app);
+	file << iter << "," << func << std::endl;
+	file.close();
 }
