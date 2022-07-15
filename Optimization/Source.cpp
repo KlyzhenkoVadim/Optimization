@@ -54,13 +54,15 @@ int main()
 		std::vector<TrajectoryTemplate*> well1;
 		Eigen::Vector3d pIHold = { 0,0,0 };
 		Eigen::Vector3d pTHold = { 0,0,x(5)};
-		Eigen::Vector3d pChch1 = {x(0),x(1),x(2) };
+		Eigen::Vector3d pT3Chch1 = {x(0),x(1),x(2) };
+		Eigen::Vector3d Tangent = calcTangentVector(x[4], x[3]);
+		Eigen::Vector3d pT1Chch1 = pT3Chch1 - 110. * Tangent;
 		Eigen::Vector3d pT1Chch2 = { 400.0,8.0,3000.0 };
 		Eigen::Vector3d pT3Chch2 = {1500. ,8.0 ,3010.0 };
 		well1.push_back(new Hold(pIHold, pTHold));
-		well1.push_back(new CurveHoldCurveHold(pTHold, 0, 0, m, m, pChch1, x[3], x[4], 110.));
+		well1.push_back(new CurveHoldCurveHold(pTHold, 0, 0, m, m, pT1Chch1, pT3Chch1));
 		//well1.push_back(new CurveHoldCurveHold(pChch1,x[3], x[4], m, m, pT3Chch2, 89.479, 0., 1100.04545));
-		well1.push_back(new CurveHoldCurveHold(pChch1, x[3], x[4], m, m, pT1Chch2, pT3Chch2));
+		well1.push_back(new CurveHoldCurveHold(pT3Chch1, x[3], x[4], m, m, pT1Chch2, pT3Chch2));
 		return well1;
 	};
 	std::function<std::vector<TrajectoryTemplate*>(Eigen::VectorXd& x)> Well2 = [&](Eigen::VectorXd& x) {
@@ -173,22 +175,22 @@ int main()
 	size_t  N = 3;
 	bool opt_ON = true;
 	if (opt_ON) {
-		for (size_t i = 0; i < 5; ++i) {
-			for (size_t idx = 0; idx < N; ++idx) {
+		for (size_t i = 0; i < 50; ++i) {
+			for (size_t idx = 0; idx < 1; ++idx) {
 				std::function<double(Eigen::VectorXd)> score = [&](Eigen::VectorXd x) {
-					std::vector<TrajectoryTemplate*> tmp = mainWell[idx](x);
+					std::vector<TrajectoryTemplate*> tmp = mainWell[0](x);
 					return orderScore(tmp, trajectories); };
-				PSOvalueType opt = PSO(score, minValues, maxValues, 20, 6, inert, 0.3, 0.5, 100);
-				trajectories.push_back(mainWell[idx](opt.first));
+				PSOvalueType opt = PSO(score, minValues, maxValues, 12, 6, inert, 0.3, 0.5, 100);
+				trajectories.push_back(mainWell[0](opt.first));
 				int cond = solve(trajectories.back());
-				getOptData(opt);
+				//getOptData(opt);
 				if (cond > 0) {
 					std::cout << "Unbuild Trajectory\n";
 					break;
 				}
 				else {
-					//std::cout << allLength(trajectories.back()) << ",";
-					std::cout << "Length: " << allLength(trajectories.back()) << std::endl;
+					std::cout << allLength(trajectories.back()) << ",";
+					//std::cout << "Length: " << allLength(trajectories.back()) << std::endl;
 					if (idx > 0) {
 						std::vector<Eigen::Vector3d> pCartMain = allPointsCartesian(trajectories.back());
 						std::vector<Eigen::Vector4d> pMDmain = allPointsMD(trajectories.back());
