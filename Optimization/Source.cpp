@@ -28,7 +28,7 @@ double Sphere(Eigen::VectorXd x) {
 	return result;
 }
 void getOptData(PSOvalueType op);
-void writeDataOpt(std::vector<size_t> order, size_t wellNum, PSOvalueType Opt);
+void writeDataOpt(std::vector<size_t> order, size_t wellNum, PSOvalueType Opt, std::vector<std::vector<TrajectoryTemplate*>>& trajs);
 
 Eigen::Vector3d calcTangentVector(double azimuth, double inclination) {
 
@@ -179,75 +179,46 @@ int main()
 	//std::vector<double> maxValues = {1, 1., 2.955, 70./180.*PI, PI, 2. }; // {1000., 1000., 2955., 70., 180., 2000. }
 	std::vector<double> minValues = { -1000., -1000., 2840, 60., -180., 100. };
 	std::vector<double> maxValues = { 1000., 1000., 2955., 70., 180., 1000. };
-	/*for (size_t i = 0; i < 1; ++i) {
-		std::function<double(Eigen::VectorXd)> score = [&](Eigen::VectorXd x) {
-			std::vector<TrajectoryTemplate*> tmp = Well1(x);
-			return orderScore(tmp, trajectories); };
-		PSOvalueType opt = PSO(score, minValues, maxValues, 14, 8, inert,0.3,0.5,100);
-		trajectories.push_back(Well1(opt.first));
-		int cond = solve(trajectories.back());
-		if (cond > 0) {
-			break;
-			std::cout << "Unbuild Trajectory\n";
-		}
-		getOptData(opt);
-	}
-	trajectories.clear();*/
-	size_t  N = 2;
+	size_t  N = 3;
 	std::vector<double> lens;
 	bool opt_ON = true;
+	std::vector<std::vector<size_t>> order = {{1,2,3},{1,3,2},{2,1,3},{2,3,1},{3,1,2},{3,2,1} };
 	if (opt_ON) {
-		for (size_t i = 0; i < 10; ++i) {
-			for (size_t idx = 0; idx < 2; ++idx) {
+		for (size_t i = 0; i < 6; ++i) {
+			for (size_t id = 0; id < 3; ++id) {
+				size_t idx = order[i][id] - 1;
 				std::function<double(Eigen::VectorXd)> score = [&](Eigen::VectorXd x) {
-					//normTransformer(x);
 					std::vector<TrajectoryTemplate*> tmp = mainWell[idx](x);
 					return orderScore(tmp, trajectories); };
-				PSOvalueType opt = PSO(score, minValues, maxValues, 30, 6, inert, 0.3, 0.5, 100);
-				//normTransformer(opt.first);
+				PSOvalueType opt = PSO(score, minValues, maxValues, 15, 6, inert, 0.3, 0.5, 100);
 				trajectories.push_back(mainWell[idx](opt.first));
 				int cond = solve(trajectories.back());
-				//getOptData(opt);
+				getOptData(opt);
 				if (cond > 0) {
 					std::cout << "Unbuild Trajectory\n";
 					break;
 				}
-				else {
+				writeDataOpt(order[i], order[i][id], opt, trajectories);
+				/*else {
 					//double tmplen = allLength(trajectories.back());
 					//lens.push_back(tmplen);
 					//std::cout << tmplen << ",";
 					//std::cout << "Length: " << allLength(trajectories.back()) << std::endl << std::endl;
 					if (idx > 0) {
-						std::vector<Eigen::Vector3d> pCartMain = allPointsCartesian(trajectories.back());
-						std::vector<Eigen::Vector4d> pMDmain = allPointsMD(trajectories.back());
-						for (size_t idd = 0; idd < idx; ++idd) {
-							std::vector<Eigen::Vector3d> tmpPCart = allPointsCartesian(trajectories[idd]);
-							std::vector<Eigen::Vector4d> tmpPMD = allPointsMD(trajectories[idd]);
+						//std::vector<Eigen::Vector3d> pCartMain = allPointsCartesian(trajectories.back());
+						//std::vector<Eigen::Vector4d> pMDmain = allPointsMD(trajectories.back());
+						//for (size_t idd = 0; idd < idx; ++idd) {
+						//	std::vector<Eigen::Vector3d> tmpPCart = allPointsCartesian(trajectories[idd]);
+						//	std::vector<Eigen::Vector4d> tmpPMD = allPointsMD(trajectories[idd]);
 							//std::cout << "Separation Factor" << idx << idd << ": " << sepFactor(pCartMain, pMDmain, tmpPCart, tmpPMD, false) << std::endl;;
-							std::cout << sepFactor(pCartMain, pMDmain, tmpPCart, tmpPMD, false) << ",";
+						//	std::cout << sepFactor(pCartMain, pMDmain, tmpPCart, tmpPMD, false) << ",";
 							//std::cout << std::endl;
 						}
-					}
+					}*/
 				}
-				//writeDataOpt(order[idx], ord, opt);
-			}
 			trajectories.clear();
+			}
 		}
-		std::pair<double, double> Value = sqrtVar(lens);
-		//std::cout <<"\nMean: "<< Value.first << " Variance: " << Value.second;
-	}
-	/*gBestCost: 1.55296
-gBestPos: 55.4293, 17.9913, 2891.62, 60.1587, -5.14966, 896.473,
-Length: 4557.13
-gBestCost: 1.85378
-gBestPos: 10.9597, -80.6946, 2843.69, 61.8733, 170.504, 634.54,
-Length: 4611.99
-Separation Factor10: 12.1466
-gBestCost: 1.85732
-gBestPos: -38.8507, 95.0182, 2786.19, 60.029, 140.6, 1036.57,
-Length: 4588.59
-Separation Factor20: 11.3531
-Separation Factor21: 12.2907*/
 	Eigen::VectorXd arg1{{55.4293, 17.9913, 2891.62, 60.1587, -5.14966, 896.473}},
 		arg2{ { 10.9597, -80.6946, 2843.69, 61.8733, 170.504, 634.54} }, arg3{ {-38.8507, 95.0182, 2786.19, 60.029, 140.6, 1036.57} };
 	std::vector<std::vector<TrajectoryTemplate*>> wells = { Well1(arg1),Well2(arg2)};
@@ -285,9 +256,9 @@ void writeDataMD(std::vector<Eigen::Vector4d>& pointsMD, std::string filename) {
 	output.close();
 }
 
-void writeDataOpt(std::vector<size_t> order,size_t wellNum, PSOvalueType Opt) {
+void writeDataOpt(std::vector<size_t> order,size_t wellNum, PSOvalueType Opt, std::vector<std::vector<TrajectoryTemplate*>>& trajs) {
 	std::fstream file;
-	file.open("C:/Users/klyzhenko.vs/0CET/optDataCpp.csv", std::ios::out | std::ios::app);
+	file.open("C:/Users/HP/WellboreOpt/optDataCpp2.csv", std::ios::out | std::ios::app);
 	file << "[";
 	for (size_t i = 0; i < order.size(); ++i) {
 		file << order[i];
@@ -300,6 +271,24 @@ void writeDataOpt(std::vector<size_t> order,size_t wellNum, PSOvalueType Opt) {
 		if (i != Opt.first.size() - 1)
 			file << " ";
 	}
-	file << "]," << Opt.second << std::endl;
+	file << "]," << Opt.second << ",";
+	file << allLength(trajs.back()) << ",";
+	std::vector<Eigen::Vector3d> pC = allPointsCartesian(trajs.back());
+	std::vector<Eigen::Vector4d> pMD = allPointsMD(trajs.back());
+	file << DDI(pC, pMD, false)<<",";
+	size_t n = trajs.size();
+	if (n == 1)
+		file << "-,\n";
+	if (n == 2) {
+		std::vector<Eigen::Vector3d>pC1 = allPointsCartesian(trajs[0]);
+		std::vector<Eigen::Vector4d>pMD1 = allPointsMD(trajs[0]);
+		file << sepFactor(pC, pMD, pC1, pMD1, false) << std::endl;
+	}
+	if (n == 3) {
+		std::vector<Eigen::Vector3d>pC1 = allPointsCartesian(trajs[0]), pC2 = allPointsCartesian(trajs[1]);
+		std::vector<Eigen::Vector4d>pMD1 = allPointsMD(trajs[0]), pMD2 = allPointsMD(trajs[1]);
+		double sf = std::min(sepFactor(pC, pMD, pC1, pMD1, false), sepFactor(pC, pMD, pC2, pMD2, false));
+		file << sf << std::endl;
+	}
 	file.close();
 }

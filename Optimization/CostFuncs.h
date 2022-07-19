@@ -8,6 +8,10 @@ int signum(double x);
 double sepFactor(std::vector<Eigen::Vector3d>& pCartesianW1,std::vector<Eigen::Vector4d>& pMDW1,
 				std::vector<Eigen::Vector3d>& pCartesianW2, std::vector<Eigen::Vector4d>& pMDW2, bool actFunc = true , double penalty = 20);
 
+double testSepFactor(std::vector<Eigen::Vector3d>& pCartesianW1,
+	std::vector<Eigen::Vector4d>& pMDW1,
+	std::vector<Eigen::Vector3d>& pCartesianW2, std::vector<Eigen::Vector4d>& pMDW2, bool actFunc = true, double penalty = 20);
+
 double AHD(std::vector<Eigen::Vector3d>& pX, std::vector<Eigen::Vector3d>& pY);
 
 double dls(Eigen::Vector3d& tangent1, Eigen::Vector3d& tangent2);

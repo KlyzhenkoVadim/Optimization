@@ -63,7 +63,19 @@ double sepFactor(std::vector<Eigen::Vector3d>& pCartesianW1,
 		}
 		return sepFactor;
 	}
+
+double testSepFactor(std::vector<Eigen::Vector3d>& pCartesianW1,
+	std::vector<Eigen::Vector4d>& pMDW1,
+	std::vector<Eigen::Vector3d>& pCartesianW2, std::vector<Eigen::Vector4d>& pMDW2, bool actFunc, double penalty) {
 	
+	double sf = std::min(sepFactor(pCartesianW1, pMDW1, pCartesianW2, pMDW2, false, penalty),
+		sepFactor(pCartesianW2, pMDW2, pCartesianW1, pMDW1, false , penalty));
+	if (actFunc) {
+		return sigmoid(sf, penalty, 1, 1.5);
+	}
+	return sf;
+}
+
 double AHD(std::vector<double>& pX, std::vector<double>& pY) {
 	double AHD = 0;
 	assert("length pX and pY must be equal", pX.size() != pY.size());
@@ -137,9 +149,9 @@ double orderScore(std::vector<TrajectoryTemplate*>& mainWell, std::vector<std::v
 	for (size_t idx = 0; idx < Trajectories.size(); ++idx) {
 		std::vector<Eigen::Vector3d> pCartesianTrajectory = allPointsCartesian(Trajectories[idx]);
 		std::vector<Eigen::Vector4d> pMDTrajectory = allPointsMD(Trajectories[idx]);
-		rSepFactor += sepFactor(mainPCartesian, mainPMD, pCartesianTrajectory,pMDTrajectory);
+		rSepFactor += sepFactor(mainPCartesian, mainPMD, pCartesianTrajectory,pMDTrajectory); 
 	}
-	return mainLength + rSepFactor +mainDDI; //!!!
+	return mainLength + rSepFactor +mainDDI;
 
 }
 
