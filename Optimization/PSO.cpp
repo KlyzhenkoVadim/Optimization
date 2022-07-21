@@ -35,8 +35,8 @@ PSOvalueType PSO(std::function<double(Eigen::VectorXd)> func, std::vector<double
 		for (size_t i = 0; i < numAgents; ++i) {
 			for (size_t j = 0; j < dimension; ++j) {
 				Xposition[i](j) = distrPos[j](gen);
-				Velocities[i](j) = distrVel[j](gen);
-				//Velocities[i][j] = 0.;
+				//Velocities[i](j) = distrVel[j](gen);
+				Velocities[i][j] = 0.;
 				
 			}
 		}

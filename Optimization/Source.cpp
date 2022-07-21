@@ -30,6 +30,8 @@ double Sphere(Eigen::VectorXd x) {
 void getOptData(PSOvalueType op);
 void writeDataOpt(std::vector<size_t> order, size_t wellNum, PSOvalueType Opt, std::vector<std::vector<TrajectoryTemplate*>>& trajs);
 
+void writeDataOptSep(std::vector<std::vector<Eigen::Vector3d>>& pCTrajs, std::vector<std::vector<Eigen::Vector4d>>& pMDTrajs,size_t& num);
+
 Eigen::Vector3d calcTangentVector(double azimuth, double inclination) {
 
 	double x = sin(inclination * PI / 180.0) * cos(azimuth * PI / 180.0);
@@ -54,14 +56,6 @@ std::pair<double,double> sqrtVar(std::vector<double> v) {
 	return { mean,sqrt(var) };
 }
 
-void normTransformer(Eigen::VectorXd& x) {
-	x[0] *= 1000;
-	x[1] *= 1000;
-	x[2] *= 1000;
-	x[5] *= 1000;
-	x[3] *= 180./ PI;
-	x[4] *= 180. / PI;
-}
 
 int main()
 {
@@ -123,74 +117,30 @@ int main()
 	Eigen::Vector3d p3T1{ -650.,420.,3000. }, p3T3{ -1500.,420.,3010. }, p2T1{ -700.,8.0,3000. }, p2T3{ { -1500.,8,3010. } }, p1T1{ 400.0,8.0,3000.0 }, p1T3{ 1500. ,8.0 ,3010.0 };
 	std::vector<Eigen::Vector3d> wellheads = { pI1,pI2,pI3 };
 	std::vector<std::pair<Eigen::Vector3d, Eigen::Vector3d>> targets = { {p1T1,p1T3},{p2T1,p2T3},{p3T1,p3T3} };
-	/*std::function<std::vector<TrajectoryTemplate*>(Eigen::VectorXd& x)> Well1 = [&](Eigen::VectorXd& x) {
-		std::vector<TrajectoryTemplate*> well1;
-		size_t i = int(x[0]), j = int(x[1]);
-		Eigen::Vector3d pIHold = wellheads[i];
-		Eigen::Vector3d tmpvec = { 0,0,x(7)};
-		Eigen::Vector3d pTHold = pIHold + tmpvec;
-		Eigen::Vector3d pChch1 = {x(2),x(3),x(4) };
-		Eigen::Vector3d pT1Chch2 = targets[j].first;
-		Eigen::Vector3d pT3Chch2 = targets[j].second;
-		well1.push_back(new Hold(pIHold, pTHold));
-		well1.push_back(new CurveHoldCurveHold(pTHold, 0, 0, m, m, pChch1, x[5], x[6], 110.));
-		//well1.push_back(new CurveHoldCurveHold(pChch1,x[3], x[4], m, m, pT3Chch2, 89.479, 0., 1100.04545));
-		well1.push_back(new CurveHoldCurveHold(pChch1, x[5], x[6], m, m, pT1Chch2, pT3Chch2));
-		return well1;
-	};
-	std::function<std::vector<TrajectoryTemplate*>(Eigen::VectorXd& x)> Well2 = [&](Eigen::VectorXd& x) {
-		std::vector<TrajectoryTemplate*> well2;
-		size_t i = int(x[0]), j = int(x[1]);
-		Eigen::Vector3d pIHold = wellheads[i];
-		Eigen::Vector3d tmpvec = { 0,0,x(5) };
-		Eigen::Vector3d pTHold = pIHold + tmpvec;
-		Eigen::Vector3d pChch1 = { x(0),x(1),x(2) };
-		Eigen::Vector3d pT1Chch2 = targets[j].first;
-		Eigen::Vector3d pT3Chch2 = targets[j].second;
-		well2.push_back(new Hold(pIHold, pTHold));
-		well2.push_back(new CurveHoldCurveHold(pTHold, 0, 0, m, m, pChch1, x[3], x[4], 110.));
-		well2.push_back(new CurveHoldCurveHold(pChch1, x[3], x[4], m, m,pT1Chch2 ,pT3Chch2));
-		//well2.push_back(new CurveHoldCurveHold(pChch1,x[3], x[4], m, m, pT3Chch2, 89.28384005452959, 180.0,800.0624975587845));
-		return well2;
-	};
-	std::function<std::vector<TrajectoryTemplate*>(Eigen::VectorXd& x)> Well3 = [&](Eigen::VectorXd& x) {
-		std::vector<TrajectoryTemplate*> well3;
-		size_t i = int(x[0]), j = int(x[1]);
-		Eigen::Vector3d pIHold = wellheads[i];
-		Eigen::Vector3d tmpvec = { 0,0,x(5) };
-		Eigen::Vector3d pTHold = pIHold + tmpvec;
-		Eigen::Vector3d pChch1 = { x(0),x(1),x(2) };
-		Eigen::Vector3d pT1Chch2 = targets[j].first;
-		Eigen::Vector3d pT3Chch2 = targets[j].second;;
-		well3.push_back(new Hold(pIHold, pTHold));
-		well3.push_back(new CurveHoldCurveHold(pTHold, 0, 0, m, m, pChch1, x[3], x[4], 110.));
-		well3.push_back(new CurveHoldCurveHold(pChch1, x[3], x[4], m, m, pT1Chch2,pT3Chch2));
-		//well3.push_back(new CurveHoldCurveHold(pChch1,x[3], x[4], m, m, pT3Chch2, 89.32596310201549, 180.0,850.0588214941364));
 
-		return well3;
-	};*/
 	std::vector < std::function<std::vector<TrajectoryTemplate*>(Eigen::VectorXd&)>> mainWell;
 	std::vector < std::vector<TrajectoryTemplate*>> trajectories;
+	std::vector<std::vector<Eigen::Vector3d>> pCTrajectories,tmpC;
+	std::vector<std::vector<Eigen::Vector4d>> pMDTrajectories,tmpMD;
 	mainWell.push_back(Well1);
 	mainWell.push_back(Well2);
 	mainWell.push_back(Well3);
 	std::vector<double> inert(100, .9);
-	//std::vector<double> minValues = {-1, -1.,2.74, 60./180.*PI, -PI, .1 }; // {-1000., -1000.,2940, 60., -180., 100. }
-	//std::vector<double> maxValues = {1, 1., 2.955, 70./180.*PI, PI, 2. }; // {1000., 1000., 2955., 70., 180., 2000. }
 	std::vector<double> minValues = { -1000., -1000., 2840, 60., -180., 100. };
-	std::vector<double> maxValues = { 1000., 1000., 2955., 70., 180., 1000. };
-	size_t  N = 3;
+	std::vector<double> maxValues = { 1000., 1000., 2955., 70., 180., 2000. };
 	std::vector<double> lens;
+	size_t  N = 3, collisionNum = 0;
 	bool opt_ON = true;
 	std::vector<std::vector<size_t>> order = {{1,2,3},{1,3,2},{2,1,3},{2,3,1},{3,1,2},{3,2,1} };
 	if (opt_ON) {
 		for (size_t i = 0; i < 6; ++i) {
 			for (size_t id = 0; id < 3; ++id) {
+				//size_t idx = id;
 				size_t idx = order[i][id] - 1;
 				std::function<double(Eigen::VectorXd)> score = [&](Eigen::VectorXd x) {
 					std::vector<TrajectoryTemplate*> tmp = mainWell[idx](x);
-					return orderScore(tmp, trajectories); };
-				PSOvalueType opt = PSO(score, minValues, maxValues, 15, 6, inert, 0.3, 0.5, 100);
+					return orderScore1(tmp,pCTrajectories,pMDTrajectories); };
+				PSOvalueType opt = PSO(score, minValues, maxValues, 30, 6, inert, 0.3, 0.5, 150);
 				trajectories.push_back(mainWell[idx](opt.first));
 				int cond = solve(trajectories.back());
 				getOptData(opt);
@@ -198,34 +148,23 @@ int main()
 					std::cout << "Unbuild Trajectory\n";
 					break;
 				}
+				pCTrajectories.push_back(allPointsCartesian(trajectories.back()));
+				pMDTrajectories.push_back(allPointsMD(trajectories.back()));
 				writeDataOpt(order[i], order[i][id], opt, trajectories);
-				/*else {
-					//double tmplen = allLength(trajectories.back());
-					//lens.push_back(tmplen);
-					//std::cout << tmplen << ",";
-					//std::cout << "Length: " << allLength(trajectories.back()) << std::endl << std::endl;
-					if (idx > 0) {
-						//std::vector<Eigen::Vector3d> pCartMain = allPointsCartesian(trajectories.back());
-						//std::vector<Eigen::Vector4d> pMDmain = allPointsMD(trajectories.back());
-						//for (size_t idd = 0; idd < idx; ++idd) {
-						//	std::vector<Eigen::Vector3d> tmpPCart = allPointsCartesian(trajectories[idd]);
-						//	std::vector<Eigen::Vector4d> tmpPMD = allPointsMD(trajectories[idd]);
-							//std::cout << "Separation Factor" << idx << idd << ": " << sepFactor(pCartMain, pMDmain, tmpPCart, tmpPMD, false) << std::endl;;
-						//	std::cout << sepFactor(pCartMain, pMDmain, tmpPCart, tmpPMD, false) << ",";
-							//std::cout << std::endl;
-						}
-					}*/
 				}
+			//writeDataOptSep(pCTrajectories, pMDTrajectories, collisionNum);
+			pCTrajectories.clear();
+			pMDTrajectories.clear();
 			trajectories.clear();
 			}
+		//std::cout << "Length variance is: " << sqrtVar(lens).second;
 		}
-	Eigen::VectorXd arg1{{55.4293, 17.9913, 2891.62, 60.1587, -5.14966, 896.473}},
-		arg2{ { 10.9597, -80.6946, 2843.69, 61.8733, 170.504, 634.54} }, arg3{ {-38.8507, 95.0182, 2786.19, 60.029, 140.6, 1036.57} };
-	std::vector<std::vector<TrajectoryTemplate*>> wells = { Well1(arg1),Well2(arg2)};
+	//std::cout << "Collision Number: " << collisionNum << std::endl;
+	Eigen::VectorXd arg1{{101.577, -5.8025, 2918.28, 63.6666, 7.85055, 1194.44}},
+		arg2{ { -259.494, -34.5137, 2846.29, 63.9689, 171.818, 894.173} }, arg3{ {-371.79, 383.717, 2935.88, 64.9699, 165.448, 417.213} };
+	std::vector<std::vector<TrajectoryTemplate*>> wells = { Well3(arg3),Well1(arg1)};
 	for (size_t i = 0; i < wells.size(); ++i)
 		int cond = solve(wells[i]);
-	std::vector<Eigen::Vector4d> pCartesian = allPointsMD(wells[0]);
-
 	//writeDataMD(pCartesian,"output.txt");
 	return 0;
 }
@@ -258,7 +197,7 @@ void writeDataMD(std::vector<Eigen::Vector4d>& pointsMD, std::string filename) {
 
 void writeDataOpt(std::vector<size_t> order,size_t wellNum, PSOvalueType Opt, std::vector<std::vector<TrajectoryTemplate*>>& trajs) {
 	std::fstream file;
-	file.open("C:/Users/HP/WellboreOpt/optDataCpp2.csv", std::ios::out | std::ios::app);
+	file.open("C:/Users/klyzhenko.vs/0CET/optDataCpp22.csv", std::ios::out | std::ios::app); // C:/Users/HP/WellboreOpt/optDataCpp2.csv
 	file << "[";
 	for (size_t i = 0; i < order.size(); ++i) {
 		file << order[i];
@@ -278,7 +217,7 @@ void writeDataOpt(std::vector<size_t> order,size_t wellNum, PSOvalueType Opt, st
 	file << DDI(pC, pMD, false)<<",";
 	size_t n = trajs.size();
 	if (n == 1)
-		file << "-,\n";
+		file << "-\n";
 	if (n == 2) {
 		std::vector<Eigen::Vector3d>pC1 = allPointsCartesian(trajs[0]);
 		std::vector<Eigen::Vector4d>pMD1 = allPointsMD(trajs[0]);
@@ -291,4 +230,16 @@ void writeDataOpt(std::vector<size_t> order,size_t wellNum, PSOvalueType Opt, st
 		file << sf << std::endl;
 	}
 	file.close();
+}
+
+void writeDataOptSep(std::vector<std::vector<Eigen::Vector3d>>& pCTrajs, std::vector<std::vector<Eigen::Vector4d>>& pMDTrajs,size_t & num){
+	double sf12 = std::min(sepFactor(pCTrajs[0], pMDTrajs[0], pCTrajs[1], pMDTrajs[1], false), sepFactor(pCTrajs[1], pMDTrajs[1], pCTrajs[0], pMDTrajs[0], false));
+	double sf13 = std::min(sepFactor(pCTrajs[0], pMDTrajs[0], pCTrajs[2], pMDTrajs[2], false), sepFactor(pCTrajs[2], pMDTrajs[2], pCTrajs[0], pMDTrajs[0], false));
+	double sf23 = std::min(sepFactor(pCTrajs[1], pMDTrajs[1], pCTrajs[2], pMDTrajs[2], false), sepFactor(pCTrajs[2], pMDTrajs[2], pCTrajs[1], pMDTrajs[1], false));
+	if (sf12 - 1.5 < EPSILON or sf13 - 1.5 < EPSILON or sf23 - 1.5 < EPSILON) {
+		num += 1;
+	}
+	std::cout << "SepF 1-2: " << sf12 << std::endl;
+	std::cout << "SepF 1-3: " << sf13 << std::endl;
+	std::cout << "SepF 2-3: " << sf23<< std::endl;
 }
