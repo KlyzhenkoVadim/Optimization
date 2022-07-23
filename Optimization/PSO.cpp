@@ -4,9 +4,7 @@ void writePSO(double func, size_t iter, std::string filename);
 
 PSOvalueType PSO(std::function<double(Eigen::VectorXd)> func, std::vector<double>& minValues, std::vector<double>& maxValues,
 	size_t numAgents, size_t dimension, std::vector<double>& inertia, double socCoef, double indCoef, size_t numIterations){
-	
 	assert ("Number of bound conditions is not equal", minValues.size() != maxValues.size());
-	
 	bool flag = false;
 	for (size_t i = 0; i < minValues.size();++i) {
 		assert("MinValue more than MaxValues", minValues[i] - maxValues[i] > 1e-10);
@@ -51,7 +49,6 @@ PSOvalueType PSO(std::function<double(Eigen::VectorXd)> func, std::vector<double
 				idxgBest = k;
 			}
 		}
-	
 	gBestPos = Xposition[idxgBest];
 
 	for (size_t iteration = 0; iteration < numIterations; ++iteration) {

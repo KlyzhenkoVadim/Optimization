@@ -49,6 +49,7 @@ public:
 	double length() override;
 
 	Eigen::Vector3d getInitPoint();
-	Eigen::Vector3d getTargetPoint();
+	Eigen::Vector3d getTarget1Point();
+	Eigen::Vector3d getTarget3Point();
 };
 

@@ -168,8 +168,12 @@ Eigen::Vector3d CurveHoldCurveHold::getInitPoint() {
 	return this->p1;
 }
 
-Eigen::Vector3d CurveHoldCurveHold::getTargetPoint() {
+Eigen::Vector3d CurveHoldCurveHold::getTarget3Point() {
 	return this->p4;
+}
+
+Eigen::Vector3d CurveHoldCurveHold::getTarget1Point() {
+	return this->pInter;
 }
 
 void CurveHoldCurveHold::points(CoordinateSystem coordinateSystem) {

@@ -5,6 +5,11 @@ double sigmoid(double x, double penalty, double alpha, double x0) {
 	return penalty / (1 + exp(alpha * (x - x0)));
 }
 
+double stair(double x, double penalty, double x0) {
+	if (x - x0 <= EPSILON)
+		return penalty;
+	return 0.;
+}
 int signum(double x) {
 	if (x > 0)
 		return 1;
@@ -59,7 +64,7 @@ double sepFactor(std::vector<Eigen::Vector3d>& pCartesianW1,
 		}
 
 		if (actFunc) {
-			return sigmoid(sepFactor, penalty, 50, 1.5);
+			return sigmoid(sepFactor, penalty, 100, 1.5);
 		}
 		return sepFactor;
 	}
@@ -112,7 +117,7 @@ double DDI(std::vector<Eigen::Vector3d>& pCartesian,std::vector<Eigen::Vector4d>
 	double TVD = pCartesian.back()[2] - pCartesian[0][2] ;
 	DDI = log10((1. / 0.305) * ahd * MD * toruos / TVD);
 	if (actFunc) {
-		return sigmoid(DDI, penalty, -1, 6.4);
+		return sigmoid(DDI, penalty, -2, 6.4);
 	}
 	return DDI;
 }	
@@ -145,12 +150,12 @@ double orderScore(std::vector<TrajectoryTemplate*>& mainWell, std::vector<std::v
 
 double orderScore1(std::vector<TrajectoryTemplate*>& mainWell, std::vector<std::vector<Eigen::Vector3d>>& pCTrajectories, 
 	std::vector<std::vector<Eigen::Vector4d>>& pMDTrajectories, double penalty) {
-	double mainLength, mainDDI, rSepFactor = 0.;
+	double mainLength = 0., mainDDI = 0., rSepFactor = 0.;
 	int condition = solve(mainWell);
 	if (condition != 0) {
 		return penalty * condition / mainWell.size(); // penalty * percent of incorrect templates.
 	}
-	mainLength = allLength(mainWell);
+	mainLength = allLength(mainWell); 
 	std::vector<Eigen::Vector3d> mainPCartesian = allPointsCartesian(mainWell);
 	std::vector<Eigen::Vector4d> mainPMD = allPointsMD(mainWell);
 	Eigen::Vector3d tmpVec = mainWell.back()->pointsCartesian.back() - mainWell[0]->pointsCartesian[0];
