@@ -1,6 +1,6 @@
 #include "API.h"
 
-Eigen::Vector3d calcTangentVector(double azimuth, double inclination) {
+/*Eigen::Vector3d calcTangentVector(double azimuth, double inclination) {
 
 	double x = sin(inclination * PI / 180.0) * cos(azimuth * PI / 180.0);
 	double y = sin(inclination * PI / 180.0) * sin(azimuth * PI / 180.0);
@@ -10,7 +10,7 @@ Eigen::Vector3d calcTangentVector(double azimuth, double inclination) {
 							 fabs(y) > EPSILON ? y : 0.0,
 							 fabs(z) > EPSILON ? z : 0.0
 	};
-};
+};*/
 
 someAPI::someAPI(const std::string type) {
 	this->type = type;
@@ -31,7 +31,8 @@ void someAPI::getPSOdata() {};
 void someAPI::Optimize() {};
 
 void someAPI::TypeTrajectory() {
-	if (type == "hold2chch") {
+	//if (type == "hold2chch") {
+		/*
 		typeWell = [&](Eigen::VectorXd& x) {
 			std::vector<TrajectoryTemplate*> well1;
 			Eigen::Vector3d pIHold = { x[0],x[1],x[2] };
@@ -45,9 +46,9 @@ void someAPI::TypeTrajectory() {
 			well1.push_back(new CurveHoldCurveHold(pTHold, 0, 0, x[17], x[18], pT1Chch1, pT3Chch1));
 			well1.push_back(new CurveHoldCurveHold(pT3Chch1, x[3], x[4], x[16], x[20], pT1Chch2, pT3Chch2));
 			return well1;
-		};
-	}
-}
+		};*/
+		//}
+};
 
 
 

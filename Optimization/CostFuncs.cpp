@@ -117,7 +117,7 @@ double DDI(std::vector<Eigen::Vector3d>& pCartesian,std::vector<Eigen::Vector4d>
 	double TVD = pCartesian.back()[2] - pCartesian[0][2] ;
 	DDI = log10((1. / 0.305) * ahd * MD * toruos / TVD);
 	if (actFunc) {
-		return sigmoid(DDI, penalty, -2, 6.4);
+		return sigmoid(DDI, penalty, -10., 6.4);
 	}
 	return DDI;
 }	

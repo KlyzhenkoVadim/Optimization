@@ -115,16 +115,16 @@ int main()
 	mainWell.push_back(Well3);
 	std::vector<double> inert(100, .9);
 	std::vector<double> minValues = { -1000., -1000., 2840, 60., -180., 100. };
-	std::vector<double> maxValues = { 1000., 1000., 2955., 70., 180., 2000. };
+	std::vector<double> maxValues = { 1000., 1000., 2955., 70., 180., 1000. };
 	std::vector<double> lens;
 	size_t  N = 3, collisionNum = 0;
 	bool opt_ON = true;
 	std::vector<std::vector<size_t>> order = {{1,2,3},{1,3,2},{2,1,3},{2,3,1},{3,1,2},{3,2,1} };
 	if (opt_ON) {
-		for (size_t i = 0; i < 6; ++i) {
+		for (size_t i = 0; i < 15; ++i) {
 			for (size_t id = 0; id < 3; ++id) {
 				//size_t idx = id;
-				size_t idx = order[i][id] - 1;
+				size_t idx = order[0][id] - 1;
 				std::function<double(Eigen::VectorXd)> score = [&](Eigen::VectorXd x) {
 					std::vector<TrajectoryTemplate*> tmp = mainWell[idx](x);
 					return orderScore1(tmp,pCTrajectories,pMDTrajectories); };
@@ -140,7 +140,7 @@ int main()
 				//std::cout << lens.back() << ",";
 				pCTrajectories.push_back(allPointsCartesian(trajectories.back()));
 				pMDTrajectories.push_back(allPointsMD(trajectories.back()));
-				writeDataOpt(order[i], order[i][id], opt, trajectories);
+				writeDataOpt(order[0], order[0][id], opt, trajectories);
 				}
 			//writeDataOptSep(pCTrajectories, pMDTrajectories, collisionNum);
 			pCTrajectories.clear();
@@ -187,7 +187,7 @@ void writeDataMD(std::vector<Eigen::Vector4d>& pointsMD, std::string filename) {
 
 void writeDataOpt(std::vector<size_t> order,size_t wellNum, PSOvalueType Opt, std::vector<std::vector<TrajectoryTemplate*>>& trajs) {
 	std::fstream file;
-	file.open("C:/Users/klyzhenko.vs/0CET/optDataCpp4.csv", std::ios::out | std::ios::app); // C:/Users/HP/WellboreOpt/optDataCpp2.csv
+	file.open("C:/Users/klyzhenko.vs/0CET/optDataCpp1.csv", std::ios::out | std::ios::app); // C:/Users/HP/WellboreOpt/optDataCpp2.csv
 	file << "[";
 	for (size_t i = 0; i < order.size(); ++i) {
 		file << order[i];
