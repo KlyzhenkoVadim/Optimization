@@ -70,14 +70,15 @@ void CurveHold::fit() {
 	}
 }
 
-Eigen::Vector3d CurveHold::getInitPoint() {
-	return this->p1;
+void CurveHold::getInitPoint() {
+	pointInitial = this->p1;
 }
-
-Eigen::Vector3d CurveHold::getTargetPoint() {
-	return this->p3;
+void CurveHold::getTarget3Point() {
+	pointT3 = this->p3;
 }
-
+void CurveHold::getTarget1Point() {
+	pointT1 = this->p3 - betta * t2;
+}
 void CurveHold::points(CoordinateSystem coordinateSystem) {
 	double h = length() / nums;
 	double arc = alpha * R;

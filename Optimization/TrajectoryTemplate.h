@@ -20,9 +20,13 @@ public:
 	virtual void fit() = 0;
 	virtual void points(CoordinateSystem coordinateSystem) = 0;
 	virtual double length() = 0;
-
+	virtual void getInitPoint() = 0;
+	virtual void getTarget1Point() = 0;
+	virtual void getTarget3Point() = 0;
 	std::vector<Eigen::Vector3d> pointsCartesian;
 	std::vector<Eigen::Vector4d> pointsMD;
+
+	Eigen::Vector3d pointInitial,pointT1, pointT3;
 
 	Eigen::Vector3d calcTangentVector(double azimuth, double inclination);
 

@@ -48,8 +48,8 @@ public:
 	void points(CoordinateSystem coordinateSystem) override;
 	double length() override;
 
-	Eigen::Vector3d getInitPoint();
-	Eigen::Vector3d getTarget1Point();
-	Eigen::Vector3d getTarget3Point();
+	void getInitPoint() override;
+	void getTarget1Point() override;
+	void getTarget3Point() override;
 };
 

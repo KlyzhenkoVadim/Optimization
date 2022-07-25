@@ -17,8 +17,7 @@ public:
 	void fit() override;
 	void points(CoordinateSystem coordinateSystem) override;
 	double length() override;
-
-	Eigen::Vector3d getInitPoint();
-	Eigen::Vector3d getTargetPoint();
-
+	void getInitPoint() override;
+	void getTarget1Point() override;
+	void getTarget3Point() override;
 };

@@ -11,12 +11,15 @@ double Hold::length() {
 	return delta.norm();
 }
 
-Eigen::Vector3d Hold::getInitPoint() {
-	return this->pi;
+void Hold::getInitPoint() {
+	pointInitial = this->pi;
 }
 
-Eigen::Vector3d Hold::getTargetPoint() {
-	return this->pf;
+void Hold::getTarget3Point() {
+	pointT3 = this->pf;
+}
+void Hold::getTarget1Point() {
+	pointT1 = this->pf;
 }
 
 void Hold::fit() {}

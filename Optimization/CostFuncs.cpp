@@ -117,7 +117,7 @@ double DDI(std::vector<Eigen::Vector3d>& pCartesian,std::vector<Eigen::Vector4d>
 	double TVD = pCartesian.back()[2] - pCartesian[0][2] ;
 	DDI = log10((1. / 0.305) * ahd * MD * toruos / TVD);
 	if (actFunc) {
-		return sigmoid(DDI, penalty, -10., 6.4);
+		return sigmoid(DDI, penalty, -2, 6.4);
 	}
 	return DDI;
 }	
@@ -153,21 +153,24 @@ double orderScore1(std::vector<TrajectoryTemplate*>& mainWell, std::vector<std::
 	double mainLength = 0., mainDDI = 0., rSepFactor = 0.;
 	int condition = solve(mainWell);
 	if (condition != 0) {
-		return penalty * condition / mainWell.size(); // penalty * percent of incorrect templates.
+		return 10*penalty * condition / mainWell.size(); // penalty * percent of incorrect templates.
 	}
 	mainLength = allLength(mainWell); 
 	std::vector<Eigen::Vector3d> mainPCartesian = allPointsCartesian(mainWell);
 	std::vector<Eigen::Vector4d> mainPMD = allPointsMD(mainWell);
-	Eigen::Vector3d tmpVec = mainWell.back()->pointsCartesian.back() - mainWell[0]->pointsCartesian[0];
-	if (tmpVec.norm() == 0)
+	double IdealLength;
+	mainWell[0]->getInitPoint();
+	mainWell.back()->getTarget1Point();
+	mainWell.back()->getTarget3Point();
+	IdealLength = (mainWell.back()->pointT1 - mainWell[0]->pointInitial).norm() + (mainWell.back()->pointT3 - mainWell.back()->pointT1).norm();
+	if (IdealLength == 0)
 		return 0.;
-	mainLength /= tmpVec.norm();
 	mainDDI = DDI(mainPCartesian, mainPMD);
 	if (pCTrajectories.size() == 0) {
-		return mainLength + mainDDI;
+		return abs(mainLength-IdealLength)/IdealLength + mainDDI;
 	}
 	for (size_t idx = 0; idx < pCTrajectories.size(); ++idx) {
 		rSepFactor += sepFactor(mainPCartesian, mainPMD, pCTrajectories[idx], pMDTrajectories[idx]);
 	}
-	return mainLength + rSepFactor + mainDDI;
+	return mainLength/IdealLength + rSepFactor + mainDDI;
 }
