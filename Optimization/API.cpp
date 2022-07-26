@@ -1,54 +1,51 @@
 #include "API.h"
 
-/*Eigen::Vector3d calcTangentVector(double azimuth, double inclination) {
+Solver::Solver(Point2d& pInitial,GeoPoint& Targets) {
+	this->pointInitial = { pInitial.north,pInitial.east,0. };
+	this->pointsT1 = { Targets.northT1, Targets.eastT1, Targets.tvdT1 };
+	this->pointsT3 = { Targets.northT3, Targets.eastT3, Targets.tvdT3 };
+};
 
-	double x = sin(inclination * PI / 180.0) * cos(azimuth * PI / 180.0);
-	double y = sin(inclination * PI / 180.0) * sin(azimuth * PI / 180.0);
-	double z = cos(inclination * PI / 180.0);
+void Solver::setPSOdata() {};
 
-	return Eigen::Vector3d{ fabs(x) > EPSILON ? x : 0.0,
-							 fabs(y) > EPSILON ? y : 0.0,
-							 fabs(z) > EPSILON ? z : 0.0
+PSOvalueType Solver::getPSOdata() {
+	return optData;
+};
+
+void Solver::TypeTrajectory() {
+	mainWell = [&](Eigen::VectorXd& x) {
+		double m = 1800 / PI;
+		std::vector<TrajectoryTemplate*> well;
+		Eigen::Vector3d pTHold = { pointInitial[0],pointInitial[1],x[5] };
+		Eigen::Vector3d pT3Chch1 = { x[0],x[1],x[2] };
+		Eigen::Vector3d Tangent = calcTangentVector(x[4], x[3]);
+		Eigen::Vector3d pT1Chch1 = pT3Chch1 - 110. * Tangent;
+		well.push_back(new Hold(pointInitial, pTHold));
+		well.push_back(new CurveHoldCurveHold(pTHold, 0, 0, m, m, pT1Chch1, pT3Chch1));
+		well.push_back(new CurveHoldCurveHold(pT3Chch1, x[3], x[4], m, m, pointsT1, pointsT3));
+		return well;
 	};
-};*/
-
-someAPI::someAPI(const std::string type) {
-	this->type = type;
 };
 
-void someAPI::setData() {
-	if (type == "hold2chch") {
-
-	}
+void Solver::Optimize() {
+	size_t numIterations = 150;
+	std::vector<double> inertia(numIterations, 0.9);
+	std::vector<double> minValues{ pointInitial[0] - 1000.,pointInitial[1] - 1000.,pointsT1[2]-200.,60.,-180.,100.};
+	std::vector<double> maxValues{ pointInitial[0] + 1000.,pointInitial[1] + 1000.,pointsT1[2]-50,70.,180.,1000. };
+	std::function<double(Eigen::VectorXd)> score = [&](Eigen::VectorXd x) {
+		std::vector<TrajectoryTemplate*> tmpwell = mainWell(x);
+		return OneWellScore(tmpwell);
+	};
+	optData = PSO(score, minValues, maxValues, 30, 6, inertia,0.3,0.5,numIterations);
+	trajectory = mainWell(optData.first);
 };
 
-void someAPI::setPSOdata() {};
-
-void someAPI::getData() {};
-
-void someAPI::getPSOdata() {};
-
-void someAPI::Optimize() {};
-
-void someAPI::TypeTrajectory() {
-	//if (type == "hold2chch") {
-		/*
-		typeWell = [&](Eigen::VectorXd& x) {
-			std::vector<TrajectoryTemplate*> well1;
-			Eigen::Vector3d pIHold = { x[0],x[1],x[2] };
-			Eigen::Vector3d pTHold = { x[3],x[4],x(5) };
-			Eigen::Vector3d pT3Chch1 = { x[6],x[7],x[8] };
-			Eigen::Vector3d Tangent = calcTangentVector(x[10], x[9]);
-			Eigen::Vector3d pT1Chch1 = pT3Chch1 - 110. * Tangent;
-			Eigen::Vector3d pT1Chch2 = { x[11],x[12],x[13] };
-			Eigen::Vector3d pT3Chch2 = { x[14] ,x[15],x[16] };
-			well1.push_back(new Hold(pIHold, pTHold));
-			well1.push_back(new CurveHoldCurveHold(pTHold, 0, 0, x[17], x[18], pT1Chch1, pT3Chch1));
-			well1.push_back(new CurveHoldCurveHold(pT3Chch1, x[3], x[4], x[16], x[20], pT1Chch2, pT3Chch2));
-			return well1;
-		};*/
-		//}
-};
+double Solver::getTrajectoryLength() {
+	int condition = solve(trajectory);
+	if (condition != 0)
+		return -1;
+	return allLength(trajectory);
+}
 
 
 

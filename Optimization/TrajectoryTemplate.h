@@ -5,6 +5,8 @@
 
 // все обозначения сохранены из статьи: A compendium of directional calculations based on minimum curvature method. Sawaryn, Thorogood.
 
+Eigen::Vector3d calcTangentVector(double azimuth, double inclination);
+
 enum class CoordinateSystem { CARTESIAN, MD };
 
 constexpr double PI = 3.14159265358979323846;
@@ -28,7 +30,6 @@ public:
 
 	Eigen::Vector3d pointInitial,pointT1, pointT3;
 
-	Eigen::Vector3d calcTangentVector(double azimuth, double inclination);
 
 	std::vector<Eigen::Vector3d> calcInterpolCartesianPoints(const Eigen::Vector3d& p1,
 		const Eigen::Vector3d& t1,

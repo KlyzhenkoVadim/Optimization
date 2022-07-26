@@ -16,7 +16,7 @@ double Tortuosity(std::vector<Eigen::Vector4d>& pointsMD);
 
 double DDI(std::vector<Eigen::Vector3d>& pCartesian, std::vector<Eigen::Vector4d>& pMD, bool actFunc = true, double penalty = 10);
 
-double orderScore(std::vector<TrajectoryTemplate*>& mainWell, std::vector<std::vector<TrajectoryTemplate*>>& Trajectories, double penalty = 1000);
+double OneWellScore(std::vector<TrajectoryTemplate*>& mainWell, double penalty = 1000);
 
 double orderScore1(std::vector<TrajectoryTemplate*>& mainWell, std::vector<std::vector<Eigen::Vector3d>>& pCTrajectories,
 	std::vector<std::vector<Eigen::Vector4d>>& pMDTrajectories, double penalty = 1000);

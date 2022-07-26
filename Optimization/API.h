@@ -1,32 +1,61 @@
 #pragma once
-#include "Eigen/Dense"
-#include <iostream>
-#include <vector>
 #include "TrajectoryTemplate.h"
 #include "CurveHold.h"
 #include "CurveHoldCurveHold.h"
 #include "Hold.h"
-#include <fstream>
 #include "CostFuncs.h"
 #include "PSO.h"
-#include <cmath>
 
-class someAPI {
+struct GeoPoint {
+	double northT1;
+	double eastT1;
+	double tvdT1;
+
+	double northT3;
+	double eastT3;
+	double tvdT3;
+
+	double H;
+
+	double frGas;
+	double frLiq;
+
+	std::string name;
+	std::string date;
+};
+
+struct Point2d
+{
+	double east;
+	double north;
+};
+
+struct WellPad
+{
+	bool isWellPad;
+
+	Point2d coord; // координаты центра кустовой площадки
+
+	std::vector<GeoPoint> geoAims; // координаты геологических целей
+};
+
+using wellType = std::function<std::vector<TrajectoryTemplate*>(Eigen::VectorXd& x)>;
+
+class Solver {
 private:
-	std::vector<Eigen::Vector3d> Wellheads, Targets1, Targets3; // Векторы координат устья и целей с учётом порядка !!!
-	//double intensivity, R; // интенсивность набора угла.
-	std::vector<Eigen::VectorXd> args;
-	std::vector<TrajectoryTemplate*> trajectories;
-	std::vector<Eigen::Vector3d> pCtrajectories;
-	std::vector<Eigen::Vector4d> pMDtrajectories;
-	std::function<std::vector<TrajectoryTemplate*>(Eigen::VectorXd& x)> typeWell;
-	std::string type;
+	Eigen::Vector3d pointInitial; // Координата устья траектории
+	Eigen::Vector3d pointsT1, pointsT3; // Координаты целей траектории.
+	std::vector<TrajectoryTemplate*> trajectory;
+	std::vector<Eigen::Vector3d> pCtrajectory;
+	std::vector<Eigen::Vector4d> pMDtrajectory;
+	wellType mainWell;
+	PSOvalueType optData;
+
 public:
-	someAPI(const std::string type);
-	void setData();
+	Solver(Point2d & pInitial, GeoPoint& Targets);
 	void setPSOdata();
-	void getData();
-	void getPSOdata();
+	PSOvalueType getPSOdata();
+	double getTrajectoryLength();
 	void Optimize();
 	void TypeTrajectory();
 };

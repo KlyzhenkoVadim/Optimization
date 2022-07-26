@@ -1,6 +1,6 @@
 #include "TrajectoryTemplate.h"
 
-Eigen::Vector3d TrajectoryTemplate::calcTangentVector(double azimuth, double inclination) {
+Eigen::Vector3d calcTangentVector(double azimuth, double inclination) {
 
 	double x = sin(inclination * PI / 180.0) * cos(azimuth * PI / 180.0);
 	double y = sin(inclination * PI / 180.0) * sin(azimuth * PI / 180.0);
@@ -11,7 +11,7 @@ Eigen::Vector3d TrajectoryTemplate::calcTangentVector(double azimuth, double inc
 							 fabs(z) > EPSILON ? z : 0.0
 	};
 }
-// 
+
 interpolatedValueType TrajectoryTemplate::calcInterpolPoints(const Eigen::Vector3d& t1, const Eigen::Vector3d& t2, double alpha, size_t nums) {
 
 	std::vector<double> alphaSegment;

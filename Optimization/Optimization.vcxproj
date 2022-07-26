@@ -162,6 +162,7 @@
     <ClInclude Include="CurveHoldCurveHold.h" />
     <ClInclude Include="Hold.h" />
     <ClInclude Include="PSO.h" />
+    <ClInclude Include="Solver.h" />
     <ClInclude Include="TrajectoryTemplate.h" />
   </ItemGroup>
   <ItemGroup>

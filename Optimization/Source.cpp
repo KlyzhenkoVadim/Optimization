@@ -9,6 +9,7 @@
 #include "CostFuncs.h"
 #include "PSO.h"
 #include <cmath>
+#include "API.h"
 
 void writeDataCartesian(std::vector<Eigen::Vector3d>& pointsCartesian, std::string filename);
 void writeDataMD(std::vector<Eigen::Vector4d>& pointsMD, std::string filename);
@@ -30,17 +31,6 @@ double Sphere(Eigen::VectorXd x) {
 void getOptData(PSOvalueType op);
 void writeDataOpt(std::vector<size_t> order, size_t wellNum, PSOvalueType Opt, std::vector<std::vector<TrajectoryTemplate*>>& trajs);
 void writeDataOptSep(std::vector<std::vector<Eigen::Vector3d>>& pCTrajs, std::vector<std::vector<Eigen::Vector4d>>& pMDTrajs,size_t& num);
-Eigen::Vector3d calcTangentVector(double azimuth, double inclination) {
-
-	double x = sin(inclination * PI / 180.0) * cos(azimuth * PI / 180.0);
-	double y = sin(inclination * PI / 180.0) * sin(azimuth * PI / 180.0);
-	double z = cos(inclination * PI / 180.0);
-
-	return Eigen::Vector3d{ fabs(x) > EPSILON ? x : 0.0,
-							 fabs(y) > EPSILON ? y : 0.0,
-							 fabs(z) > EPSILON ? z : 0.0
-	};
-};
 std::pair<double,double> sqrtVar(std::vector<double> v) {
 	double mean=0, var=0;
 	size_t n = v.size();
@@ -108,33 +98,30 @@ int main()
 		return well3;
 	};
 
-	std::vector < std::function<std::vector<TrajectoryTemplate*>(Eigen::VectorXd&)>> mainWell;
+	std::vector < std::function<std::vector<TrajectoryTemplate*>(Eigen::VectorXd&)>> mainWell = { Well1,Well2,Well3 };
 	std::vector < std::vector<TrajectoryTemplate*>> trajectories;
 	std::vector<std::vector<Eigen::Vector3d>> pCTrajectories, tmpC;
 	std::vector<std::vector<Eigen::Vector4d>> pMDTrajectories, tmpMD;
-	mainWell.push_back(Well1);
-	mainWell.push_back(Well2);
-	mainWell.push_back(Well3);
-	std::vector<double> inert(100, .9);
+	std::vector<double> inert(300, .9);
 	std::vector<double> minValues = { -1000., -1000., 2840, 60., -180., 100. };
 	std::vector<double> maxValues = { 1000., 1000., 2955., 70., 180., 1000. };
 	//std::vector<double> minValues = { -1., -1., 2.840, 60./180.*PI, -PI, .1 };
 	//std::vector<double> maxValues = { 1., 1., 2.955, 70./180.*PI,PI, 1. };
-	double lambda = 7e-3;
+	double lambda = 10e-3;
 	std::vector<Eigen::VectorXd> args;
 	std::vector<double> lens;
 	size_t  N = 3, collisionNum = 0;
 	bool opt_ON = true;
 	std::vector<std::vector<size_t>> order = { {1,2,3},{1,3,2},{2,1,3},{2,3,1},{3,1,2},{3,2,1} };
 	if (opt_ON) {
-		for (int i = -1; i < 20; ++i) {
-			for (size_t id = 0; id < 1; ++id) {
+		for (int i = -1; i < 5; ++i) {
+			for (size_t id = 0; id < 3; ++id) {
 				size_t idx;
 				idx = id;
 				//idx = order[0][id] - 1;
 				std::function<double(Eigen::VectorXd)> score = [&](Eigen::VectorXd x) {
-					//double regularize = i == -1 ? 0. : lambda * (x - args[idx]).lpNorm<1>();
-					double regularize = 0;
+					double regularize = i == -1 ? 0. : lambda * (x - args[idx]).lpNorm<2>();
+					//double regularize = 0;
 					std::vector<TrajectoryTemplate*> tmp = mainWell[idx](x);
 					return orderScore1(tmp, pCTrajectories, pMDTrajectories) + regularize; };
 				PSOvalueType opt = PSO(score, minValues, maxValues, 30, 6, inert, 0.3, 0.5, 150);
@@ -160,9 +147,16 @@ int main()
 			trajectories.clear();
 		}
 	}
-	Eigen::VectorXd arg1{ { -1., -1., 2.840, 60. / 180. * PI, -PI, .1 } },
-		arg2{ { -259.494, -34.5137, 2846.29, 63.9689, 171.818, 894.173} }, arg3{ {-371.79, 383.717, 2935.88, 64.9699, 165.448, 417.213} };
-	std::vector<std::vector<TrajectoryTemplate*>> wells = { Well3(arg2),Well1(arg1) };
+	/*
+	Point2d Init{0,0};
+	GeoPoint Targets{ 400.0,8.0,3000.0 , 1500. ,8.0 ,3010.0 };
+	GeoPoint Targets2{ -700.,8.0,3000. , -1500.,8,3010. };
+	Solver S(Init, Targets);
+	S.TypeTrajectory();
+	S.Optimize();
+	double Length = S.getTrajectoryLength();
+	getOptData(S.getPSOdata());
+	std::cout << "Length of first well is: " << Length << std::endl;*/
 	return 0;
 }
 
