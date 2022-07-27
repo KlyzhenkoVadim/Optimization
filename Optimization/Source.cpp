@@ -103,32 +103,47 @@ int main()
 	std::vector<std::vector<Eigen::Vector3d>> pCTrajectories, tmpC;
 	std::vector<std::vector<Eigen::Vector4d>> pMDTrajectories, tmpMD;
 	std::vector<double> inert(300, .9);
-	std::vector<double> minValues = { -1000., -1000., 2840, 60., -180., 100. };
-	std::vector<double> maxValues = { 1000., 1000., 2955., 70., 180., 1000. };
+	std::vector<double> minValues = { -1000., -1000., 100,0., -180., 100. };//{ -1000., -1000., 2840, 60., -180., 100. };
+	std::vector<double> maxValues = { 1000., 1000., 3000., 90., 180., 1000. };//{ 1000., 1000., 2955., 70., 180., 1000. };
 	//std::vector<double> minValues = { -1., -1., 2.840, 60./180.*PI, -PI, .1 };
 	//std::vector<double> maxValues = { 1., 1., 2.955, 70./180.*PI,PI, 1. };
-	double lambda = 10e-3;
+	double lambda = 1e-2;
 	std::vector<Eigen::VectorXd> args;
 	std::vector<double> lens;
 	size_t  N = 3, collisionNum = 0;
 	bool opt_ON = true;
 	std::vector<std::vector<size_t>> order = { {1,2,3},{1,3,2},{2,1,3},{2,3,1},{3,1,2},{3,2,1} };
 	if (opt_ON) {
-		for (int i = -1; i < 5; ++i) {
-			for (size_t id = 0; id < 3; ++id) {
-				size_t idx;
-				idx = id;
+		for (int i = 0; i < 5; ++i) {
+			for (size_t j = 0; j < 3; ++j) {
+				std::function<double(Eigen::VectorXd)> scoreOne = [&](Eigen::VectorXd x) {
+					std::vector<TrajectoryTemplate*> tmp = mainWell[j](x);
+					return OneWellScore(tmp);
+				};
+				PSOvalueType optOne = PSO(scoreOne, minValues, maxValues, 30, 6, inert, 0.3, 0.5, 150);
+				getOptData(optOne);
+				args.push_back(optOne.first);
+				if (j == 0) {
+				trajectories.push_back(mainWell[0](args[0])); // order[i][0] - 1;
+				int tmpCond = solve(trajectories.back());
+				if (tmpCond > 0) {
+					std::cout << "Unbuilt Trajectory" << std::endl;
+				}
+				writeDataOpt(order[0], order[0][0], optOne, trajectories);
+				pCTrajectories.push_back(allPointsCartesian(trajectories.back()));
+				pMDTrajectories.push_back(allPointsMD(trajectories.back()));
+			}
+				
+			}
+			
+			for (size_t id = 1; id < 3; ++id) {
+				size_t idx = id;
 				//idx = order[0][id] - 1;
 				std::function<double(Eigen::VectorXd)> score = [&](Eigen::VectorXd x) {
-					double regularize = i == -1 ? 0. : lambda * (x - args[idx]).lpNorm<2>();
-					//double regularize = 0;
+					double regularize = lambda * (x - args[idx]).lpNorm<2>();
 					std::vector<TrajectoryTemplate*> tmp = mainWell[idx](x);
 					return orderScore1(tmp, pCTrajectories, pMDTrajectories) + regularize; };
 				PSOvalueType opt = PSO(score, minValues, maxValues, 30, 6, inert, 0.3, 0.5, 150);
-				if (i == -1) {
-					args.push_back(opt.first);
-					trajectories.clear();
-				}
 				trajectories.push_back(mainWell[idx](opt.first));
 				int cond = solve(trajectories.back());
 				getOptData(opt);
@@ -137,26 +152,35 @@ int main()
 					break;
 				}
 				writeDataOpt(order[0], order[0][id], opt, trajectories);
-				if (i != -1) {
-					pCTrajectories.push_back(allPointsCartesian(trajectories.back()));
-					pMDTrajectories.push_back(allPointsMD(trajectories.back()));
-				}
+				pCTrajectories.push_back(allPointsCartesian(trajectories.back()));
+				pMDTrajectories.push_back(allPointsMD(trajectories.back()));
 			}
 			pCTrajectories.clear();
 			pMDTrajectories.clear();
 			trajectories.clear();
 		}
 	}
-	/*
+
 	Point2d Init{0,0};
 	GeoPoint Targets{ 400.0,8.0,3000.0 , 1500. ,8.0 ,3010.0 };
 	GeoPoint Targets2{ -700.,8.0,3000. , -1500.,8,3010. };
-	Solver S(Init, Targets);
-	S.TypeTrajectory();
-	S.Optimize();
-	double Length = S.getTrajectoryLength();
-	getOptData(S.getPSOdata());
-	std::cout << "Length of first well is: " << Length << std::endl;*/
+	Solver S;
+	//S.setData(Init, Targets);
+	//S.Optimize();
+	//double Length = S.getTrajectoryLength();
+	//getOptData(S.getPSOdata());
+	//std::cout << "Length of first well is: " << Length << std::endl;
+	/*std::function<double(Eigen::VectorXd)> scoreOne = [&](Eigen::VectorXd x) {
+		std::vector<TrajectoryTemplate*> tt = Well1(x);
+		return OneWellScore(tt);
+	};
+	size_t numsIters = 100;
+	std::vector<double> mins{ -1000,-1000,100,0,-180,100 }, max{ 1000,1000,3000,90,180,1000 },inertIa(numsIters,0.9);
+	PSOvalueType opt1 = PSO(scoreOne, mins, max, 30, 6, inertIa, 0.3, 0.5, numsIters);
+	getOptData(opt1);
+	std::vector<TrajectoryTemplate*> tmpWells = Well1(opt1.first);
+	int c = solve(tmpWells);
+	std::cout << allLength(tmpWells);*/
 	return 0;
 }
 

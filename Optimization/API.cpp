@@ -1,18 +1,13 @@
 #include "API.h"
 
-Solver::Solver(Point2d& pInitial,GeoPoint& Targets) {
-	this->pointInitial = { pInitial.north,pInitial.east,0. };
-	this->pointsT1 = { Targets.northT1, Targets.eastT1, Targets.tvdT1 };
-	this->pointsT3 = { Targets.northT3, Targets.eastT3, Targets.tvdT3 };
-};
+Solver::Solver() {};
 
 void Solver::setPSOdata() {};
 
-PSOvalueType Solver::getPSOdata() {
-	return optData;
-};
-
-void Solver::TypeTrajectory() {
+void Solver::setData(Point2d& pInitial, GeoPoint& Targets) {
+	pointInitial = { pInitial.north,pInitial.east,0. };
+	pointsT1 = { Targets.northT1, Targets.eastT1, Targets.tvdT1 };
+	pointsT3 = { Targets.northT3, Targets.eastT3, Targets.tvdT3 };
 	mainWell = [&](Eigen::VectorXd& x) {
 		double m = 1800 / PI;
 		std::vector<TrajectoryTemplate*> well;
@@ -25,6 +20,10 @@ void Solver::TypeTrajectory() {
 		well.push_back(new CurveHoldCurveHold(pT3Chch1, x[3], x[4], m, m, pointsT1, pointsT3));
 		return well;
 	};
+}
+
+PSOvalueType Solver::getPSOdata() {
+	return optData;
 };
 
 void Solver::Optimize() {
@@ -45,7 +44,7 @@ double Solver::getTrajectoryLength() {
 	if (condition != 0)
 		return -1;
 	return allLength(trajectory);
-}
+};
 
 
 

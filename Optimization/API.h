@@ -52,10 +52,10 @@ private:
 	PSOvalueType optData;
 
 public:
-	Solver(Point2d & pInitial, GeoPoint& Targets);
+	Solver();
 	void setPSOdata();
+	void setData(Point2d& pInitial,GeoPoint& Targets);
 	PSOvalueType getPSOdata();
 	double getTrajectoryLength();
 	void Optimize();
-	void TypeTrajectory();
 };

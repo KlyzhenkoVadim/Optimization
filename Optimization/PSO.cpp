@@ -52,8 +52,7 @@ PSOvalueType PSO(std::function<double(Eigen::VectorXd)> func, std::vector<double
 	gBestPos = Xposition[idxgBest];
 
 	for (size_t iteration = 0; iteration < numIterations; ++iteration) {
-		// r1 r2 
-		//std::cout  <<"Iteration: " <<iteration <<"/"<<numIterations;
+		// r1 r2
 		for (size_t idAg = 0; idAg < numAgents; ++idAg) {
 			double r1 = distCoefs(gen), r2 = distCoefs(gen);
 			for (size_t idim = 0; idim < dimension; ++idim) {
@@ -81,14 +80,8 @@ PSOvalueType PSO(std::function<double(Eigen::VectorXd)> func, std::vector<double
 				minFunc = func(gBestPos);
 			}
 		}
-		writePSO(minFunc, iteration,"dataPSO.csv");
-		/*std::string tmpS = std::to_string(iteration);
-		tmpS.append(std::to_string(numIterations));
-		tmpS.append("Iteration: ");
-		for (size_t s = 0; s <= tmpS.size(); ++s) 
-				std::cout << "\b" << " " << "\b";*/
+		//writePSO(minFunc, iteration,"dataPSO.csv");
 	}
-	//std::cout << "Iteration" << numIterations << "/" << numIterations << std::endl;
 	return {gBestPos,minFunc};
 
 }
