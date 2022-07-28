@@ -39,7 +39,7 @@ struct WellPad
 	std::vector<GeoPoint> geoAims; // координаты геологических целей
 };
 
-using wellType = std::function<std::vector<TrajectoryTemplate*>(Eigen::VectorXd& x)>;
+using wellType = std::function<std::vector<TrajectoryTemplate*>(const Eigen::VectorXd& x)>;
 
 class Solver {
 private:

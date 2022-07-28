@@ -14,7 +14,7 @@ void Solver::setData(Point2d& pInitial, GeoPoint& Targets) {
 		}
 	}
 	if (horizontal) {
-		mainWell = [&](Eigen::VectorXd& x) {
+		mainWell = [&](const Eigen::VectorXd& x) {
 			double m = 1800 / PI;
 			std::vector<TrajectoryTemplate*> well;
 			Eigen::Vector3d pTHold = { pointInitial[0],pointInitial[1],x[5] };
@@ -28,7 +28,7 @@ void Solver::setData(Point2d& pInitial, GeoPoint& Targets) {
 		};
 	}
 	else {
-		mainWell = [&](Eigen::VectorXd& x) {
+		mainWell = [&](const Eigen::VectorXd& x) {
 			double m = 1800 / PI;
 			std::vector<TrajectoryTemplate*> well;
 			Eigen::Vector3d pTHold = { pointInitial[0],pointInitial[1],x[0] };
@@ -49,7 +49,11 @@ void Solver::Optimize() {
 	
 	std::function<double(Eigen::VectorXd)> score = [&](Eigen::VectorXd x) {
 		std::vector<TrajectoryTemplate*> tmpwell = mainWell(x);
-		return OneWellScore(tmpwell);
+		double oneScore = OneWellScore(tmpwell);
+		for (auto x : tmpwell) {
+			delete x;
+		}
+		return oneScore;
 	};
 	if (horizontal) {
 		std::vector<double> minValues{ pointInitial[0] - 1000.,pointInitial[1] - 1000.,100.,0.,-180.,100. };

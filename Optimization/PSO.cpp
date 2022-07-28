@@ -2,8 +2,8 @@
 #include <fstream>
 void writePSO(double func, size_t iter, std::string filename);
 
-PSOvalueType PSO(std::function<double(Eigen::VectorXd)> func, std::vector<double>& minValues, std::vector<double>& maxValues,
-	size_t numAgents, size_t dimension, std::vector<double>& inertia, double socCoef, double indCoef, size_t numIterations){
+PSOvalueType PSO(std::function<double(const Eigen::VectorXd&)> func, const std::vector<double>& minValues, const std::vector<double>& maxValues,
+	size_t numAgents, size_t dimension,const std::vector<double>& inertia, double socCoef, double indCoef, size_t numIterations){
 	assert ("Number of bound conditions is not equal", minValues.size() != maxValues.size());
 	bool flag = false;
 	for (size_t i = 0; i < minValues.size();++i) {
