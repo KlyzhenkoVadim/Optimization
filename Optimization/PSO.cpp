@@ -19,8 +19,8 @@ PSOvalueType PSO(std::function<double(const Eigen::VectorXd&)> func, const std::
 	Eigen::VectorXd gBestPos(dimension);
 	std::vector<Eigen::VectorXd> pBestPos;//(numAgents,dimension);
 	
-	std::random_device rd;
-	std::mt19937 gen(rd());
+	//std::random_device rd;
+	std::mt19937 gen(time(NULL));
 	std::uniform_real_distribution distCoefs(0., 1.);
 	std::vector<std::uniform_real_distribution<double>> distrPos;
 	std::vector<std::uniform_real_distribution<double>> distrVel;

@@ -78,20 +78,20 @@ int main()
 		well.push_back(new CurveHoldCurveHold(pT3Chch1, x[3], x[4], m, m, pT1Chch2, pT3Chch2));
 		return well;
 	};
-	std::function<std::vector<TrajectoryTemplate*>(Eigen::VectorXd& x)> Well2 = [&](Eigen::VectorXd& x) {
-		
-		Eigen::Vector3d pIHold = { 0,15,0 };
-		Eigen::Vector3d pTHold = { 0,15,x[5] };
-		Eigen::Vector3d pT3Chch1 = { x[0],x[1],x[2] };
-		Eigen::Vector3d Tangent = calcTangentVector(x[4], x[3]);
-		Eigen::Vector3d pT1Chch1 = pT3Chch1 - 110. * Tangent;
-		Eigen::Vector3d pT1Chch2 = { -700.,8.0,3000. };
-		Eigen::Vector3d pT3Chch2 = { -1500.,8,3010. };
-		Hold h = Hold(pIHold, pTHold);
-		CurveHoldCurveHold chch1 = CurveHoldCurveHold(pTHold, 0, 0, m, m, pT1Chch1, pT3Chch1), chch2 = CurveHoldCurveHold(pT3Chch1, x[3], x[4], m, m, pT1Chch2, pT3Chch2);
-		return std::vector<TrajectoryTemplate*> { &h, & chch1, & chch2 };
-	};
-	std::function<std::vector<TrajectoryTemplate*>(Eigen::VectorXd& x)> Well3 = [&](Eigen::VectorXd& x) {
+	//std::function<std::vector<TrajectoryTemplate*>(Eigen::VectorXd& x)> Well2 = [&](Eigen::VectorXd& x) {
+	//	
+	//	Eigen::Vector3d pIHold = { 0,15,0 };
+	//	Eigen::Vector3d pTHold = { 0,15,x[5] };
+	//	Eigen::Vector3d pT3Chch1 = { x[0],x[1],x[2] };
+	//	Eigen::Vector3d Tangent = calcTangentVector(x[4], x[3]);
+	//	Eigen::Vector3d pT1Chch1 = pT3Chch1 - 110. * Tangent;
+	//	Eigen::Vector3d pT1Chch2 = { -700.,8.0,3000. };
+	//	Eigen::Vector3d pT3Chch2 = { -1500.,8,3010. };
+	//	Hold h = Hold(pIHold, pTHold);
+	//	CurveHoldCurveHold chch1 = CurveHoldCurveHold(pTHold, 0, 0, m, m, pT1Chch1, pT3Chch1), chch2 = CurveHoldCurveHold(pT3Chch1, x[3], x[4], m, m, pT1Chch2, pT3Chch2);
+	//	return std::vector<TrajectoryTemplate*> { &h, & chch1, & chch2 };
+	//};
+	/*std::function<std::vector<TrajectoryTemplate*>(Eigen::VectorXd& x)> Well3 = [&](Eigen::VectorXd& x) {
 		Eigen::Vector3d pIHold = { 0,20,0 };
 		Eigen::Vector3d pTHold = { 0,20,x[5] };
 		Eigen::Vector3d pT3Chch1 = { x[0],x[1],x[2] };
@@ -102,7 +102,7 @@ int main()
 		Hold h = Hold(pIHold, pTHold);
 		CurveHoldCurveHold chch1 = CurveHoldCurveHold(pTHold, 0, 0, m, m, pT1Chch1, pT3Chch1), chch2 = CurveHoldCurveHold(pT3Chch1, x[3], x[4], m, m, pT1Chch2, pT3Chch2);
 		return std::vector<TrajectoryTemplate*> { &h, & chch1, & chch2 };
-	};
+	};*/
 	//std::vector < std::function<std::vector<TrajectoryTemplate*>(Eigen::VectorXd&)>> mainWell = { Well1,Well2,Well3 };
 	std::vector < std::vector<TrajectoryTemplate*>> trajectories;
 	std::vector<std::vector<Eigen::Vector3d>> pCTrajectories, tmpC;
@@ -115,8 +115,6 @@ int main()
 	std::vector<double> inert(300, .9);
 	std::vector<double> minValues = { -1000., -1000., 100,0., -180., 100. };//{ -1000., -1000., 2840, 60., -180., 100. };
 	std::vector<double> maxValues = { 1000., 1000., 3000., 90., 180., 1000. };//{ 1000., 1000., 2955., 70., 180., 1000. };
-	//std::vector<double> minValues = { -1., -1., 2.840, 60./180.*PI, -PI, .1 };
-	//std::vector<double> maxValues = { 1., 1., 2.955, 70./180.*PI,PI, 1. };
 	double lambda = 1e-3;
 	std::vector<Eigen::VectorXd> args;
 	std::vector<double> lens;
@@ -138,7 +136,7 @@ int main()
 						return oneScore;
 					};
 					PSOvalueType optOne = PSO(scoreOne, minValues, maxValues, 30, 6, inert, 0.3, 0.5, 150);
-					getOptData(optOne);
+					//getOptData(optOne);
 					args.push_back(optOne.first);
 					if (j == 0) {
 						trajectories.push_back(Well(args[0], geoPointsWells[idd])); // order[i][0] - 1;
@@ -146,7 +144,7 @@ int main()
 						if (tmpCond > 0) {
 							std::cout << "Unbuilt Trajectory" << std::endl;
 						}
-						writeDataOpt(order[i], order[i][j], optOne, trajectories);
+						//writeDataOpt(order[i], order[i][j], optOne, trajectories);
 						pCTrajectories.push_back(allPointsCartesian(trajectories.back()));
 						pMDTrajectories.push_back(allPointsMD(trajectories.back()));
 					}
@@ -179,11 +177,13 @@ int main()
 	}
 	std::cout << "_________________________________________________\n";
 	std::cout << "Time: " << std::time(NULL) - start << std::endl;
-
-	Eigen::VectorXd arg{{ -1000,-1000,100,0,90,100 }};
-	Point2d Init{0,0};
-	GeoPoint Targets{ 400.0,8.0,3000.0 , 400. ,8.0 ,3000.0 };
-	GeoPoint Targets2{ -700.,8.0,3000. , -1500.,8,3010. };
+	{
+		std::vector<TrajectoryTemplate*> t{ new CurveHoldCurveHold(Eigen::Vector3d{ 0,0,0 }, 0, 0,
+			m, m, Eigen::Vector3d{ 500,10,1000 }, Eigen::Vector3d{ 1000,10,1000 }) };
+		std::vector<Eigen::Vector3d> pC = allPointsCartesian(t);
+		delete t[0];
+	}
+	
 	return 0;
 }
 
