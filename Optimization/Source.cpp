@@ -10,6 +10,7 @@
 #include "PSO.h"
 #include <cmath>
 #include "API.h"
+#include "Curve.h"
 
 void writeDataCartesian(std::vector<Eigen::Vector3d>& pointsCartesian, std::string filename);
 void writeDataMD(std::vector<Eigen::Vector4d>& pointsMD, std::string filename);
@@ -119,27 +120,70 @@ int main()
 	std::vector<Eigen::VectorXd> args;
 	std::vector<double> lens;
 	size_t  N = 3, collisionNum = 0;
-	bool opt_ON = true;
+
+	Eigen::Vector3d pinit = { 5805626,683999,0 },target = { 5803236,682857,2900 };
+	Eigen::Vector3d center = (pinit + target) / 2;
+	std::vector<double> minVs{ 0,center[0] - 10000,center[1] - 10000,30,110,center[0] - 10000,center[1] - 10000,0,20,center[0] - 10000,center[1] - 10000,0,20};
+	std::vector<double> maxVs{ 400,center[0] + 10000,center[1] + 10000,90,170,center[0] + 10000,center[1] + 10000,50,80,center[0] + 10000,center[1] + 10000,40,80 };
+	std::function<std::vector<TrajectoryTemplate*>(const Eigen::VectorXd&x)> wellExample = [&](const Eigen::VectorXd& x) {
+		std::vector<TrajectoryTemplate*> well;
+		Eigen::Vector3d pHoldInit = { 5805626,683999,0 }, pHoldEnd = { 5805626,683999,x[0] };
+		double R = 1800 / PI * 2 / 3;
+		well.push_back(new Hold(pHoldInit, pHoldEnd));
+		Eigen::Vector3d pC1T1 = { x[1],x[2],900 };
+		well.push_back(new CurveHoldCurveHold(pHoldEnd, 0, 0, R, R, pC1T1, x[3], x[4]));
+		Eigen::Vector3d pC2T1 = { x[5],x[6],2000 };
+		well.push_back(new CurveHoldCurveHold(pC1T1, x[3], x[4], R, R, pC2T1, x[7], x[8]));
+		Eigen::Vector3d pC3T1 = { x[9],x[10],2600 };
+		well.push_back(new CurveHoldCurveHold(pC2T1, x[7], x[8], R, R, pC3T1, x[11], x[12]));
+		Eigen::Vector3d Target = { 5803236,682857,2900 };
+		well.push_back(new CurveHold(pC3T1, Target, x[11], x[12], R));
+		return well;
+
+	};
+
+	std::function<double(const Eigen::VectorXd&)> scoreone = [&](const Eigen::VectorXd& x) {
+		std::vector<TrajectoryTemplate*> tmp = wellExample(x);
+		double oneScore = OneWellScore(tmp);
+		for (auto x : tmp) {
+			delete x;
+		}
+		return oneScore;
+	};
+
+	PSOvalueType optt = PSO(scoreone, minVs, maxVs, 100, minVs.size(), inert, 0.3, 0.5, 150);
+	getOptData(optt);
+	trajectories.push_back(wellExample(optt.first)); 
+	int tmpCond = solve(trajectories.back());
+	if (tmpCond > 0) {
+		std::cout << "Unbuilt Trajectory" << std::endl;
+	}
+	std::cout <<"Length: " << allLength(trajectories.back());
+	pCTrajectories.push_back(allPointsCartesian(trajectories.back()));
+	pMDTrajectories.push_back(allPointsMD(trajectories.back()));
+	writeDataCartesian(pCTrajectories.back(), "output.txt");
+	/*
+	bool opt_ON = !true;
 	std::vector<std::vector<size_t>> order = { {1,2,3},{1,3,2},{2,1,3},{2,3,1},{3,1,2},{3,2,1} };
 	std::time_t start = std::time(NULL);
 	if (opt_ON) {
-		for (int i = 0; i < 6; ++i) {
+		for (int i = 0; i < 1; ++i) {
 			{
-				for (size_t j = 0; j < 3; ++j) {
+				for (size_t j = 0; j < 1; ++j) {
 					size_t idd = order[i][j] - 1;
 					std::function<double(const Eigen::VectorXd&)> scoreOne = [&](const Eigen::VectorXd& x) {
-						std::vector<TrajectoryTemplate*> tmp = Well(x, geoPointsWells[idd]);
+						std::vector<TrajectoryTemplate*> tmp = wellExample(x);//Well(x, geoPointsWells[idd]);
 						double oneScore = OneWellScore(tmp);
 						for (auto x : tmp) {
 							delete x;
 						}
 						return oneScore;
 					};
-					PSOvalueType optOne = PSO(scoreOne, minValues, maxValues, 30, 6, inert, 0.3, 0.5, 150);
-					//getOptData(optOne);
+					PSOvalueType optOne = PSO(scoreOne, minVs, maxVs, 40, 13, inert, 0.3, 0.5, 150);
+					getOptData(optOne);
 					args.push_back(optOne.first);
 					if (j == 0) {
-						trajectories.push_back(Well(args[0], geoPointsWells[idd])); // order[i][0] - 1;
+						trajectories.push_back(wellExample(args[0])); // order[i][0] - 1;
 						int tmpCond = solve(trajectories.back());
 						if (tmpCond > 0) {
 							std::cout << "Unbuilt Trajectory" << std::endl;
@@ -147,10 +191,11 @@ int main()
 						//writeDataOpt(order[i], order[i][j], optOne, trajectories);
 						pCTrajectories.push_back(allPointsCartesian(trajectories.back()));
 						pMDTrajectories.push_back(allPointsMD(trajectories.back()));
+						writeDataCartesian(pCTrajectories.back(), "output.txt");
 					}
 				}
 			}
-			for (size_t id = 1; id < 3; ++id) {
+			/*for (size_t id = 1; id < 3; ++id) {
 				//size_t idx = id;
 				size_t idx = order[i][id] - 1;
 				std::function<double(Eigen::VectorXd)> score = [&](Eigen::VectorXd x) {
@@ -175,15 +220,7 @@ int main()
 			args.clear();
 		}
 	}
-	std::cout << "_________________________________________________\n";
-	std::cout << "Time: " << std::time(NULL) - start << std::endl;
-	{
-		std::vector<TrajectoryTemplate*> t{ new CurveHoldCurveHold(Eigen::Vector3d{ 0,0,0 }, 0, 0,
-			m, m, Eigen::Vector3d{ 500,10,1000 }, Eigen::Vector3d{ 1000,10,1000 }) };
-		std::vector<Eigen::Vector3d> pC = allPointsCartesian(t);
-		delete t[0];
-	}
-	
+	*/
 	return 0;
 }
 
