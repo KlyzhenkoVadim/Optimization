@@ -1,6 +1,8 @@
 #pragma once
 #include "TrajectoryTemplate.h"
 
+enum class TypeCurve { DLS,TVD };
+
 class Curve : public TrajectoryTemplate {
 private:
 	Eigen::Vector3d pi,pf;
@@ -11,7 +13,7 @@ private:
 	size_t nums;
 
 public:
-	Curve(Eigen::Vector3d& pi,double R, double inc1, double azi1,double inc2,double azi2,size_t nums = 15);
+	Curve(const Eigen::Vector3d& pi, double inc1, double azi1, double inc2, double azi2, double RTVD, TypeCurve type = TypeCurve::DLS, size_t nums = 15);
 	void fit() override;
 	void points(CoordinateSystem coordinateSystem) override;
 	double length() override;

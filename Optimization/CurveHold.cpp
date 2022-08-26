@@ -27,6 +27,14 @@ double CurveHold::getAlpha() {
 	return alpha;
 }
 
+Eigen::Vector3d CurveHold::getPointInterpol() {
+	return p1+R*tan(alpha/2)*(t1+t2);
+}
+
+Eigen::Vector3d CurveHold::getTangent2() {
+	return t2;
+}
+
 void CurveHold::fit() {
 	Eigen::Vector3d b1 = (p3 - p1).cross(t1);
 	Eigen::Vector3d n1 = t1.cross(b1);

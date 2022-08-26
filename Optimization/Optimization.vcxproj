@@ -154,6 +154,7 @@
     <ClCompile Include="Hold.cpp" />
     <ClCompile Include="PSO.cpp" />
     <ClCompile Include="Source.cpp" />
+    <ClCompile Include="TestWells.cpp" />
     <ClCompile Include="TrajectoryTemplate.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -165,6 +166,7 @@
     <ClInclude Include="Hold.h" />
     <ClInclude Include="PSO.h" />
     <ClInclude Include="Solver.h" />
+    <ClInclude Include="TestWells.h" />
     <ClInclude Include="TrajectoryTemplate.h" />
   </ItemGroup>
   <ItemGroup>

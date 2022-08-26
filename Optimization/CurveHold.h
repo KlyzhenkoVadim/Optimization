@@ -28,7 +28,9 @@ public:
 	void points(CoordinateSystem coordinateSystem) override;
 	double length() override;
 	double getAlpha();
-	
+	Eigen::Vector3d getPointInterpol();
+	Eigen::Vector3d getTangent2();
+
 	void getInitPoint() override;
 	void getTarget1Point() override;
 	void getTarget3Point() override;

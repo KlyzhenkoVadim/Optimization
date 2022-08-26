@@ -5,11 +5,12 @@ Eigen::Vector3d calcTangentVector(double azimuth, double inclination) {
 	double x = sin(inclination * PI / 180.0) * cos(azimuth * PI / 180.0);
 	double y = sin(inclination * PI / 180.0) * sin(azimuth * PI / 180.0);
 	double z = cos(inclination * PI / 180.0);
-
-	return Eigen::Vector3d{ fabs(x) > EPSILON ? x : 0.0,
+	Eigen::Vector3d tangent{ fabs(x) > EPSILON ? x : 0.0,
 							 fabs(y) > EPSILON ? y : 0.0,
 							 fabs(z) > EPSILON ? z : 0.0
 	};
+	tangent.normalize();
+	return tangent;
 }
 
 interpolatedValueType TrajectoryTemplate::calcInterpolPoints(const Eigen::Vector3d& t1, const Eigen::Vector3d& t2, double alpha, size_t nums) {
@@ -110,7 +111,7 @@ std::vector<Eigen::Vector4d> allPointsMD(std::vector<TrajectoryTemplate* >& Well
 		for (size_t i = 0; i < tmp.size(); ++i) {
 			pointsMD.push_back({ (lastMD + tmp[i][0]), tmp[i][1], tmp[i][2], tmp[i][3] });
 		}
-		lastMD = tmp.back()[0];
+		lastMD = pointsMD.back()[0];
 	}
 	return pointsMD;
 }
