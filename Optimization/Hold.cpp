@@ -31,15 +31,24 @@ double Hold::length() {
 	return Length;
 }
 
-void Hold::getInitPoint() {
-	pointInitial = this->pi;
+void Hold::getInitPoint(CoordinateSystem coordinateSystem) {
+	if (coordinateSystem == CoordinateSystem::CARTESIAN)
+		pointInitial = this->pi;
+	else
+		pointInitialMD = { 0,direction[0],direction[1],direction[2] };
 }
 
-void Hold::getTarget3Point() {
-	pointT3 = this->pf;
+void Hold::getTarget3Point(CoordinateSystem coordinateSystem) {
+	if (coordinateSystem == CoordinateSystem::CARTESIAN)
+		pointT3 = this->pf;
+	else
+		pointMDT3 = { length(),direction[0],direction[1],direction[2] };
 }
-void Hold::getTarget1Point() {
-	pointT1 = this->pf;
+void Hold::getTarget1Point(CoordinateSystem coordinateSystem) {
+	if (coordinateSystem == CoordinateSystem::CARTESIAN)
+		pointT1 = this->pf;
+	else
+		pointMDT1 = { length(),direction[0],direction[1],direction[2] };
 }
 
 void Hold::fit() {}

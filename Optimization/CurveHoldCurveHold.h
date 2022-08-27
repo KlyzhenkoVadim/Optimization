@@ -48,8 +48,8 @@ public:
 	void points(CoordinateSystem coordinateSystem) override;
 	double length() override;
 
-	void getInitPoint() override;
-	void getTarget1Point() override;
-	void getTarget3Point() override;
+	void getInitPoint(CoordinateSystem coordinateSystem = CoordinateSystem::CARTESIAN) override;
+	void getTarget1Point(CoordinateSystem coordinateSystem = CoordinateSystem::CARTESIAN) override;
+	void getTarget3Point(CoordinateSystem coordinateSystem = CoordinateSystem::CARTESIAN) override;
 };
 

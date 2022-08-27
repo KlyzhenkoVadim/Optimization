@@ -54,14 +54,23 @@ double Curve::length() {
 	return alpha * R;
 }
 
-void Curve::getInitPoint() {
-	pointInitial = this->pi;
+void Curve::getInitPoint(CoordinateSystem coordinateSystem ) {
+	if (coordinateSystem == CoordinateSystem::CARTESIAN)
+		pointInitial = this->pi;
+	else
+		pointInitialMD = { 0,t1[0],t1[1],t1[2] };
 }
 
-void Curve::getTarget1Point() {
-	pointT1 = pf;
+void Curve::getTarget1Point(CoordinateSystem coordinateSystem) {
+	if (coordinateSystem == CoordinateSystem::CARTESIAN)
+		pointT1 = pf;
+	else
+		pointMDT1 = { length(),t2[0],t2[1],t2[2] };
 }
 
-void Curve::getTarget3Point() {
-	pointT3 = pf;
+void Curve::getTarget3Point(CoordinateSystem coordinateSystem) {
+	if (coordinateSystem == CoordinateSystem::CARTESIAN)
+		pointT3 = pf;
+	else
+		pointMDT3 = { length(),t2[0],t2[1],t2[2] };
 }

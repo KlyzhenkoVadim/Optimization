@@ -73,14 +73,21 @@ double PenaltyLength(double length, double penalty = 100) {
 	return answer;
 };
 
-double PenaltyDLS(std::vector<Eigen::Vector4d> pMD, double penalty = 100) {
+double PenaltyDLS(std::vector<TrajectoryTemplate*> &Well, double penalty = 100) {
 	double alpha, dotprod, dls;
-	for (size_t i = 1; i < pMD.size(); ++i) {
-		Eigen::Vector3d tprev{ pMD[i - 1][1],pMD[i - 1][2],pMD[i - 1][3] }, tnext{ pMD[i][1],pMD[i][2],pMD[i][3] };
+	int s = solve(Well);
+	for (size_t i = 0; i < Well.size()-1; ++i) {
+		Well[i]->getInitPoint(CoordinateSystem::MD);
+		Well[i]->getTarget1Point(CoordinateSystem::MD);
+		Eigen::Vector3d tprev{ Well[i]->pointInitialMD[1],Well[i]->pointInitialMD[2],Well[i]->pointInitialMD[3] };
+		Eigen::Vector3d tnext{ Well[i]->pointMDT1[1],Well[i]->pointMDT1[2],Well[i]->pointMDT1[3] };
+		double length = Well[i]->pointMDT1[0] - Well[i]->pointInitialMD[0];
 		dotprod = tprev.dot(tnext) / tprev.norm() / tnext.norm();
+		if (length < EPSILON)
+			continue;
 		dotprod = abs(dotprod - 1) < EPSILON ? 1 : dotprod;
 		alpha = 180/PI*acos(dotprod);
-		dls = 10 * alpha / (pMD[i][0] - pMD[i][1]);
+		dls = 10 * alpha / length;
 		if (dls > 1.5) {
 			return penalty;
 		}
@@ -138,12 +145,13 @@ int main()
 
 	std::function<double(const Eigen::VectorXd&)> scoreOne = [&](const Eigen::VectorXd& x) {
 		std::vector<TrajectoryTemplate*> tmp = Well(x);
-		double oneScore = OneWellScore(tmp), length = allLength(tmp);
+		double oneScore = OneWellScore(tmp), length = allLength(tmp),dlspenalty = PenaltyDLS(tmp);
 		std::vector<Eigen::Vector4d> pMD = allPointsMD(tmp);
+	
 		for (auto x : tmp) {
 			delete x;
 		}
-		return oneScore + PenaltyLength(length) + PenaltyDLS(pMD);
+		return oneScore + PenaltyLength(length) + dlspenalty;
 	};
 	std::vector<double> inert(500, 0.9);
 
@@ -154,9 +162,14 @@ int main()
 		int cond = solve(well);
 		std::cout <<"Length: " << allLength(well) << "\n";
 	}*/
-	std::vector<TrajectoryTemplate*> tTest = Well(Eigen::VectorXd{ {302.286, 30.7503, 169.889, 49.827, 202.575, 39.7179, 211.694, 764.171, 906.212, 2580.87, 495.589} });
+	std::vector<TrajectoryTemplate*> tTest;
+	tTest = Well(Eigen::VectorXd{ {246.079, 30.3799, 169.429, 41.0317, 205.889, 39.9311, 207.939, 771.358, 1111.32, 2075.4, 403.33} });
 	int s = solve(tTest);
 	std::vector<Eigen::Vector3d> pC = allPointsCartesian(tTest);
+	std::vector<Eigen::Vector4d> pMD = allPointsMD(tTest);
+	size_t i = 340;
+	std::cout << PenaltyDLS(tTest);
 	writeDataCartesian(pC, "output1.txt");
+	writeDataMD(pMD, "ouptput1.txt");
 	return 0;
 }

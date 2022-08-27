@@ -78,14 +78,24 @@ void CurveHold::fit() {
 	}
 }
 
-void CurveHold::getInitPoint() {
-	pointInitial = this->p1;
+void CurveHold::getInitPoint(CoordinateSystem coordinateSystem) {
+	if (coordinateSystem == CoordinateSystem::CARTESIAN)
+		pointInitial = this->p1;
+	else
+		pointInitialMD = { 0,t1[0],t1[1],t1[2] };
+
 }
-void CurveHold::getTarget3Point() {
-	pointT3 = this->p3;
+void CurveHold::getTarget3Point(CoordinateSystem coordinateSystem) {
+	if (coordinateSystem == CoordinateSystem::CARTESIAN)
+		pointT3 = this->p3;
+	else
+		pointMDT3 = { length(),t2[0],t2[1],t2[2] };
 }
-void CurveHold::getTarget1Point() {
-	pointT1 = this->p3 - betta * t2;
+void CurveHold::getTarget1Point(CoordinateSystem coordinateSystem) {
+	if (coordinateSystem == CoordinateSystem::CARTESIAN)
+		pointT1 = this->p3;
+	else
+		pointMDT1 = { length(),t2[0],t2[1],t2[2] };
 }
 void CurveHold::points(CoordinateSystem coordinateSystem) {
 	double h = length() / nums;

@@ -13,11 +13,11 @@ private:
 	size_t nums;
 
 public:
-	Curve(const Eigen::Vector3d& pi, double inc1, double azi1, double inc2, double azi2, double RTVD, TypeCurve type = TypeCurve::DLS, size_t nums = 15);
+	Curve(const Eigen::Vector3d& pi, double inc1, double azi1, double inc2, double azi2, double RTVD, TypeCurve type = TypeCurve::DLS, size_t nums = 100);
 	void fit() override;
 	void points(CoordinateSystem coordinateSystem) override;
 	double length() override;
-	void getInitPoint() override;
-	void getTarget1Point() override;
-	void getTarget3Point() override;
+	void getInitPoint(CoordinateSystem coordinateSystem = CoordinateSystem::CARTESIAN) override;
+	void getTarget1Point(CoordinateSystem coordinateSystem = CoordinateSystem::CARTESIAN) override;
+	void getTarget3Point(CoordinateSystem coordinateSystem = CoordinateSystem::CARTESIAN) override;
 };
