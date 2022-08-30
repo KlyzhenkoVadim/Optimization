@@ -86,16 +86,20 @@ void CurveHold::getInitPoint(CoordinateSystem coordinateSystem) {
 
 }
 void CurveHold::getTarget3Point(CoordinateSystem coordinateSystem) {
-	if (coordinateSystem == CoordinateSystem::CARTESIAN)
+	if (coordinateSystem == CoordinateSystem::CARTESIAN) {
 		pointT3 = this->p3;
-	else
+	}
+	else {
 		pointMDT3 = { length(),t2[0],t2[1],t2[2] };
+	}
 }
 void CurveHold::getTarget1Point(CoordinateSystem coordinateSystem) {
-	if (coordinateSystem == CoordinateSystem::CARTESIAN)
+	if (coordinateSystem == CoordinateSystem::CARTESIAN) {
 		pointT1 = this->p3;
-	else
+	}
+	else {
 		pointMDT1 = { length(),t2[0],t2[1],t2[2] };
+	}
 }
 void CurveHold::points(CoordinateSystem coordinateSystem) {
 	double h = length() / nums;
@@ -104,29 +108,34 @@ void CurveHold::points(CoordinateSystem coordinateSystem) {
 
 	size_t num = std::max(10, int(arc / h));
 	size_t stepHold = std::max(2, int(betta / h));
-
 	if (coordinateSystem == CoordinateSystem::CARTESIAN) {
-		std::vector<Eigen::Vector3d> curvePoints = calcInterpolCartesianPoints(p1, t1, t2, R, alpha, num);
+		std::vector<Eigen::Vector3d> curvePoints;
+		if (abs(alpha) < EPSILON) {
+			curvePoints.push_back(p1);
+		}
+		else {
+			curvePoints = calcInterpolCartesianPoints(p1, t1, t2, R, alpha, num);
+		}
 		std::vector<Eigen::Vector3d> holdPoints(stepHold + 1);
-
 		for (size_t idx = 0; idx < stepHold + 1; ++idx) {
 			holdPoints[idx] = pArcEnd + betta * t2 * idx / stepHold;
 		}
-
-		pointsCartesian = curvePoints;
-
+			pointsCartesian = curvePoints;
 		std::copy(holdPoints.begin(), holdPoints.end(), std::back_inserter(pointsCartesian)); // vstack
 	}
 	else {
-		std::vector<Eigen::Vector4d> curvePoints = calcInterpolMDPoints(p1, t1, t2, R, alpha, num);
+		std::vector<Eigen::Vector4d> curvePoints;
+		if (abs(alpha) < EPSILON) {
+			curvePoints.push_back({ 0,t1[0],t1[1],t1[2] });
+		}
+		else {
+			curvePoints = calcInterpolMDPoints(p1, t1, t2, R, alpha, num);
+		}
 		std::vector<Eigen::Vector4d> holdPoints(stepHold + 1);
-
 		for (size_t idx = 0; idx < stepHold + 1; ++idx) {
 			holdPoints[idx] = { (arc + betta * idx / stepHold) , t2[0], t2[1], t2[2] };
 		}
-
 		pointsMD = curvePoints;
-
 		if (fabs(betta) > EPSILON) {
 			std::copy(holdPoints.begin(), holdPoints.end(), std::back_inserter(pointsMD));
 		}

@@ -26,8 +26,9 @@ struct GeoPoint {
 
 struct Point2d
 {
-	double east;
 	double north;
+	double east;
+	
 };
 
 struct WellPad

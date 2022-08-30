@@ -20,8 +20,8 @@ struct Layer {
 struct Constraint {
 	Layer lMin, lMax;
 	void change() {
-		lMax.phi = (lMax.phi + 180.) - 360 > EPSILON ? lMax.phi - 180 : lMax.phi + 180;
-		lMin.phi = (lMin.phi + 180.) - 360 > EPSILON ? lMin.phi - 180 : lMin.phi + 180;
+		lMax.phi = (lMax.phi + 180.);// -360 > EPSILON ? lMax.phi - 180 : lMax.phi + 180;
+		lMin.phi = (lMin.phi + 180.);// -360 > EPSILON ? lMin.phi - 180 : lMin.phi + 180;
 	}
 };
 
@@ -83,6 +83,19 @@ double PenaltyDLS(std::vector<TrajectoryTemplate*> &Well, double penalty = 100) 
 	return 0;
 }
 
+//double PenaltyAHD(std::vector<TrajectoryTemplate*>& Well, double penalty = 100) {
+//	std::vector<Eigen::Vector3d> pC = allPointsCartesian(Well);
+//	double ahd = 0;
+//	for (size_t i = 1; i < pC.size(); ++i) {
+//		Eigen::Vector3d tmp = pC[i] - pC[i - 1];
+//		tmp[2] = 0;
+//		ahd += tmp.norm();
+//	}
+//	if (ahd - 2000 > EPSILON)
+//		return penalty;
+//	return 0;
+//}
+
 double AzimuthChooser(Constraint cs, double r) {
 	// r \in U[0,1]
 	if (r < 0.5) {
@@ -94,41 +107,30 @@ double AzimuthChooser(Constraint cs, double r) {
 	}
 }
 
+void ShowOptData(PSOvalueType opt,std::vector<Constraint> cs) {
+	std::cout << "Optimization result:\n_____________________________________\n";
+	std::cout << "CostValue: " << opt.second << '\n';
+	std::cout << "Hold0TVD: " << opt.first[0] << '\n';
+	for (size_t i = 0; i < 3; ++i) {
+		std::cout << "Curve" << i + 1 << " (inc" << i + 1 << ", azi" << i + 1 << "): " << opt.first[2 * i + 1] << ", " << AzimuthChooser(cs[i],opt.first[2 * (i + 1)]) << "\n";
+		std::cout << "Hold" << i + 1 << "TVDstart: " << opt.first[i + 7] << "\n";
+	}
+	std::cout << "CurveHoldDLS: " << 1800 / PI / opt.first[10] << "\n";
+}
+
 int main()
 {	
 	double R = 1200 / PI;
 	Eigen::Vector3d pinit = { 5805626,683999,0 }, target = { 5803236,682857,2900 };
 	std::vector<Constraint> cs = { { {900,30,110},{900,90,170} },
-		{ {2000,0,200},{2000,50,260} },{ {2600,0,80},{2600,20,200} } };
-	//std::function<std::vector<TrajectoryTemplate*>(const Eigen::VectorXd& x)> Well = [&](const Eigen::VectorXd& x) {
-	//	std::vector<TrajectoryTemplate*> tr;
-	//	tr.push_back(new Hold(pinit, 0, 0, x[0])); // holdLength
-	//	tr.back()->getTarget1Point();
-	//	std::vector<Layer> layers{ {x[0],0,0}, { 900,x[1],x[2] },{2000,x[3],x[4]},{2600,x[5],x[6]} };
-	//	std::vector<double> tvds{ x[7],x[8],x[9] };
-	//	// tvd (x[0],900)
-	//	// tvd (900,2000)
-	//	// tvd (2000,2600)
-	//	double RCurveHold = x[10];
-	//	//  theta (30,90) phi (110-170)
-	//	//	theta (0,50) phi (200-260)	 выбрал  было (20-80)
-	//	//	theta (0,40) phi (200-260)	выбрал	 было (20-80)
-	//	for (size_t idx = 1; idx < layers.size(); ++idx) {
-	//		tr.push_back(new Curve(tr.back()->pointT1, layers[idx - 1].theta, layers[idx - 1].phi, layers[idx].theta, layers[idx].phi, tvds[idx-1], TypeCurve::TVD));
-	//		tr.back()->getTarget1Point();
-	//		tr.push_back(new Hold(tr.back()->pointT1, layers[idx].theta, layers[idx].phi, layers[idx].TVD,typeHold::TVD));
-	//		tr.back()->getTarget1Point();
-	//	}
-	//	tr.push_back(new CurveHold(tr.back()->pointT1, target, layers.back().theta, layers.back().phi, RCurveHold));
-	//	return tr;
-	//};
+		{ {2000,0,200},{2000,50,260} },{ {2600,0,20},{2600,40,80} } };
 
 	std::function<std::vector<TrajectoryTemplate*>(const Eigen::VectorXd& x)> Well = [&](const Eigen::VectorXd& x) {
 		std::vector<TrajectoryTemplate*> tr;
 		tr.push_back(new Hold(pinit, 0, 0, x[0])); // holdLength
-		tr.back()->getTarget1Point();
+		tr.back()->getTarget1Point() ;
 		std::vector<Layer> layers{ {x[0],0,0}, { 900,x[1],AzimuthChooser(cs[0],x[2])},
-			{2000,x[3],AzimuthChooser(cs[1],x[4])},{2600,x[5],x[6]}}; //AzimuthChooser(cs[2],x[6])
+			{2000,x[3],AzimuthChooser(cs[1],x[4])},{2600,x[5],AzimuthChooser(cs[2],x[6])}};
 		std::vector<double> tvds{ x[7],x[8],x[9] };
 		// tvd (x[0],900)
 		// tvd (900,2000)
@@ -158,10 +160,8 @@ int main()
 		//maxValues.push_back(cs[i].lMax.phi);
 		maxValues.push_back(1);
 	}
-	minValues.push_back(700); // tvd промежуточный в точке x[0] - 900 ????
+	minValues.push_back(400); // tvd промежуточный в точке x[0] - 900 ????
 	maxValues.push_back(900);
-	minValues[6] = 80;
-	maxValues[6] = 200;
 	for (size_t j = 1; j < 3; ++j) {
 		minValues.push_back(cs[j - 1].lMin.TVD);
 		maxValues.push_back(cs[j].lMax.TVD);
@@ -173,32 +173,54 @@ int main()
 
 	std::function<double(const Eigen::VectorXd&)> scoreOne = [&](const Eigen::VectorXd& x) {
 		std::vector<TrajectoryTemplate*> tmp = Well(x);
-		double oneScore = OneWellScore(tmp), length = allLength(tmp), dlspenalty = PenaltyDLS(tmp);	
+		int condition = solve(tmp);
+		if (condition != 0) {
+			return 1000. * condition / tmp.size(); // penalty * percent of incorrect templates.
+		}
+		double  length = allLength(tmp), dlspenalty = PenaltyDLS(tmp);
+		double IdealLength = length ;
+		tmp[0]->getInitPoint();
+		tmp.back()->getTarget1Point();
+		tmp.back()->getTarget3Point();
+		IdealLength = (tmp.back()->pointT1 - tmp[0]->pointInitial).norm() + (tmp.back()->pointT3 - tmp.back()->pointT1).norm();
 		for (auto x : tmp) {
 			delete x;
 		}
-		return oneScore + PenaltyLength(length) + dlspenalty;
+		return length/IdealLength + PenaltyLength(length) + dlspenalty;
 	};
 	std::vector<double> inert(500, 0.9);
-	bool StartOptimization = !true;
+	bool StartOptimization;
+	std::cout << "Start Optimization?";
+	std::cin >> StartOptimization;
 	if (StartOptimization) {
-		for (size_t idd = 0; idd < 50; ++idd) {
-			PSOvalueType opt = PSO(scoreOne, minValues, maxValues, 50, 11, inert, 0.3, 0.5, 150);
+		for (size_t idd = 0; idd < 15; ++idd) {
+			PSOvalueType opt = PSO(scoreOne, minValues, maxValues, 50, 11, inert, 0.3, 0.5, 100);
+			ShowOptData(opt, cs);
 			getOptData(opt);
 			std::vector<TrajectoryTemplate*> well = Well(opt.first);
 			int cond = solve(well);
-			std::cout << "Length: " << allLength(well) << "\n";
+			std::cout << "Length: " << allLength(well) << "\n\n\n";
 		}
 	}
 	// Hold1 inc1 azi1 inc2 azi2 inc3 azi3 tvd1 tvd2 tvd3 R
 	std::vector<TrajectoryTemplate*> tTest;
-	tTest = Well(Eigen::VectorXd{ {387.375, 31.1323, 0.499967, 38.1033, 0.00228678, 19.9777, 173.739, 786.654, 1245.62, 2566.44, 382.386} });
+	
+	Eigen::VectorXd arg{ { 109.931, 39.0791, 0.495777, 49.8637, 0.188651, 39.9068, 0.552619, 427.504, 1541.77, 2588.57, 382.529} };
+	tTest = Well(arg);
+	PSOvalueType optV = {arg, 0};
+	optV.second = scoreOne(optV.first);
 	int s = solve(tTest);
-	std::vector<Eigen::Vector3d> pC = allPointsCartesian(tTest);
-	std::vector<Eigen::Vector4d> pMD = allPointsMD(tTest);
-	size_t i = 340;
-	std::cout << PenaltyDLS(tTest);
-	writeDataCartesian(pC, "output6.txt");
-	//writeDataMD(pMD, "ouptput1.txt");
+	if (!StartOptimization) {
+		/*std::vector<Eigen::Vector3d> pC = allPointsCartesian(tTest);
+		ShowOptData(optV, cs);
+		std::cout << "Length: " << allLength(tTest);
+		writeDataCartesian(pC, "output10.txt");*/
+		Eigen::Vector3d pii{ 0,0,0 }, ptt{ 0,0,1000 };
+		std::vector<TrajectoryTemplate*> t11{ new CurveHoldCurveHold(pii,0,0,700,700,ptt,90,0) };
+		t11[0]->fit();
+		std::vector<Eigen::Vector3d> pcc = allPointsCartesian(t11);
+		writeDataCartesian(pcc, "outputkust.txt");
+	
+	}
 	return 0;
 }
