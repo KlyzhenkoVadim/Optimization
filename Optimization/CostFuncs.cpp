@@ -5,11 +5,6 @@ double sigmoid(double x, double penalty, double alpha, double x0) {
 	return penalty / (1 + exp(alpha * (x - x0)));
 }
 
-double stair(double x, double penalty, double x0) {
-	if (x - x0 <= EPSILON)
-		return penalty;
-	return 0.;
-}
 int signum(double x) {
 	if (x > 0)
 		return 1;
@@ -20,11 +15,11 @@ int signum(double x) {
 
 double sepFactor(std::vector<Eigen::Vector3d>& pCartesianW1,
 	std::vector<Eigen::Vector4d>& pMDW1,
-	std::vector<Eigen::Vector3d>& pCartesianW2,std::vector<Eigen::Vector4d>& pMDW2, bool actFunc, double penalty) {
+	std::vector<Eigen::Vector3d>& pCartesianW2,std::vector<Eigen::Vector4d>& pMDW2,double TVDstart ,bool actFunc, double penalty) {
 	size_t n = pCartesianW1.size(), m = pCartesianW2.size();
 	Eigen::MatrixXd distanceMatrix(n, m);//std::vector<std::vector<double>> distanceMatrix;
 	Eigen::MatrixXd scalarProdMatrix(n, m); //std::vector<std::vector<double>> scalarProdMatrix;
-	double sgm = 2e-3;
+	double sgm = 1e-2;
 	double eps = 1e-6;
 	bool flg = true;
 	for (size_t i = 0; i < n; ++i) {
@@ -166,7 +161,10 @@ double orderScore1(std::vector<TrajectoryTemplate*>& mainWell, std::vector<std::
 		return mainLength/IdealLength + mainDDI;
 	}
 	for (size_t idx = 0; idx < pCTrajectories.size(); ++idx) {
-		rSepFactor += std::max(sepFactor(mainPCartesian, mainPMD, pCTrajectories[idx], pMDTrajectories[idx]),sepFactor(pCTrajectories[idx], pMDTrajectories[idx], mainPCartesian, mainPMD));
+		rSepFactor += std::max(sepFactor(mainPCartesian, mainPMD, pCTrajectories[idx],
+			pMDTrajectories[idx]),
+			sepFactor(pCTrajectories[idx], pMDTrajectories[idx],
+				mainPCartesian, mainPMD));
 	}
-	return mainLength/IdealLength + rSepFactor + mainDDI;
+	return mainLength / IdealLength + rSepFactor +mainDDI;
 }

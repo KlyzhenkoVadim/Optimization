@@ -1,4 +1,5 @@
 #pragma once
+#include<iomanip>
 #include "Eigen/Dense"
 #include <iostream>
 #include <vector>
@@ -12,6 +13,7 @@
 #include <cmath>
 #include "API.h"
 #include "Curve.h"
+
 void writeDataCartesian(std::vector<Eigen::Vector3d>& pointsCartesian, std::string filename);
 void writeDataMD(std::vector<Eigen::Vector4d>& pointsMD, std::string filename);
 void getOptData(PSOvalueType op);

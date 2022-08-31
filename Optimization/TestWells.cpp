@@ -176,6 +176,7 @@ void getOptData(PSOvalueType op) {
 void writeDataCartesian(std::vector<Eigen::Vector3d>& pointsCartesian, std::string filename) {
 	std::ofstream output;
 	output.open(filename);
+	output << std::setprecision(7);
 	for (size_t i = 0; i < pointsCartesian.size(); ++i) {
 		output << pointsCartesian[i][0] << "," << pointsCartesian[i][1] << "," << pointsCartesian[i][2] << std::endl;
 	}

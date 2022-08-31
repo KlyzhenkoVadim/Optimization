@@ -1,0 +1,46 @@
+Optimization result:
+_____________________________________
+CostValue: 1.03427
+Hold0TVD: 108.89
+Curve1 (inc1, azi1): 42.1289, 169.964
+Hold1TVDstart: 590.963
+Curve2 (inc2, azi2): 39.7383, 216.678
+Hold2TVDstart: 1388.31
+Curve3 (inc3, azi3): 37.7876, 200.113
+Hold3TVDstart: 2239.63
+CurveHoldDLS: 1.03897
+gBestCost: 1.03427
+gBestPos: 108.89, 42.1289, 0.499703, 39.7383, 0.138986, 37.7876, 0.500945, 590.963, 1388.31, 2239.63, 551.466,
+Length: 3641.19
+
+
+Optimization result:
+_____________________________________
+CostValue: 1.04882
+Hold0TVD: 349.069
+Curve1 (inc1, azi1): 30.5125, 170
+Hold1TVDstart: 751.591
+Curve2 (inc2, azi2): 42.7808, 210.044
+Hold2TVDstart: 1042.6
+Curve3 (inc3, azi3): 37.3215, 238.13
+Hold3TVDstart: 2393.6
+CurveHoldDLS: 0.805886
+gBestCost: 1.04882
+gBestPos: 349.069, 30.5125, 0.499996, 42.7808, 0.0837018, 37.3215, 0.817746, 751.591, 1042.6, 2393.6, 710.966,
+Length: 3634.8
+
+
+Optimization result:
+_____________________________________
+CostValue: 1.0261
+Hold0TVD: 286.909
+Curve1 (inc1, azi1): 41.8649, 169.992
+Hold1TVDstart: 789.286
+Curve2 (inc2, azi2): 32.4028, 200.039
+Hold2TVDstart: 1516.96
+Curve3 (inc3, azi3): 32.4094, 200.989
+Hold3TVDstart: 2246.47
+CurveHoldDLS: 0.488368
+gBestCost: 1.0261
+gBestPos: 286.909, 41.8649, 0.49993, 32.4028, 0.000320966, 32.4094, 0.508243, 789.286, 1516.96, 2246.47, 1173.21,
+Length: 3395.32
