@@ -19,7 +19,7 @@ double sepFactor(std::vector<Eigen::Vector3d>& pCartesianW1,
 	size_t n = pCartesianW1.size(), m = pCartesianW2.size();
 	Eigen::MatrixXd distanceMatrix(n, m);//std::vector<std::vector<double>> distanceMatrix;
 	Eigen::MatrixXd scalarProdMatrix(n, m); //std::vector<std::vector<double>> scalarProdMatrix;
-	double sgm = 1e-2;
+	double sgm = 10e-3;
 	double eps = 1e-6;
 	bool flg = true;
 	for (size_t i = 0; i < n; ++i) {
@@ -28,8 +28,23 @@ double sepFactor(std::vector<Eigen::Vector3d>& pCartesianW1,
 			distanceMatrix(i,j) = 1e3;
 		}
 	}	
-	size_t k = 1;
-	for (size_t idxN = 0; idxN < n; ++idxN) {
+	size_t StartW1 = n-1;
+	for (size_t i = 0; i < n; ++i) {
+		if (pCartesianW1[i][2] > TVDstart) {
+			StartW1 = i;
+			break;
+		}
+	}
+	size_t StartW2 = m-1;
+	for (size_t j = 0; j < m; ++j) {
+		if (pCartesianW2[j][2] > TVDstart){
+			StartW2 = j;
+			break;
+		}
+	}
+
+	size_t k = StartW2 + 1; // k = 1;
+	for (size_t idxN = StartW1; idxN < n; ++idxN) {
 		for (size_t idxM = k - 1; idxM < m; ++idxM) {
 			Eigen::Vector3d diffVector = pCartesianW2[idxM] - pCartesianW1[idxN];
 			Eigen::Vector3d tangentW1 = { pMDW1[idxN][1], pMDW1[idxN][2], pMDW1[idxN][3] };
@@ -112,7 +127,7 @@ double DDI(std::vector<Eigen::Vector3d>& pCartesian,std::vector<Eigen::Vector4d>
 	double TVD = pCartesian.back()[2] - pCartesian[0][2] ;
 	DDI = log10((1. / 0.305) * ahd * MD * toruos / TVD);
 	if (actFunc) {
-		return sigmoid(DDI, penalty, -2, 6.4);
+		return sigmoid(DDI, penalty, -1.5, 6.4);
 	}
 	return DDI;
 }	
@@ -140,7 +155,7 @@ double OneWellScore(std::vector<TrajectoryTemplate*>& mainWell, double penalty) 
 }
 
 double orderScore1(std::vector<TrajectoryTemplate*>& mainWell, std::vector<std::vector<Eigen::Vector3d>>& pCTrajectories, 
-	std::vector<std::vector<Eigen::Vector4d>>& pMDTrajectories, double penalty) {
+	std::vector<std::vector<Eigen::Vector4d>>& pMDTrajectories,double SepFactorShift, double penalty) {
 	double mainLength = 0., mainDDI = 0., rSepFactor = 0.;
 	int condition = solve(mainWell);
 	if (condition != 0) {
@@ -162,9 +177,9 @@ double orderScore1(std::vector<TrajectoryTemplate*>& mainWell, std::vector<std::
 	}
 	for (size_t idx = 0; idx < pCTrajectories.size(); ++idx) {
 		rSepFactor += std::max(sepFactor(mainPCartesian, mainPMD, pCTrajectories[idx],
-			pMDTrajectories[idx]),
+			pMDTrajectories[idx], SepFactorShift),
 			sepFactor(pCTrajectories[idx], pMDTrajectories[idx],
-				mainPCartesian, mainPMD));
+				mainPCartesian, mainPMD,SepFactorShift));
 	}
 	return mainLength / IdealLength + rSepFactor +mainDDI;
 }

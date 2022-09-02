@@ -14,12 +14,9 @@
 #include "API.h"
 #include "Curve.h"
 
+void writeInclinometry(const std::vector<Eigen::Vector4d>& pMD, std::string filename);
 void writeDataCartesian(std::vector<Eigen::Vector3d>& pointsCartesian, std::string filename);
 void writeDataMD(std::vector<Eigen::Vector4d>& pointsMD, std::string filename);
 void getOptData(PSOvalueType op);
 void writeDataOpt(std::vector<size_t> order, size_t wellNum, PSOvalueType Opt, std::vector<std::vector<TrajectoryTemplate*>>& trajs);
 void writeDataOptSep(std::vector<std::vector<Eigen::Vector3d>>& pCTrajs, std::vector<std::vector<Eigen::Vector4d>>& pMDTrajs, size_t& num);
-double Rastrigin(Eigen::VectorXd x);
-double Sphere(Eigen::VectorXd x);
-std::pair<double, double> sqrtVar(std::vector<double> v);
-void normTransform(Eigen::VectorXd& x);

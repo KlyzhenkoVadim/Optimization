@@ -58,12 +58,12 @@ void Solver::Optimize() {
 	if (horizontal) {
 		std::vector<double> minValues{ pointInitial[0] - 1000.,pointInitial[1] - 1000.,100.,0.,-180.,100. };
 		std::vector<double> maxValues{ pointInitial[0] + 1000.,pointInitial[1] + 1000.,pointsT1[2],90.,180.,1000. };
-		optData = PSO(score, minValues, maxValues, 30, 6, inertia, 0.3, 0.5, numIterations);
+		optData = PSO(score, minValues, maxValues, 30, 6, numIterations);
 	}
 	else {
 		std::vector<double> minValues{ 100.};
 		std::vector<double> maxValues{1000. };
-		optData = PSO(score, minValues, maxValues, 30, 1, inertia, 0.3, 0.5, numIterations);
+		optData = PSO(score, minValues, maxValues, 30, 1, numIterations);
 	}
 	trajectory = mainWell(optData.first);
 	int c = solve(trajectory);

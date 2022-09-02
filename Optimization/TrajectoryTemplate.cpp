@@ -11,7 +11,8 @@ Eigen::Vector3d calcTangentVector(double azimuth, double inclination) {
 	};
 	tangent.normalize();
 	return tangent;
-}
+};
+
 
 interpolatedValueType TrajectoryTemplate::calcInterpolPoints(const Eigen::Vector3d& t1, const Eigen::Vector3d& t2, double alpha, size_t nums) {
 
@@ -84,7 +85,6 @@ std::vector<Eigen::Vector4d> TrajectoryTemplate::calcInterpolMDPoints(const Eige
 }
 
 // AllPoint AllLength Solve
-
 double allLength(std::vector<TrajectoryTemplate*>& Well) {
 	double trajectoryLength = 0.;
 	for (size_t idx = 0; idx < Well.size(); ++idx) {
@@ -127,4 +127,29 @@ int solve(std::vector<TrajectoryTemplate*>& Well) {
 		}
 	}
 	return numErrors;
+}
+
+std::pair<double, double> CartesianToSpherical(Eigen::Vector3d t) {
+	t.normalize();
+	double theta = acos(t[2]), phi;
+	if (theta < EPSILON)
+		return { 0,0 };
+	theta = theta * 180 / PI;
+	phi = atan(t[1] / t[0]);
+	if (phi > 0) {
+		if (t[0] >= 0 and t[1] >= 0)
+			return { theta,phi * 180 / PI };
+		else if (t[0] < 0 and t[1] < 0) {
+			phi += PI;
+			return { theta,180 / PI * phi };
+		}
+	}
+	else {
+		if (t[0] >= 0 and t[1] <= 0)
+			return { theta,360 + phi * 180 / PI };
+		else if (t[0] < 0 and t[1] > 0) {
+			phi += PI;
+			return{ theta,180 / PI * phi };
+		}
+	}
 }

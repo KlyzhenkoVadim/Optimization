@@ -3,7 +3,7 @@
 void writePSO(double func, size_t iter, std::string filename);
 
 PSOvalueType PSO(std::function<double(const Eigen::VectorXd&)> func, const std::vector<double>& minValues, const std::vector<double>& maxValues,
-	size_t numAgents, size_t dimension,const std::vector<double>& inertia, double socCoef, double indCoef, size_t numIterations){
+	size_t numAgents, size_t dimension, size_t numIterations, const std::vector<double>& inertia, double socCoef, double indCoef){
 	assert ("Number of bound conditions is not equal", minValues.size() != maxValues.size());
 	bool flag = false;
 	for (size_t i = 0; i < minValues.size();++i) {
@@ -19,8 +19,8 @@ PSOvalueType PSO(std::function<double(const Eigen::VectorXd&)> func, const std::
 	Eigen::VectorXd gBestPos(dimension);
 	std::vector<Eigen::VectorXd> pBestPos;//(numAgents,dimension);
 	
-	//std::random_device rd;
-	std::mt19937 gen(time(NULL));
+	std::random_device rd;
+	std::mt19937 gen(rd());
 	std::uniform_real_distribution distCoefs(0., 1.);
 	std::vector<std::uniform_real_distribution<double>> distrPos;
 	std::vector<std::uniform_real_distribution<double>> distrVel;

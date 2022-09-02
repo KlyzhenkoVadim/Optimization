@@ -7,6 +7,8 @@
 
 Eigen::Vector3d calcTangentVector(double azimuth, double inclination);
 
+std::pair<double, double> CartesianToSpherical(Eigen::Vector3d t);
+
 enum class CoordinateSystem { CARTESIAN, MD };
 
 constexpr double PI = 3.14159265358979323846;
