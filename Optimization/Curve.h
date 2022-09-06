@@ -13,7 +13,7 @@ private:
 	size_t nums;
 
 public:
-	Curve(const Eigen::Vector3d& pi, double inc1, double azi1, double inc2, double azi2, double RTVD, TypeCurve type = TypeCurve::DLS, size_t nums = 10);// nums = 20
+	Curve(const Eigen::Vector3d& pi, double inc1, double azi1, double inc2, double azi2, double RTVD, TypeCurve type = TypeCurve::DLS, size_t nums = 20);// nums = 20
 	void fit() override;
 	void points(CoordinateSystem coordinateSystem) override;
 	double length() override;

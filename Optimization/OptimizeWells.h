@@ -20,22 +20,34 @@ struct Layer {
 
 struct Constraint {
 	Layer lMin, lMax;
-	void change() {
-		lMax.phi = (lMax.phi + 180.);// -360 > EPSILON ? lMax.phi - 180 : lMax.phi + 180;
-		lMin.phi = (lMin.phi + 180.);// -360 > EPSILON ? lMin.phi - 180 : lMin.phi + 180;
-	}
 };
 
-double AzimuthChooser(Constraint cs, double r);
+void ShowOptData(PSOvalueType opt, std::vector<Constraint> cs);
 
-double PenaltyLength(double length, double penalty = 100);
+int findTVD(const std::vector<Eigen::Vector3d>& pC, double TVD);
 
-double PenaltyDLS(std::vector<TrajectoryTemplate*>& Well, double penalty = 100);
-
-double PenaltyIncTarget(std::vector<TrajectoryTemplate*>& Well, double penalty = 7);
-
-double PenaltyAlphaTarget(std::vector<TrajectoryTemplate*>& Well, double penalty = 7);
+std::vector<TrajectoryTemplate*> wellCHCH(const Eigen::VectorXd& x, const Eigen::Vector3d& pinit, const Eigen::Vector3d& target);
 
 std::vector<TrajectoryTemplate*> Well(const Eigen::VectorXd& x, const Eigen::Vector3d& pinit, const Eigen::Vector3d& target, const std::vector<Constraint>& cs);
 
-Eigen::Vector3d OptimizeWellHead(std::vector<double> minValuesWellHead, std::vector<double> maxValuesWellHead);
+void OptimizeWells(const Eigen::Vector3d& pinit,const std::vector<Eigen::Vector3d>& targets,const std::vector<Constraint>& cs,
+	const std::vector<double>& minValues, const std::vector<double>& maxValues, std::vector<std::vector<Eigen::Vector3d>>& pCWells,
+	std::vector<std::vector<Eigen::Vector4d>>& pMDWells, std::vector<PSOvalueType>& opts);
+
+void OptimizeCHCHWells(const Eigen::Vector3d& pinit, const std::vector<Eigen::Vector3d>& targets, const std::vector<Constraint>& cs,
+	const std::vector<double>& minValues, const std::vector<double>& maxValues, std::vector<std::vector<Eigen::Vector3d>>& pCWells,
+	std::vector<std::vector<Eigen::Vector4d>>& pMDWells, std::vector<PSOvalueType>& opts);
+
+void FindBestWellHead(const std::vector<Eigen::Vector3d>& targets);
+
+void testFindTVD(const std::vector<Eigen::Vector3d>& pC,const std::vector<Eigen::Vector4d>& pMD, double TVD);
+
+void testWellCHCH(const Eigen::VectorXd& x, const Eigen::Vector3d& pinit, const Eigen::Vector3d& target,
+	std::vector<Eigen::Vector3d>& pC, std::vector<Eigen::Vector4d>& pMD);
+
+void testPenaltyConstraints(const std::vector<Constraint>& cs, std::vector<Eigen::Vector3d>& pC, std::vector<Eigen::Vector4d>& pMD);
+
+void testCH(double dls, const Eigen::Vector3d& pinit, const Eigen::Vector3d& target);
+
+void testScoreCHCH(const Eigen::VectorXd& x, const Eigen::Vector3d& pinit, const Eigen::Vector3d& target, const std::vector<Constraint>& cs,
+	const std::vector<double>& minValues, const std::vector<double>& maxValues, bool argKnow = true);

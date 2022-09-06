@@ -154,6 +154,7 @@
     <ClCompile Include="Hold.cpp" />
     <ClCompile Include="OptimizeWells.cpp" />
     <ClCompile Include="PSO.cpp" />
+    <ClCompile Include="Slotting.cpp" />
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="TestWells.cpp" />
     <ClCompile Include="TrajectoryTemplate.cpp" />
@@ -167,6 +168,7 @@
     <ClInclude Include="Hold.h" />
     <ClInclude Include="OptimizeWells.h" />
     <ClInclude Include="PSO.h" />
+    <ClInclude Include="Slotting.h" />
     <ClInclude Include="Solver.h" />
     <ClInclude Include="TestWells.h" />
     <ClInclude Include="TrajectoryTemplate.h" />

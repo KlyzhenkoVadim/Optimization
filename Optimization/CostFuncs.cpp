@@ -1,6 +1,7 @@
 #include "CostFuncs.h"
 #include <cmath>
 #include <iostream>
+
 double sigmoid(double x, double penalty, double alpha, double x0) {
 	return penalty / (1 + exp(alpha * (x - x0)));
 }
@@ -15,7 +16,8 @@ int signum(double x) {
 
 double sepFactor(std::vector<Eigen::Vector3d>& pCartesianW1,
 	std::vector<Eigen::Vector4d>& pMDW1,
-	std::vector<Eigen::Vector3d>& pCartesianW2,std::vector<Eigen::Vector4d>& pMDW2,double TVDstart ,bool actFunc, double penalty) {
+	std::vector<Eigen::Vector3d>& pCartesianW2,std::vector<Eigen::Vector4d>& pMDW2,
+	double TVDstart ,bool actFunc, double penalty) {
 	size_t n = pCartesianW1.size(), m = pCartesianW2.size();
 	Eigen::MatrixXd distanceMatrix(n, m);//std::vector<std::vector<double>> distanceMatrix;
 	Eigen::MatrixXd scalarProdMatrix(n, m); //std::vector<std::vector<double>> scalarProdMatrix;
@@ -127,7 +129,7 @@ double DDI(std::vector<Eigen::Vector3d>& pCartesian,std::vector<Eigen::Vector4d>
 	double TVD = pCartesian.back()[2] - pCartesian[0][2] ;
 	DDI = log10((1. / 0.305) * ahd * MD * toruos / TVD);
 	if (actFunc) {
-		return sigmoid(DDI, penalty, -1.5, 6.4);
+		return sigmoid(DDI, penalty, -2, 6.4);
 	}
 	return DDI;
 }	

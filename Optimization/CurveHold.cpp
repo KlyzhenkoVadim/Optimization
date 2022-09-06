@@ -41,39 +41,47 @@ void CurveHold::fit() {
 	n1.normalize();
 	Eigen::Vector3d r = p1 + R * n1;
 	double norm = (p3 - r).norm();
-
-	if (norm - R < EPSILON) {
-		throw std::runtime_error("Target point lies inside  the sphere.");
+	if (b1.norm() < EPSILON) {
+		t2 = t1;
+		alpha = 0;
+		betta = (p3 - p1).norm();
 	}
+	else
+	{
+		if ((norm - R) < -EPSILON)
+		{
+			throw std::runtime_error("Target point lies inside  the sphere.");
+		}
 
-	double psi = (p3-p1).norm();
-	double etta = t1.dot(p3 - p1);
-	double ksi = sqrt(psi*psi - etta * etta);
+		double psi = (p3 - p1).norm();
+		double etta = t1.dot(p3 - p1);
+		double ksi = sqrt(psi * psi - etta * etta);
 
-	if (etta <= EPSILON and ksi - 2 * R <= EPSILON) {
-		throw std::runtime_error("error: alpha >= pi");
-	}
+		if (etta <= EPSILON and ksi - 2 * R <= EPSILON) {
+			throw std::runtime_error("error: alpha >= pi");
+		}
 
-	double bettaSqr = psi * psi - 2 * R * ksi;
-	betta = 0.0;
+		double bettaSqr = psi * psi - 2 * R * ksi;
+		betta = 0.0;
 
-	if (bettaSqr > 0.) {
-		betta = sqrt(bettaSqr);
-	}
+		if (bettaSqr > 0.) {
+			betta = sqrt(bettaSqr);
+		}
 
-	if (fabs(2 * R - ksi) < EPSILON) {
-		alpha = 2 * atan(0.5 * ksi / etta);
-	}
-	else {
-		alpha = 2 * atan((etta - betta) / (2 * R - ksi));
-	}
+		if (fabs(2 * R - ksi) < EPSILON) {
+			alpha = 2 * atan(0.5 * ksi / etta);
+		}
+		else {
+			alpha = 2 * atan((etta - betta) / (2 * R - ksi));
+		}
 
-	t2 = (p3 - p1 - R * tan(alpha / 2.0) * t1) / (betta + R * tan(alpha / 2.0));
-	t2.normalize();
+		t2 = (p3 - p1 - R * tan(alpha / 2.0) * t1) / (betta + R * tan(alpha / 2.0));
+		t2.normalize();
 
-	for (auto& it : t2) {
-		if (fabs(it) < EPSILON) {
-			it = 0.0;
+		for (auto& it : t2) {
+			if (fabs(it) < EPSILON) {
+				it = 0.0;
+			}
 		}
 	}
 }

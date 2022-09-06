@@ -50,116 +50,83 @@ void CurveHoldCurveHold::fit() {
 	Eigen::Vector3d b4 = (p1 - pInter).cross(-t4);
 	Eigen::Vector3d n4 = -t4.cross(b4);
 	n4.normalize();
-
 	r1 = p1 + R1 * n1;
 	r4 = pInter + R2 * n4;
 
-	/*auto isSegmentIntersect = [](const Eigen::Vector3d& p1, const Eigen::Vector3d& p2, const Eigen::Vector3d& p3, const Eigen::Vector3d& p4) {
+	if (b1.norm() < EPSILON and b4.norm() < EPSILON) {
+		t = t1;
+		holdLength = (pInter - p1).norm();
+		alpha1 = 0;
+		alpha2 = 0;
+		p1Inter = p1;
+		p4Inter = p4;
+	}
+	
 
-		auto direction = [](const Eigen::Vector3d& pi, const Eigen::Vector3d& pj, const Eigen::Vector3d& pk) {
-			Eigen::Vector3d crossProd = (pk - pi).cross(pj - pi);
-			return crossProd[2];
-		};
+	else
+	{
 
-		auto onSegment = [](const Eigen::Vector3d& pi, const Eigen::Vector3d& pj, const Eigen::Vector3d& pk) {
-			if (((std::min(pi[0], pj[0]) <= pk[0]) and (std::max(pi[0], pj[0]) >= pk[0])) and
-				((std::min(pi[1], pj[1]) <= pk[1]) and (std::max(pi[1], pj[1]) >= pk[1])) and
-				((std::min(pi[2], pj[2]) <= pk[2]) and (std::max(pi[2], pj[2]) >= pk[2]))) {
-				return true;
+		if ((pInter - r1).norm() < R1 or (p1 - r4).norm() < R2) {
+			throw std::runtime_error("Error: Cannot reach p1/p4 from p4/p1 using Curve-hold!");
+		}
+
+		std::vector<double> alphaFirst(2);
+		std::vector<double> alphaSecond(2);
+
+		auto getaAlphaCurrCurvate = [&](bool flag, const auto& p) { // flag = 0 - first curveHold
+			if (false == flag) {
+				CurveHold firstCurveHold(p1, p, t1, R1);
+				firstCurveHold.fit();
+				return firstCurveHold.getAlpha();
 			}
-			return false;
+			else {
+				CurveHold secondCurveHold(pInter, p, -t4, R2);
+				secondCurveHold.fit();
+				return secondCurveHold.getAlpha();
+			}
 		};
-		int d1 = direction(p3, p4, p1);
-		int d2 = direction(p3, p4, p2);
-		int d3 = direction(p1, p2, p3);
-		int d4 = direction(p1, p2, p4);
 
-		if (((d1 > 0 and d2 < 0) or (d1 < 0 and d2 > 0)) and ((d3 > 0 and d4 < 0) or (d3 < 0 and d4 > 0))) {
-			return true;
-		}
-		else if (d1 == 0 and onSegment(p3, p4, p1) == true) {
-			return true;
-		}
-		else if (d2 == 0 and onSegment(p3, p4, p2) == true) {
-			return true;
-		}
-		else if (d3 == 0 and onSegment(p1, p2, p3) == true) {
-			return true;
-		}
-		else if (d4 == 0 and onSegment(p1, p2, p4) == true) {
-			return true;
-		}
-		else {
-			return false;
-		}
-	};*/
+		alphaFirst[0] = getaAlphaCurrCurvate(0, pInter);
+		Eigen::Vector3d p1j = p1 + R1 * tan(alphaFirst[0] / 2) * t1;
+		alphaSecond[0] = getaAlphaCurrCurvate(1, p1j);
+		Eigen::Vector3d pInterj = pInter - R2 * tan(alphaSecond[0] / 2) * t4;
 
-	if ((pInter - r1).norm() < R1 or (p1 - r4).norm() < R2) {
-		throw std::runtime_error("Error: Cannot reach p1/p4 from p4/p1 using Curve-hold!");
-	}
+		const size_t maxIter = 10e3;
+		size_t iter = 0;
 
-	/*
-	if (((r1 - r4).norm() < R1 + R2) and true == isSegmentIntersect(r1, r4, p1, pInter)) {
-		throw std::runtime_error("Intersection of circles");
-	}
-	*/
+		while (iter < maxIter) {
+			alphaFirst[1] = getaAlphaCurrCurvate(0, pInterj);
+			p1j = p1 + R1 * tan(alphaFirst[1] / 2) * t1;
+			alphaSecond[1] = getaAlphaCurrCurvate(1, p1j);
+			pInterj = pInter - R2 * tan(alphaSecond[1] / 2) * t4;
 
-	std::vector<double> alphaFirst(2);
-	std::vector<double> alphaSecond(2);
+			if (sqrt((alphaFirst[1] - alphaFirst[0]) * (alphaFirst[1] - alphaFirst[0]) + (alphaSecond[1] - alphaSecond[0]) * (alphaSecond[1] - alphaSecond[0])) < eps) {
+				break;
+			}
 
-	auto getaAlphaCurrCurvate = [&](bool flag, const auto& p) { // flag = 0 - first curveHold
-		if (false == flag) {
-			CurveHold firstCurveHold(p1,p,t1,R1);
-			firstCurveHold.fit();
-			return firstCurveHold.getAlpha();
-		}
-		else {
-			CurveHold secondCurveHold(pInter, p, -t4, R2);
-			secondCurveHold.fit();
-			return secondCurveHold.getAlpha();
-		}
-	};
-
-	alphaFirst[0] = getaAlphaCurrCurvate(0, pInter);
-	Eigen::Vector3d p1j = p1 + R1 * tan(alphaFirst[0] / 2) * t1;
-	alphaSecond[0] = getaAlphaCurrCurvate(1, p1j);
-	Eigen::Vector3d pInterj = pInter - R2 * tan(alphaSecond[0] / 2) * t4;
-
-	const size_t maxIter = 10e3;
-	size_t iter = 0;
-
-	while (iter < maxIter) {
-		alphaFirst[1] = getaAlphaCurrCurvate(0, pInterj);
-		p1j = p1 + R1 * tan(alphaFirst[1] / 2) * t1;
-		alphaSecond[1] = getaAlphaCurrCurvate(1, p1j);
-		pInterj = pInter - R2 * tan(alphaSecond[1] / 2) * t4;
-
-		if (sqrt((alphaFirst[1] - alphaFirst[0]) * (alphaFirst[1] - alphaFirst[0]) + (alphaSecond[1] - alphaSecond[0]) * (alphaSecond[1] - alphaSecond[0])) < eps) {
-			break;
+			std::reverse(alphaFirst.begin(), alphaFirst.end());
+			std::reverse(alphaSecond.begin(), alphaSecond.end());
+			iter += 1;  // !!!
 		}
 
-		std::reverse(alphaFirst.begin(), alphaFirst.end());
-		std::reverse(alphaSecond.begin(), alphaSecond.end());
-		iter += 1;  // !!!
-	}
+		if (iter == 999) {
+			throw std::runtime_error("Error: Iterations do not converge!");
+		}
 
-	if (iter == 999){
-		throw std::runtime_error("Error: Iterations do not converge!");
-	}
+		t = (pInterj - p1j);
+		t.normalize();
+		alpha1 = alphaFirst[1];
+		alpha2 = alphaSecond[1];
+		p1Inter = p1 + R1 * tan(alpha1 / 2) * (t1 + t);
+		p4Inter = pInter - R2 * tan(alpha2 / 2) * (t4 + t);
+		holdLength = (p4Inter - p1Inter).norm();
 
-	t = (pInterj - p1j);
-	t.normalize();
-	alpha1 = alphaFirst[1];
-	alpha2 = alphaSecond[1];
-	p1Inter = p1 + R1 * tan(alpha1 / 2) * (t1 + t);
-	p4Inter = pInter - R2 * tan(alpha2 / 2) * (t4 + t);
-	holdLength = (p4Inter - p1Inter).norm();
+		Eigen::Vector3d tmp = (p4Inter - p1Inter) / holdLength;
 
-	Eigen::Vector3d tmp = (p4Inter - p1Inter) / holdLength;
-
-	for (size_t idx = 0; idx < t.size(); ++idx) {
-		if (fabs(tmp[idx] - t[idx]) > 1e-4) {
-			throw std::runtime_error("Error: Cannot reach the Target!");
+		for (size_t idx = 0; idx < t.size(); ++idx) {
+			if (fabs(tmp[idx] - t[idx]) > 1e-4) {
+				throw std::runtime_error("Error: Cannot reach the Target!");
+			}
 		}
 	}
 }
@@ -269,7 +236,7 @@ void CurveHoldCurveHold::points(CoordinateSystem coordinateSystem) {
 }
 
 double CurveHoldCurveHold::length() {
-	double arc1 = R1 * alpha1;
-	double arc2 = R2 * alpha2;
+	double arc1 = alpha1 < EPSILON ? 0 : R1 * alpha1;
+	double arc2 = alpha2 < EPSILON ? 0 : R2 * alpha2;
 	return arc1 + arc2 + holdLength + betta;
 }
