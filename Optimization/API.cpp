@@ -39,6 +39,11 @@ void Solver::setData(Point2d& pInitial, GeoPoint& Targets) {
 	}
 }
 
+void Solver::setConstraints(const WellTrajectoryConstraints& cs)
+{
+	OptimizeConstraints = cs;
+}
+
 PSOvalueType Solver::getPSOdata() {
 	return optData;
 };

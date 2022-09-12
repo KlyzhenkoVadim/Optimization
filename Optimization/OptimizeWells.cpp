@@ -27,8 +27,8 @@ void ShowOptData(PSOvalueType opt, std::vector<Constraint> cs) {
 	std::cout << "CurveHoldDLS: " << 1800 / PI / opt.first[10] << "\n";
 }
 
-double PenaltyLength(double length, double penalty) {
-	double answer = length > 5000 ? penalty : 0;
+double PenaltyLength(double length, double penalty, double MaxLength) {
+	double answer = length > MaxLength ? penalty : 0;
 	return answer;
 };
 
@@ -54,6 +54,19 @@ double PenaltyDLS(std::vector<TrajectoryTemplate*>& Well, double penalty) {
 	return 0;
 };
 
+double PenaltyIncWell(const std::vector<Eigen::Vector4d>& pMD,double incMin,double incMax, double penalty) 
+{
+	double value = 0,currInc = -1;
+	for (size_t i = 0; i < pMD.size(); ++i)
+	{
+		currInc = CartesianToSpherical(Eigen::Vector3d{ pMD[i][1],pMD[i][2],pMD[i][3] }).first;
+		if (currInc - incMin > -EPSILON and currInc - incMax < EPSILON)
+			continue;
+		value += penalty / pMD.size();
+	}
+	return value;
+}
+
 double PenaltyIncTarget(std::vector<TrajectoryTemplate*>& Well, double penalty) {
 	int s = solve(Well);
 	Well.back()->getTarget1Point(CoordinateSystem::MD);
@@ -78,7 +91,6 @@ double PenaltyAlphaTarget(std::vector<TrajectoryTemplate*>& Well, double penalty
 		return penalty;
 	}
 	return 0;
-
 }
 
 int findTVD(const std::vector<Eigen::Vector3d>& pC, double TVD) {
@@ -101,31 +113,37 @@ int findTVD(const std::vector<Eigen::Vector3d>& pC, double TVD) {
 double PenaltyConstraint(std::vector<Constraint> cs, std::vector<Eigen::Vector3d>& pC, std::vector<Eigen::Vector4d>& pMD, double penalty) {
 	int id = 0;
 	double pen = 0;
-	std::pair<double, double>  incAzi;
+	std::pair<double, double>  incAzi = {0,0};
 	for (size_t i = 0; i < cs.size(); ++i) {
 		id = findTVD(pC, cs[i].lMin.TVD);
 		if (id < 0) {
 			id = -id - 1;
 		}
-		incAzi = CartesianToSpherical(Eigen::Vector3d{ pMD[id][1],pMD[id][2],pMD[id][3] });
-		if (!(incAzi.first >= cs[i].lMin.theta and incAzi.first <= cs[i].lMax.theta)) {
+		Eigen::Vector3d tmpVec = { pMD[id][1],pMD[id][2],pMD[id][3] };
+		incAzi = CartesianToSpherical(tmpVec);
+		if (!(incAzi.first - cs[i].lMin.theta > -EPSILON and incAzi.first - cs[i].lMax.theta < EPSILON)) {
 			pen += penalty / cs.size() / 2;
 		}
-		if ((incAzi.first > EPSILON) and !((incAzi.second > cs[i].lMin.phi and incAzi.second < cs[i].lMax.phi) or (incAzi.second > cs[i].lMin.phi + 180 and incAzi.second < cs[i].lMax.phi + 180))) {
+		if ((incAzi.first > EPSILON) and !((incAzi.second - cs[i].lMin.phi > -EPSILON and incAzi.second - cs[i].lMax.phi < EPSILON) 
+			or (incAzi.second - (cs[i].lMin.phi + 180) > -EPSILON and incAzi.second - (cs[i].lMax.phi + 180) < EPSILON))) {
 			pen += penalty / cs.size() / 2;
 		}
 	}
 	return pen;
 }
 
-std::vector<TrajectoryTemplate*> wellCHCH(const Eigen::VectorXd& x, const Eigen::Vector3d& pinit, const Eigen::Vector3d& target) {
+std::vector<TrajectoryTemplate*> wellCHCH(const Eigen::VectorXd& x, const Eigen::Vector3d& pinit, const Eigen::Vector3d& target, const Constraint& c) {
 	std::vector<TrajectoryTemplate*> tmp;
 	tmp.push_back(new Hold(pinit, 0, 0, x[0]));
 	tmp.back()->getTarget1Point();
-	double R1 = abs(x[1]) < EPSILON ? 1 / EPSILON: 1800 / PI / x[1];
-	double R2 = abs(x[2]) < EPSILON ? 1/EPSILON : 1800 / PI / x[2];
-	
-	tmp.push_back(new CurveHoldCurveHold(tmp.back()->pointT1, 0, 0, R1, R2, target, x[3], x[4]));
+	double R1 = abs(x[1]) < EPSILON ? 1 / EPSILON : 1800 / PI / x[1];
+	double R2 = abs(x[2]) < EPSILON ? 1 / EPSILON : 1800 / PI / x[2];
+	//double tvdCurve = x[0] + (target[2] - x[0]) * x[8];
+	//tmp.push_back(new Curve(tmp.back()->pointT1, 0, 0, x[6], AzimuthChooser(c, x[7]),x[8], TypeCurve::TVD));
+	//tmp.back()->getTarget1Point();
+	//tmp.back()->getTarget1Point(CoordinateSystem::MD);
+	//std::pair<double, double> incAzi = CartesianToSpherical(Eigen::Vector3d{ tmp.back()->pointMDT1[1], tmp.back()->pointMDT1[2], tmp.back()->pointMDT1[3] });
+	tmp.push_back(new CurveHoldCurveHold(tmp.back()->pointT1, 0,0, R1, R2, target, x[3], x[4],x[5]));
 	return tmp;
 }
 
@@ -152,7 +170,12 @@ std::vector<TrajectoryTemplate*> Well(const Eigen::VectorXd& x, const Eigen::Vec
 		tr.push_back(new Hold(tr.back()->pointT1, layers[idx].theta, layers[idx].phi, layers[idx].TVD, typeHold::TVD));
 		tr.back()->getTarget1Point();
 	}
+	//tr.push_back(new CurveHold(tr.back()->pointT1, target, layers.back().theta, layers.back().phi));
 	tr.push_back(new CurveHold(tr.back()->pointT1, target, layers.back().theta, layers.back().phi, RCurveHold));
+	//double R1 = x[10] < EPSILON ? 1 / EPSILON : 1800 / PI / x[10];
+	//double R2 = x[11] < EPSILON ? 1 / EPSILON : 1800 / PI / x[11];
+	//double tetaFinal = x[12], phiFinal = x[13];
+	//tr.push_back(new CurveHoldCurveHold(tr.back()->pointT1,layers.back().theta,layers.back().phi,R1,R2,target,tetaFinal,phiFinal,0,0.001,30));
 	
 	return tr;
 };
@@ -180,32 +203,37 @@ void OptimizeWells(const Eigen::Vector3d& pinit, const std::vector<Eigen::Vector
 		for (auto x : tmp) {
 			delete x;
 		}
-		return length / IdealLength + PenaltyLength(length,100) + dlspenalty;
+		return length / IdealLength + PenaltyLength(length,100,5000) + dlspenalty;
 	};
 
 	std::function<double(const Eigen::VectorXd&)> CollRiskScore = [&](const Eigen::VectorXd& x) {
 		std::vector<TrajectoryTemplate*> currWell = Well(x, pinit, target, cs);
-		double score = orderScore1(currWell, pCWells, pMDWells, TVDShift);
-		double length = allLength(currWell), dlsPen = PenaltyDLS(currWell, 500), incPen = PenaltyIncTarget(currWell, 100);
+		//double score = orderScore1(currWell, pCWells, pMDWells, TVDShift);
+		double score = OneWellScore(currWell);
+		double length = allLength(currWell), dlsPen = PenaltyDLS(currWell, 10), incPen = PenaltyIncTarget(currWell, 10);
 		double alphaCH = PenaltyAlphaTarget(currWell, 10);
 		for (auto x : currWell)
 			delete x;
-		return score + PenaltyLength(length, 100) + dlsPen + incPen;
+		return score + PenaltyLength(length, 10,5000) + dlsPen + incPen;
 	};
+
+	size_t index = 0;
 
 	while (flag) {
 		flag = false;
-		for (size_t idd = 0; idd < targets.size(); ++idd) {
+		for (size_t idd = index; idd < targets.size(); ++idd) {
 			target = targets[idd];
-			PSOvalueType opt = PSO(CollRiskScore, minValues, maxValues, 30, 11, 150);
-
-			if(opt.second > 3.8){
+			PSOvalueType opt = PSO(CollRiskScore, minValues, maxValues, 15, 11, 150);
+			if(opt.second > 3){
 				flag = true;
-				pCWells.clear();
-				pMDWells.clear();
-				opts.clear();
+				index = idd;
+				//opts.clear();
+				//pCWells.clear();
+				//pMDWells.clear();
 				break;
 			}
+			std::cout << index <<"\n";
+			index = idd + 1;
 			std::vector<TrajectoryTemplate*> well = Well(opt.first, pinit, target, cs);
 			int cond = solve(well);
 			opts.push_back(opt);
@@ -225,31 +253,37 @@ void OptimizeCHCHWells(const Eigen::Vector3d& pinit, const std::vector<Eigen::Ve
 	bool flag = true;
 
 	std::function<double(const Eigen::VectorXd&)> scoreCHCH = [&](const Eigen::VectorXd& x) {
-		std::vector<TrajectoryTemplate*> tmp = wellCHCH(x, pinit, target);
+		std::vector<TrajectoryTemplate*> tmp = wellCHCH(x, pinit, target, cs[0]);
 		int s = solve(tmp);
 		std::vector<Eigen::Vector3d> pCtmp = allPointsCartesian(tmp);
 		std::vector<Eigen::Vector4d>  pMDtmp = allPointsMD(tmp);
-		double cost = orderScore1(tmp, pCWells, pMDWells), dlsPen = PenaltyDLS(tmp, 500), length = allLength(tmp);
+		double cost = orderScore1(tmp, pCWells, pMDWells, TVDShift);// OneWellScore(tmp);//
+		double length = allLength(tmp);// dlsPen = PenaltyDLS(tmp, 100);
 		double penConstraints = PenaltyConstraint(cs, pCtmp, pMDtmp, 100);
+		double penIncWell = PenaltyIncWell(pMDtmp, 0, 65, 100);
 		for (auto x : tmp) {
 			delete x;
 		}
-		return cost + penConstraints + PenaltyLength(length,100);
+		return cost + penConstraints + PenaltyLength(length,20,5000) + penIncWell;
 	};
 
+	size_t index = 0;
 	while (flag) {
 		flag = false;
-		for (size_t idd = 0; idd < targets.size(); ++idd) {
+		for (size_t idd = index; idd < targets.size(); ++idd) {
 			target = targets[idd];
-			PSOvalueType opt = PSO(scoreCHCH, minValues, maxValues, 2, 5, 150);
-			if (opt.second > 20) {
+			PSOvalueType opt = PSO(scoreCHCH, minValues, maxValues, 15, 6, 100);
+			if (opt.second > 10) {
 				flag = true;
-				pCWells.clear();
+				index = idd;
+				/*pCWells.clear();
 				pMDWells.clear();
-				opts.clear();
+				opts.clear();*/
 				break;
 			}
-			std::vector<TrajectoryTemplate*> well = wellCHCH(opt.first, pinit, target);
+			std::cout << index << "\n";
+			index = idd + 1;
+			std::vector<TrajectoryTemplate*> well = wellCHCH(opt.first, pinit, target,cs[0]);
 			int cond = solve(well);
 			opts.push_back(opt);
 			pCWells.push_back(allPointsCartesian(well));
@@ -261,26 +295,26 @@ void OptimizeCHCHWells(const Eigen::Vector3d& pinit, const std::vector<Eigen::Ve
 
 void FindBestWellHead(const std::vector<Eigen::Vector3d>& targets) 
 {
-	std::vector<double> minVs{ 5800236,680000 }, maxVs{ 5810000,685000 };
+	std::vector<double> minVs{ 5800000,660000 }, maxVs{ 5890000,690000 };
 	std::function<double(const Eigen::VectorXd&)> headScore = [&](const Eigen::VectorXd& x) {
 		Eigen::Vector3d InitialPoint = { x[0],x[1],0. };
 		double azi, inc, cost = 0;
 		for (size_t i = 0; i < 4; ++i) {
 			inc = CartesianToSpherical(targets[i] - InitialPoint).first;
 			azi = CartesianToSpherical(targets[i] - InitialPoint).second;
-			if (azi - 110 > EPSILON and azi - 170 < EPSILON and inc - 0 > EPSILON and inc - 40 < EPSILON) {
-				cost += (targets[i] - InitialPoint).norm();
+			if (azi - 20 > -EPSILON and azi - 80 < EPSILON ) { // and inc > 0 and inc < 20
+				cost += (Eigen::Vector3d{ targets[i][0],targets[i][1],0 } - InitialPoint).norm() > 2000 ? 100 : 0;
 				continue;
 			}
-			if (azi - 110 - 180 > EPSILON and azi - 170 - 180 < EPSILON and inc - 0 > EPSILON and inc - 40 < EPSILON) {
-				cost += (targets[i] - InitialPoint).norm();
+			/*if (azi - 140 - 180 > -EPSILON and azi - 170 - 180 < -EPSILON ) {
+				cost += (Eigen::Vector3d{ targets[i][0],targets[i][1],0 } - InitialPoint).norm() > 2100 ? 100 : 0;
 				continue;
-			}
-			cost += 1 / EPSILON / EPSILON;
+			}*/
+			cost += 100;
 		}
-		return cost;
+		return log(1+cost);
 	};
-	PSOvalueType optHead = PSO(headScore, minVs, maxVs, 50, 2, 500);
+	PSOvalueType optHead = PSO(headScore, minVs, maxVs, 50, 2, 200);
 	getOptData(optHead);
 }
 
@@ -310,9 +344,9 @@ void testFindTVD(const std::vector<Eigen::Vector3d>& pC, const std::vector<Eigen
 void testPenaltyConstraints(const std::vector<Constraint>& cs, std::vector<Eigen::Vector3d>& pC, std::vector<Eigen::Vector4d>& pMD) 
 {
 	std::cout << "Constraints are:\n";
-	for (auto x : cs) {
-		std::cout << "TVD" << x.lMin.TVD << "\ninc: [" << x.lMin.theta << ", " << x.lMax.theta << "]\nazi: [" << x.lMin.phi << "," << x.lMax.phi << "]  OR ["
-			<< 180 + x.lMin.phi << "," << 180 + x.lMax.phi << "]\n_______________________________________________________________\n";
+	for (auto y : cs) {
+		std::cout << "TVD" << y.lMin.TVD << "\ninc: [" << y.lMin.theta << ", " << y.lMax.theta << "]\nazi: [" << y.lMin.phi << "," << y.lMax.phi << "]  OR ["
+			<< 180 + y.lMin.phi << "," << 180 + y.lMax.phi << "]\n_______________________________________________________________\n";
 	}
 	std::cout << "Penalty is: " << PenaltyConstraint(cs, pC, pMD, 100);
 
@@ -321,7 +355,8 @@ void testPenaltyConstraints(const std::vector<Constraint>& cs, std::vector<Eigen
 void testWellCHCH(const Eigen::VectorXd& x, const Eigen::Vector3d&pinit, const Eigen::Vector3d& target,
 					std::vector<Eigen::Vector3d>& pC, std::vector<Eigen::Vector4d>& pMD)
 {
-	std::vector<TrajectoryTemplate*> currWell = wellCHCH(x, pinit, target);
+	Constraint c{ {900,30,110},{900,90,170} };
+	std::vector<TrajectoryTemplate*> currWell = wellCHCH(x, pinit, target,c);
 	std::string cond = solve(currWell) == 0 ?"Good": "Bad";
 	std::cout << "Condition of Well is: " << cond << "\n";
 	std::cout << "Parameters:\n" << "Hold: " << x[0] << "\nDLS1: " << x[1] << "\nDLS2: " << x[2] << "\ninc,azi in Target: " << x[3] << "," << x[4] << std::endl;
@@ -330,6 +365,8 @@ void testWellCHCH(const Eigen::VectorXd& x, const Eigen::Vector3d&pinit, const E
 	pMD = allPointsMD(currWell);
 	writeDataCartesian(pC, "WellCHCHtest.txt");
 	writeInclinometry(pMD, "WellCHCHtestInc.txt");
+	for (auto x : currWell)
+		delete x;
 }
 
 void testCH(double dls, const Eigen::Vector3d& pinit, const Eigen::Vector3d& target)
@@ -350,16 +387,21 @@ void testScoreCHCH(const Eigen::VectorXd& x,const Eigen::Vector3d& pinit, const 
 	std::vector<std::vector<Eigen::Vector4d>> pMDWells;
 
 	std::function<double(const Eigen::VectorXd&)> scoreCHCH = [&](const Eigen::VectorXd& x) {
-		std::vector<TrajectoryTemplate*> tmp = wellCHCH(x, pinit, target);
+		std::vector<TrajectoryTemplate*> tmp = wellCHCH(x, pinit, target,cs[0]);
 		int s = solve(tmp);
 		double cost = orderScore1(tmp, pCWells, pMDWells), dlsPen = PenaltyDLS(tmp, 500), length = allLength(tmp);
 		std::vector<Eigen::Vector3d> pCtmp = allPointsCartesian(tmp);
 		std::vector<Eigen::Vector4d>  pMDtmp = allPointsMD(tmp);
+		double penInc = PenaltyIncWell(pMDtmp, 0, 90, 100);
 		double penConstraints = PenaltyConstraint(cs, pCtmp, pMDtmp, 100);
 		for (auto x : tmp) {
 			delete x;
 		}
-		return cost + penConstraints + PenaltyLength(length, 100);
+		std::cout << "Cost(Length+DDI):" << cost << "\n";
+		std::cout << "penConstraints: " << penConstraints << "\n";
+		std::cout << "penLength: " << PenaltyLength(length, 100, 5000) << "\n";
+		std::cout << "penInc: " << penInc << "\n";
+		return cost + penConstraints + PenaltyLength(length, 100,5000) + penInc;
 	};
 	std::random_device rd;
 	std::mt19937 gen(rd());
@@ -383,5 +425,61 @@ void testScoreCHCH(const Eigen::VectorXd& x,const Eigen::Vector3d& pinit, const 
 	else
 	{
 		double sc = scoreCHCH(x);
+		std::cout << sc;
 	}
+}
+
+void testSolver(const Eigen::Vector3d& pInit,const Eigen::Vector3d& target, const WellTrajectoryConstraints& cs)
+{
+	std::function<std::vector<TrajectoryTemplate*>(const Eigen::VectorXd&)> wellSolver = [&](const Eigen::VectorXd& x)
+	{
+		double R = x[1] < EPSILON ? 1 / EPSILON : 1800 / PI / x[1];
+		std::vector<TrajectoryTemplate*> well;
+		well.push_back(new Hold(pInit,0,0,x[0],typeHold::TVD));
+		well.back()->getTarget1Point();
+		well.push_back(new CurveHold(well.back()->pointT1, target, 0, 0, R));
+		return well;
+	};
+	std::function<double(const Eigen::VectorXd&)> score = [&](const Eigen::VectorXd& x)
+	{
+		std::vector<TrajectoryTemplate*> tmp = wellSolver(x);
+		double s = OneWellScore(tmp), lenPen = PenaltyLength(allLength(tmp),100,cs.maxMD);
+		for (auto x : tmp)
+			delete x;
+		return s + lenPen;
+	};
+	std::vector<double> minValues{cs.minDepthFirstHold,0}, maxValues{target[2],cs.maxDLSfirstCurve};
+	PSOvalueType opt = PSO(score, minValues, maxValues, 5 * minValues.size(), minValues.size(), 150);
+	getOptData(opt);
+
+}
+
+void testWell(const Eigen::Vector3d& pinit, const Eigen::Vector3d& target, const Eigen::VectorXd &x, const std::vector<Constraint>& cs,
+			std::vector<Eigen::Vector3d>& pC, std::vector<Eigen::Vector4d>& pMD) 
+{
+	std::vector<TrajectoryTemplate*> tmp = Well(x, pinit, target, cs);
+	int s = solve(tmp);
+	std::cout << "Condition of Well: " << s << "\n";
+	for (auto x : x)
+		std::cout << x << ", ";
+	pC = allPointsCartesian(tmp);
+	pMD = allPointsMD(tmp);
+	std::cout << "Length: " << allLength(tmp) << "\n";
+	writeDataCartesian(pC, "Welltest.txt");
+	for (auto x : tmp)
+		delete x;
+
+}
+
+void testPenaltyInc(double incHold, double aziHold,double incMin,double incMax)
+{
+	std::vector<TrajectoryTemplate*> tt;
+	tt.push_back(new Hold (Eigen::Vector3d{ 0,0,0 }, incHold, aziHold, 1000));
+	tt.back()->getTarget1Point();
+	tt.push_back(new Hold(tt.back()->pointT1, 40, 0, 1000));
+	int s = solve(tt);
+	std::vector<Eigen::Vector4d> pMD  = allPointsMD(tt);
+	std::cout << "PenaltyInc is: " << PenaltyIncWell(pMD, incMin, incMax, 100);
+	for (auto x : tt)
+		delete x;
 }

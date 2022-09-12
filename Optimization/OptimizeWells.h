@@ -26,7 +26,7 @@ void ShowOptData(PSOvalueType opt, std::vector<Constraint> cs);
 
 int findTVD(const std::vector<Eigen::Vector3d>& pC, double TVD);
 
-std::vector<TrajectoryTemplate*> wellCHCH(const Eigen::VectorXd& x, const Eigen::Vector3d& pinit, const Eigen::Vector3d& target);
+std::vector<TrajectoryTemplate*> wellCHCH(const Eigen::VectorXd& x, const Eigen::Vector3d& pinit, const Eigen::Vector3d& target,const Constraint& c);
 
 std::vector<TrajectoryTemplate*> Well(const Eigen::VectorXd& x, const Eigen::Vector3d& pinit, const Eigen::Vector3d& target, const std::vector<Constraint>& cs);
 
@@ -51,3 +51,10 @@ void testCH(double dls, const Eigen::Vector3d& pinit, const Eigen::Vector3d& tar
 
 void testScoreCHCH(const Eigen::VectorXd& x, const Eigen::Vector3d& pinit, const Eigen::Vector3d& target, const std::vector<Constraint>& cs,
 	const std::vector<double>& minValues, const std::vector<double>& maxValues, bool argKnow = true);
+
+void testNewCurveHold(const Eigen::Vector3d& pinit, const Eigen::Vector3d& target, double inc, double azi, size_t nums);
+
+void testWell(const Eigen::Vector3d& pinit, const Eigen::Vector3d& target, const Eigen::VectorXd& x, const std::vector<Constraint>& cs,
+	std::vector<Eigen::Vector3d>& pC, std::vector<Eigen::Vector4d>& pMD);
+
+void testPenaltyInc(double incHold, double aziHold, double incMin, double incMax);

@@ -18,6 +18,14 @@ CurveHold::CurveHold(const Eigen::Vector3d& p1, const Eigen::Vector3d& p3, const
 	this->nums = nums;
 }
 
+//CurveHold::CurveHold(const Eigen::Vector3d& p1, const Eigen::Vector3d& p3, double teta, double phi, size_t nums) {
+//	this->p1 = p1;
+//	this->p3 = p3;
+//	this->t1 = calcTangentVector(phi, teta);
+//	this->R = NAN;
+//	this->nums = nums;
+//}
+
 double CurveHold::length() {
 	double arc = alpha * R;
 	return arc + betta;
@@ -36,6 +44,18 @@ Eigen::Vector3d CurveHold::getTangent2() {
 }
 
 void CurveHold::fit() {
+	/*if (R != R)
+	{
+		double psi = (p3 - p1).norm();
+		double eta = t1.dot(p3 - p1);
+		double ksi = sqrt(psi * psi - eta * eta);
+		R = ksi < EPSILON ? 1/EPSILON : psi * psi / 2 / ksi;
+		if (abs(eta) < EPSILON)
+			throw(std::runtime_error("???"));
+		alpha = 2 * atan(ksi / eta);
+		t2 = (p3 - p1 - R * tan(alpha / 2.0) * t1) / (R * tan(alpha / 2.0));
+		t2.normalize();
+	}*/
 	Eigen::Vector3d b1 = (p3 - p1).cross(t1);
 	Eigen::Vector3d n1 = t1.cross(b1);
 	n1.normalize();
@@ -57,7 +77,7 @@ void CurveHold::fit() {
 		double etta = t1.dot(p3 - p1);
 		double ksi = sqrt(psi * psi - etta * etta);
 
-		if (etta <= EPSILON and ksi - 2 * R <= EPSILON) {
+		if (etta < EPSILON and ksi - 2 * R < EPSILON) {
 			throw std::runtime_error("error: alpha >= pi");
 		}
 

@@ -18,7 +18,7 @@
 void outputWellOptimization(const std::vector<PSOvalueType>& opts, std::vector<std::vector<Eigen::Vector3d>>& pCWells, std::vector<std::vector<Eigen::Vector4d>>& pMDWells,
 	std::vector<Eigen::Vector3d>& targets, std::vector<Constraint>& cs);
 
-void setMinMaxValuesWell(std::vector<double>& minValues, std::vector<double>& maxValues,const std::vector<Constraint> cs) {
+void setMinMaxValuesWell(std::vector<double>& minValues, std::vector<double>& maxValues, const std::vector<Constraint> cs) {
 	minValues.push_back(400); // 100
 	maxValues.push_back(900); // 400
 	for (size_t i = 0; i < 3; ++i) {
@@ -35,33 +35,43 @@ void setMinMaxValuesWell(std::vector<double>& minValues, std::vector<double>& ma
 	}
 	minValues.push_back(0); // R
 	maxValues.push_back(1.5); // 1e8
-}
+};
 
 int main()
 {
-	double R = 1200 / PI;
-	Eigen::Vector3d pinit = { 5803419,683949,0 }, target1 = { 5803236,682857,2900 },
-		target2 = { 5803529,682498,2900 }, target3 = { 5803536,683257,2900 }, target4 = { 5803409,683700,2900 }; //40R 4001 4003 4000
-	std::vector<Constraint> cs = { { {900,30,110},{900,90,170} },
-		{ {2000,0,20},{2000,50,80} },{ {2600,0,20},{2600,40,80} } };
+	double R = 1200 / PI; //For targets4 THE BEST 5802898,683790,0 // 5804304, 682287.9,0
+	Eigen::Vector3d pinit2 = {5802508,680718,0}, pinit4 = { 5802898,683790,0 }, pinit5{ 5804519,684699,0 }, target40R = { 5803236,682857,2900 },//  5805450, 682009.6,0 - GOOD  //5802610, 681358
+		target4001 = { 5803529,682498,2900 }, target4003 = { 5803536,683257,2900 }, target4000 = { 5803409,683700,2900 },
+		target5008 = { 5804725,684117,2900 }, target5007 = { 5805418,683633,2900 }, target50R = { 5806589,684341,2900 },
+		target5006 = { 5806299,684056,2900 }, target5PO = { 5805071,683838,2900 },
+		target4002 = { 5802919,680249,2900 }, target4PO = { 5802826,680679,2900 };
+		//5802987,680237 target2s
+		//40R 4001 4003 4000
+	std::vector<Constraint> cs = { { {900,30,110},{900,90,170} }, { {2000,0,20},{2000,50,80} },{ {2600,0,20},{2600,40,80} } };
 	std::vector<std::vector<Eigen::Vector3d>> pCWells;
 	std::vector < std::vector<Eigen::Vector4d>> pMDWells;
-	std::vector<Eigen::Vector3d>  targets = { target1,target2,target3,target4 };
+	std::vector<Eigen::Vector3d>  targets = { target40R,target4001,target4003,target4000 }, target5s = {target5008,target5007,target50R,target5006,target5PO};
+	std::vector<Eigen::Vector3d> target2s = { target4002,target4PO };
 	std::vector<PSOvalueType> opts;
-	std::vector<double> minValues{400,0,0,0,0}, maxValues{900,1.5,1.5,40,360};
+	std::vector<double> minValues{400,0,0,0,0,0}, maxValues{900,1.5,1.5,40,360,2900};
 	std::vector<Eigen::Vector3d>pC;
 	std::vector<Eigen::Vector4d>pMD;
-	Eigen::VectorXd x { {690.35,0.63081,0.536736,15.8902,80.8191} };
-	testWellCHCH(x, pinit, target1, pC, pMD);
-	//testFindTVD(pC, pMD, 2600);
-	//testPenaltyConstraints(cs, pC, pMD);
-	testScoreCHCH(x,pinit, target1, cs, minValues,maxValues, true);
-	targets.clear();
-	targets.push_back(target1);
-	//targets.push_back(target2);
-	//OptimizeCHCHWells(pinit, targets, cs, minValues, maxValues, pCWells, pMDWells, opts);
-	//outputWellOptimization(opts, pCWells, pMDWells,targets, cs);
+	Eigen::VectorXd x{ { 429.9482, 1.499803, 0.9828848, 39.99404, 158.9782, 390.1997} }; // 5804304, 682287.9
+	//target2s.clear();
+	//target2s.push_back(target4002);
 
+	//target5s.clear();
+	//target5s.push_back(target5008);
+	//targets.clear();
+	//targets.push_back(target40R);
+	//targets.push_back(target4001);
+	//targets.push_back(target4003);
+	//targets.push_back(target4000);
+	//setMinMaxValuesWell(minValues, maxValues, cs);
+	//FindBestWellHead(target5s);
+	OptimizeCHCHWells(pinit2, target2s, cs, minValues, maxValues, pCWells, pMDWells, opts);
+	//OptimizeWells(pinit, targets, cs, minValues, maxValues, pCWells, pMDWells, opts);
+	outputWellOptimization(opts, pCWells, pMDWells, target2s, cs);
 	return 0;
 }
 
@@ -72,8 +82,10 @@ void outputWellOptimization(const std::vector<PSOvalueType>& opts, std::vector<s
 		//ShowOptData(opts[i], cs);
 		getOptData(opts[i]);
 	}
-	std::vector<std::string> names = { "40R", "4001", "4003", "4000" };
-	std::string tmp = "outputWell(", tmpInc = "inclinometry";
+	std::vector<std::string>  names, name5s = { "5008", "5007", "50R", "5006", "5PO"},name4s = { "40R", "4001", "4003", "4000" },
+		name2s = {"4002","4PO"};//
+	names = name2s;
+	std::string tmp = "outputWell(", tmpInc = "inclinometry(";
 	for (size_t i = 0; i < pCWells.size(); ++i) {
 		writeDataCartesian(pCWells[i], tmp + names[i] + ").txt");
 		writeInclinometry(pMDWells[i], tmpInc + names[i] + ").txt");

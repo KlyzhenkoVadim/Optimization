@@ -16,8 +16,8 @@ private:
 	//std::vector<Eigen::Vector4d> pointsMd;
 
 public:
-	Hold(const Eigen::Vector3d& pi, const Eigen::Vector3d& pf, size_t nums = 10);
-	Hold(const Eigen::Vector3d& pi, double inc, double azi, double L,typeHold type = typeHold::md, size_t nums = 10);
+	Hold(const Eigen::Vector3d& pi, const Eigen::Vector3d& pf, size_t nums = 5);
+	Hold(const Eigen::Vector3d& pi, double inc, double azi, double L,typeHold type = typeHold::md, size_t nums = 5);
 	void fit() override;
 	void points(CoordinateSystem coordinateSystem) override;
 	double length() override;

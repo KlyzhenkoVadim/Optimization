@@ -91,7 +91,7 @@ void CurveHoldCurveHold::fit() {
 		alphaSecond[0] = getaAlphaCurrCurvate(1, p1j);
 		Eigen::Vector3d pInterj = pInter - R2 * tan(alphaSecond[0] / 2) * t4;
 
-		const size_t maxIter = 10e3;
+		const size_t maxIter = 1e3;
 		size_t iter = 0;
 
 		while (iter < maxIter) {
@@ -156,29 +156,31 @@ void CurveHoldCurveHold::points(CoordinateSystem coordinateSystem) {
 	double arc1 = R1 * alpha1;
 	double arc2 = R2 * alpha2;
 	double h = length() / nums;
-
+	int arc1Nums = std::max(10, int(arc1 / h));
+	int arc2Nums = std::max(10, int(arc2 / h));
+	int nHold1 = std::max(2, int(holdLength / h));
+	int nHold2 = std::max(2, int(betta / h));
 	if (coordinateSystem == CoordinateSystem::CARTESIAN) {
 		std::vector<Eigen::Vector3d> pointsArc1;
 		if (abs(alpha1) < EPSILON) {
 			pointsArc1.push_back(p1);
 		}
 		else {
-			pointsArc1 = calcInterpolCartesianPoints(p1, t1, t, R1, alpha1, std::max(10, int(arc1 / h)));
+			pointsArc1 = calcInterpolCartesianPoints(p1, t1, t, R1, alpha1, arc1Nums);
 		}
-		double nHold1 = std::max(2, int(holdLength / h));
+		
 		std::vector<Eigen::Vector3d> pointsHold1(nHold1 + 1);
 		for (size_t idx = 0; idx < nHold1 + 1; ++idx) {
 			pointsHold1[idx] = p1Inter + idx * holdLength / nHold1 * t;
 		}
-
 		std::vector<Eigen::Vector3d> pointsArc2;
 		if (abs(alpha2) < EPSILON) {
 			pointsArc2.push_back(p4);
 		}
 		else {
-			pointsArc2 = calcInterpolCartesianPoints(p4Inter, t, t4, R2, alpha2, std::max(10, int(arc2 / h)));
+			pointsArc2 = calcInterpolCartesianPoints(p4Inter, t, t4, R2, alpha2, arc2Nums);
 		}
-		double nHold2 = std::max(2, int(betta / h));
+	
 		std::vector<Eigen::Vector3d> pointsHold2(nHold2 + 1);
 		for (size_t idx = 0; idx < nHold2 + 1; ++idx) {
 			pointsHold2[idx] = pInter + idx * betta / nHold2 * t4;
@@ -198,9 +200,8 @@ void CurveHoldCurveHold::points(CoordinateSystem coordinateSystem) {
 			pointsArc1.push_back({ 0,t1[0],t1[1],t1[2] });
 		}
 		else {
-			pointsArc1 = calcInterpolMDPoints(p1, t1, t, R1, alpha1, std::max(25, int(arc1 / h)));
+			pointsArc1 = calcInterpolMDPoints(p1, t1, t, R1, alpha1,arc1Nums);
 		}
-		double nHold1 = std::max(2, int(holdLength / h));
 		std::vector<Eigen::Vector4d> pointsHold1(nHold1 + 1);
 
 		std::vector<Eigen::Vector4d> pointsArc2;
@@ -208,9 +209,8 @@ void CurveHoldCurveHold::points(CoordinateSystem coordinateSystem) {
 			pointsArc2.push_back({ 0,t4[0],t4[1],t4[2] });
 		}
 		else {
-			pointsArc2 = calcInterpolMDPoints(p4Inter, t, t4, R2, alpha2, std::max(25, int(arc2 / h)));
+			pointsArc2 = calcInterpolMDPoints(p4Inter, t, t4, R2, alpha2, arc2Nums);
 		}
-		double nHold2 = std::max(2, int(betta / h));
 
 		std::vector<Eigen::Vector4d> pointsHold2(nHold2 + 1);
 
