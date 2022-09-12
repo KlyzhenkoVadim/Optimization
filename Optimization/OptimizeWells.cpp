@@ -399,8 +399,8 @@ void testWellCHCH(const Eigen::VectorXd& x, const Eigen::Vector3d&pinit, const E
 	std::cout << "Length: " << allLength(currWell);
 	pC = allPointsCartesian(currWell);
 	pMD = allPointsMD(currWell);
-	writeDataCartesian(pC, "WellCHCHtest.txt");
-	writeInclinometry(pMD, "WellCHCHtestInc.txt");
+	writeDataCartesian(pC, "C:/Users/klyzhenko.vs/Desktop/optimization/Optimization/Optimization/output/Cartesian/WellCHCHtest.txt");
+	writeInclinometry(pMD, "C:/Users/klyzhenko.vs/Desktop/optimization/Optimization/Optimization/output/Inclinometry/WellCHCHtestInc.txt");
 	for (auto x : currWell)
 		delete x;
 }
@@ -484,7 +484,7 @@ void testWellSolver(const Eigen::VectorXd& x, const Eigen::Vector3d& pInit, cons
 	std::cout << "DLS: " << x[1] << "\n";
 	std::cout << "Well Length: " << allLength(tmp);
 	std::vector<Eigen::Vector3d> pC = allPointsCartesian(tmp);
-	writeDataCartesian(pC, "wellSolver.txt");
+	writeDataCartesian(pC, "C:/Users/klyzhenko.vs/Desktop/optimization/Optimization/Optimization/output/Cartesian/wellSolver.txt");
 	for (auto x : tmp)
 		delete x;
 }
@@ -524,7 +524,7 @@ void testSolver(const Eigen::VectorXd&x,const Eigen::Vector3d& pInit,const Eigen
 	};
 	PSOvalueType opt;
 	std::vector<double> minValues{cs.minDepthFirstHold,0}, maxValues{target[2],cs.maxDLS};
-	for (size_t i = 0; i < 1000; ++i)
+	for (size_t i = 0; i < 1; ++i)
 	{
 		opt = PSO(score, minValues, maxValues, 5 * minValues.size(), minValues.size(), 100);
 		getOptData(opt);
@@ -534,7 +534,7 @@ void testSolver(const Eigen::VectorXd&x,const Eigen::Vector3d& pInit,const Eigen
 	int s = solve(tmp);
 	pC = allPointsCartesian(tmp);
 	pMD = allPointsMD(tmp);
-	writeDataCartesian(pC, "wellSolver.txt");
+	writeDataCartesian(pC, "C:/Users/klyzhenko.vs/Desktop/optimization/Optimization/Optimization/output/Cartesian/wellSolver.txt");
 }
 
 void testWell(const Eigen::Vector3d& pinit, const Eigen::Vector3d& target, const Eigen::VectorXd &x, const std::vector<Constraint>& cs,
@@ -548,7 +548,7 @@ void testWell(const Eigen::Vector3d& pinit, const Eigen::Vector3d& target, const
 	pC = allPointsCartesian(tmp);
 	pMD = allPointsMD(tmp);
 	std::cout << "Length: " << allLength(tmp) << "\n";
-	writeDataCartesian(pC, "Welltest.txt");
+	writeDataCartesian(pC, "C:/Users/klyzhenko.vs/Desktop/optimization/Optimization/Optimization/output/Cartesian/Welltest.txt");
 	for (auto x : tmp)
 		delete x;
 
@@ -580,7 +580,7 @@ void TestAPI(const Eigen::Vector3d& pInit, const Eigen::Vector3d& target, const 
 		getOptData(s.getPSOdata());
 		std::cout << "Length: " << s.getTrajectoryLength() << "\n";
 		std::vector<Eigen::Vector3d> pC = s.getTrajectoryPoints(), Innc = s.getInclinometry();
-		writeDataCartesian(pC, "wellAPI.txt");
-		writeDataCartesian(Innc, "innc.txt");
+		writeDataCartesian(pC, "C:/Users/klyzhenko.vs/Desktop/optimization/Optimization/Optimization/output/Cartesian/wellAPI.txt");
+		writeDataCartesian(Innc, "C:/Users/klyzhenko.vs/Desktop/optimization/Optimization/Optimization/output/Inclinometry/innc.txt");
 	}
 }

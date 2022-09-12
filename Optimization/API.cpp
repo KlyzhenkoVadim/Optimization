@@ -41,7 +41,16 @@ void Solver::setData(Point2d& pInitial, GeoPoint& Targets) {
 
 void Solver::setConstraints(const WellTrajectoryConstraints& cs)
 {
-	OptimizeConstraints = cs;
+	if(!std::isnan(cs.minDepthFirstHold))
+		OptimizeConstraints.minDepthFirstHold = cs.minDepthFirstHold;
+	if (!std::isnan(cs.maxMD))
+		OptimizeConstraints.maxMD= cs.maxMD;
+	if (!std::isnan(cs.maxDLS))
+		OptimizeConstraints.maxDLS= cs.maxDLS;
+	if (!std::isnan(cs.maxDistNorthSouth))
+		OptimizeConstraints.maxDistNorthSouth = cs.maxDistNorthSouth;
+	if (!std::isnan(cs.maxDistEastWest))
+		OptimizeConstraints.maxDistEastWest = cs.maxDistEastWest;
 }
 
 void Solver::Optimize() {

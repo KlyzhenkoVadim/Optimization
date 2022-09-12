@@ -56,12 +56,12 @@ int main()
 	std::vector<double> minValues{400,0,0,0,0,0}, maxValues{900,1.5,1.5,40,360,2900};
 	std::vector<Eigen::Vector3d>pC;
 	std::vector<Eigen::Vector4d>pMD;
-	Eigen::VectorXd x{{}}; // 5804304, 682287.9
+	Eigen::VectorXd x{{0,1.5}}; // 5804304, 682287.9
 	//OptimizeCHCHWells(pinit2, target2s, cs, minValues, maxValues, pCWells, pMDWells, opts);
 	Eigen::Vector3d pInit{ 0,0,0 }, target{ 100,500,1000 };
 	WellTrajectoryConstraints wc{400,1.5,5000,2000,2000};
-	TestAPI(pinit4, target40R, wc);
-	//testSolver(x,pInit, target, wc, pC, pMD);
+	//TestAPI(pinit4, target40R, wc);
+	testSolver(x,pInit, target, wc, pC, pMD);
 	//outputWellOptimization(opts, pCWells, pMDWells, target2s, cs);
 	return 0;
 }
@@ -76,7 +76,8 @@ void outputWellOptimization(const std::vector<PSOvalueType>& opts, std::vector<s
 	std::vector<std::string>  names, name5s = { "5008", "5007", "50R", "5006", "5PO"},name4s = { "40R", "4001", "4003", "4000" },
 		name2s = {"4002","4PO"};//
 	names = name2s;
-	std::string tmp = "outputWell(", tmpInc = "inclinometry(";
+	std::string tmp = "C:/Users/klyzhenko.vs/Desktop/optimization/Optimization/Optimization/output/Cartesian/outputWell(", 
+		tmpInc = "C:/Users/klyzhenko.vs/Desktop/optimization/Optimization/Optimization/output/Inclinometry/inclinometry(";
 	for (size_t i = 0; i < pCWells.size(); ++i) {
 		writeDataCartesian(pCWells[i], tmp + names[i] + ").txt");
 		writeInclinometry(pMDWells[i], tmpInc + names[i] + ").txt");

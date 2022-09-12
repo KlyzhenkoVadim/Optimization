@@ -2,6 +2,7 @@
 #include "TrajectoryTemplate.h"
 #include "CurveHold.h"
 #include "CurveHoldCurveHold.h"
+#include "Curve.h"
 #include "Hold.h"
 #include "CostFuncs.h"
 #include "PSO.h"
@@ -53,9 +54,9 @@ private:
 	std::vector<Eigen::Vector3d> pCtrajectory;
 	std::vector<Eigen::Vector4d> pMDtrajectory;
 	wellType mainWell;
-	WellTrajectoryConstraints OptimizeConstraints{0,0,0,0,0};
+	WellTrajectoryConstraints OptimizeConstraints{ 400,1.5,5000,2000,2000 };
 	PSOvalueType optData;
-	bool horizontal = !true;
+	bool horizontal = true;
 
 public:
 	Solver();
@@ -67,5 +68,4 @@ public:
 	std::vector<Eigen::Vector3d> getTrajectoryPoints();
 	std::vector<Eigen::Vector3d> getInclinometry();
 	double getTrajectoryLength();
-	
 };
