@@ -40,14 +40,7 @@ struct WellPad
 	std::vector<GeoPoint> geoAims; // координаты геологических целей
 };
 
-struct WellTrajectoryConstraints {
-	double minDepthFirstHold;
-	double maxDLSfirstCurve;
-	double maxDLSsecondCurve;
-	double maxMD;
-	double maxDistEastWest;
-	double maxDistNorthSouth;
-};
+
 
 using wellType = std::function<std::vector<TrajectoryTemplate*>(const Eigen::VectorXd& x)>;
 
@@ -56,20 +49,23 @@ private:
 	Eigen::Vector3d pointInitial; //  оордината усть€ траектории
 	Eigen::Vector3d pointsT1, pointsT3; //  оординаты целей траектории.
 	std::vector<TrajectoryTemplate*> trajectory;
+	int condition = 0;
 	std::vector<Eigen::Vector3d> pCtrajectory;
 	std::vector<Eigen::Vector4d> pMDtrajectory;
 	wellType mainWell;
-	WellTrajectoryConstraints OptimizeConstraints;
+	WellTrajectoryConstraints OptimizeConstraints{0,0,0,0,0};
 	PSOvalueType optData;
-	bool horizontal = true;
+	bool horizontal = !true;
 
 public:
 	Solver();
 	void setPSOdata();
 	void setData(Point2d& pInitial,GeoPoint& Targets);
 	void setConstraints(const WellTrajectoryConstraints& cs);
+	void Optimize();
 	PSOvalueType getPSOdata();
 	std::vector<Eigen::Vector3d> getTrajectoryPoints();
+	std::vector<Eigen::Vector3d> getInclinometry();
 	double getTrajectoryLength();
-	void Optimize();
+	
 };

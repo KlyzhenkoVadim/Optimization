@@ -22,6 +22,11 @@ struct Constraint {
 	Layer lMin, lMax;
 };
 
+
+double OneWellScore(std::vector<TrajectoryTemplate*>& mainWell, double penalty = 1000);
+
+
+
 void ShowOptData(PSOvalueType opt, std::vector<Constraint> cs);
 
 int findTVD(const std::vector<Eigen::Vector3d>& pC, double TVD);
@@ -58,3 +63,11 @@ void testWell(const Eigen::Vector3d& pinit, const Eigen::Vector3d& target, const
 	std::vector<Eigen::Vector3d>& pC, std::vector<Eigen::Vector4d>& pMD);
 
 void testPenaltyInc(double incHold, double aziHold, double incMin, double incMax);
+
+void testWellSolver(const Eigen::VectorXd& x, const Eigen::Vector3d& pInit, const Eigen::Vector3d& target);
+
+void testSolver(const Eigen::VectorXd& x, const Eigen::Vector3d& pInit, const Eigen::Vector3d& target,
+	const WellTrajectoryConstraints& cs, std::vector<Eigen::Vector3d>& pC, std::vector<Eigen::Vector4d>& pMD);
+
+void TestAPI(const Eigen::Vector3d& pInit, const Eigen::Vector3d& target, const WellTrajectoryConstraints& wc);
+

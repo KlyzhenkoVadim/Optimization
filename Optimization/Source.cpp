@@ -56,22 +56,13 @@ int main()
 	std::vector<double> minValues{400,0,0,0,0,0}, maxValues{900,1.5,1.5,40,360,2900};
 	std::vector<Eigen::Vector3d>pC;
 	std::vector<Eigen::Vector4d>pMD;
-	Eigen::VectorXd x{ { 429.9482, 1.499803, 0.9828848, 39.99404, 158.9782, 390.1997} }; // 5804304, 682287.9
-	//target2s.clear();
-	//target2s.push_back(target4002);
-
-	//target5s.clear();
-	//target5s.push_back(target5008);
-	//targets.clear();
-	//targets.push_back(target40R);
-	//targets.push_back(target4001);
-	//targets.push_back(target4003);
-	//targets.push_back(target4000);
-	//setMinMaxValuesWell(minValues, maxValues, cs);
-	//FindBestWellHead(target5s);
-	OptimizeCHCHWells(pinit2, target2s, cs, minValues, maxValues, pCWells, pMDWells, opts);
-	//OptimizeWells(pinit, targets, cs, minValues, maxValues, pCWells, pMDWells, opts);
-	outputWellOptimization(opts, pCWells, pMDWells, target2s, cs);
+	Eigen::VectorXd x{{}}; // 5804304, 682287.9
+	//OptimizeCHCHWells(pinit2, target2s, cs, minValues, maxValues, pCWells, pMDWells, opts);
+	Eigen::Vector3d pInit{ 0,0,0 }, target{ 100,500,1000 };
+	WellTrajectoryConstraints wc{400,1.5,5000,2000,2000};
+	TestAPI(pinit4, target40R, wc);
+	//testSolver(x,pInit, target, wc, pC, pMD);
+	//outputWellOptimization(opts, pCWells, pMDWells, target2s, cs);
 	return 0;
 }
 

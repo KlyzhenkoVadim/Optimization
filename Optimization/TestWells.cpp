@@ -9,7 +9,6 @@ void getOptData(PSOvalueType op) {
 	std::cout << std::endl;
 }
 
-
 void writeDataCartesian(std::vector<Eigen::Vector3d>& pointsCartesian, std::string filename) {
 	std::ofstream output;
 	output.open(filename);
@@ -87,7 +86,7 @@ void test() {
 					size_t idd = order[i][j] - 1;
 					std::function<double(const Eigen::VectorXd&)> scoreOne = [&](const Eigen::VectorXd& x) {
 						std::vector<TrajectoryTemplate*> tmp = Well(x, geoPointsWells[idd]);
-						double oneScore = OneWellScore(tmp);
+						double oneScore = 0; // OneWellScore(tmp);
 						for (auto x : tmp) {
 							delete x;
 						}
@@ -134,54 +133,4 @@ void test() {
 			args.clear();
 		}
 	}
-}
-
-void writeDataOpt(std::vector<size_t> order, size_t wellNum, PSOvalueType Opt, std::vector<std::vector<TrajectoryTemplate*>>& trajs) {
-	std::fstream file;
-	file.open("C:/Users/klyzhenko.vs/0CET/optDataCpp1.csv", std::ios::out | std::ios::app); // C:/Users/HP/WellboreOpt/optDataCpp2.csv
-	file << "[";
-	for (size_t i = 0; i < order.size(); ++i) {
-		file << order[i];
-		if (i != order.size() - 1)
-			file << " ";
-	}
-	file << "]," << wellNum << ",[";
-	for (size_t i = 0; i < Opt.first.size(); ++i) {
-		file << Opt.first[i];
-		if (i != Opt.first.size() - 1)
-			file << " ";
-	}
-	file << "]," << Opt.second << ",";
-	file << allLength(trajs.back()) << ",";
-	std::vector<Eigen::Vector3d> pC = allPointsCartesian(trajs.back());
-	std::vector<Eigen::Vector4d> pMD = allPointsMD(trajs.back());
-	file << DDI(pC, pMD, false) << ",";
-	size_t n = trajs.size();
-	if (n == 1)
-		file << "-\n";
-	if (n == 2) {
-		std::vector<Eigen::Vector3d>pC1 = allPointsCartesian(trajs[0]);
-		std::vector<Eigen::Vector4d>pMD1 = allPointsMD(trajs[0]);
-		file << std::min(sepFactor(pC1, pMD1, pC, pMD, false), sepFactor(pC, pMD, pC1, pMD1, false)) << std::endl;
-	}
-	if (n == 3) {
-		std::vector<Eigen::Vector3d>pC1 = allPointsCartesian(trajs[0]), pC2 = allPointsCartesian(trajs[1]);
-		std::vector<Eigen::Vector4d>pMD1 = allPointsMD(trajs[0]), pMD2 = allPointsMD(trajs[1]);
-		double sf = std::min(std::min(sepFactor(pC, pMD, pC1, pMD1, false), sepFactor(pC1, pMD1, pC, pMD, false)),
-			std::min(sepFactor(pC, pMD, pC2, pMD2, false), sepFactor(pC2, pMD2, pC, pMD, false)));
-		file << sf << std::endl;
-	}
-	file.close();
-}
-
-void writeDataOptSep(std::vector<std::vector<Eigen::Vector3d>>& pCTrajs, std::vector<std::vector<Eigen::Vector4d>>& pMDTrajs, size_t& num) {
-	double sf12 = std::min(sepFactor(pCTrajs[0], pMDTrajs[0], pCTrajs[1], pMDTrajs[1], false), sepFactor(pCTrajs[1], pMDTrajs[1], pCTrajs[0], pMDTrajs[0], false));
-	double sf13 = std::min(sepFactor(pCTrajs[0], pMDTrajs[0], pCTrajs[2], pMDTrajs[2], false), sepFactor(pCTrajs[2], pMDTrajs[2], pCTrajs[0], pMDTrajs[0], false));
-	double sf23 = std::min(sepFactor(pCTrajs[1], pMDTrajs[1], pCTrajs[2], pMDTrajs[2], false), sepFactor(pCTrajs[2], pMDTrajs[2], pCTrajs[1], pMDTrajs[1], false));
-	if (sf12 - 1.5 < EPSILON or sf13 - 1.5 < EPSILON or sf23 - 1.5 < EPSILON) {
-		num += 1;
-	}
-	std::cout << "SepF 1-2: " << sf12 << std::endl;
-	std::cout << "SepF 1-3: " << sf13 << std::endl;
-	std::cout << "SepF 2-3: " << sf23 << std::endl;
 }

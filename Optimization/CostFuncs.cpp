@@ -1,6 +1,4 @@
 #include "CostFuncs.h"
-#include <cmath>
-#include <iostream>
 
 double sigmoid(double x, double penalty, double alpha, double x0) {
 	return penalty / (1 + exp(alpha * (x - x0)));
@@ -13,6 +11,27 @@ int signum(double x) {
 		return -1;
 	return 0;
 }
+
+double PenaltyLength(double length,double MaxLength, double penalty) {
+	double answer = length > MaxLength ? penalty : 0;
+	return answer;
+};
+
+double PenaltyAHDNSEW(const std::vector<Eigen::Vector3d>& pC, double EWMAX, double NSMAX, double penalty)
+{
+	double value = 0, EW = 0, NS = 0;
+	for (size_t i = 1; i < pC.size(); ++i)
+	{
+		NS += fabs(pC[i][0] - pC[i - 1][0]);
+		EW += fabs(pC[i][1] - pC[i - 1][1]);
+	}
+	if (EW - EWMAX > EPSILON or NS - NSMAX > EPSILON)
+	{
+		value = penalty;
+	}
+	return value;
+}
+
 
 double sepFactor(std::vector<Eigen::Vector3d>& pCartesianW1,
 	std::vector<Eigen::Vector4d>& pMDW1,
@@ -134,28 +153,6 @@ double DDI(std::vector<Eigen::Vector3d>& pCartesian,std::vector<Eigen::Vector4d>
 	return DDI;
 }	
 
-double OneWellScore(std::vector<TrajectoryTemplate*>& mainWell, double penalty) {
-	double mainLength, mainDDI,rSepFactor = 0.;
-	int condition = solve(mainWell);
-	if (condition != 0) {
-		return penalty * condition/mainWell.size(); // penalty * percent of incorrect templates.
-	}
-	mainLength = allLength(mainWell);
-	std::vector<Eigen::Vector3d> mainPCartesian = allPointsCartesian(mainWell);
-	std::vector<Eigen::Vector4d> mainPMD = allPointsMD(mainWell);
-	double IdealLength;
-	mainWell[0]->getInitPoint();
-	mainWell.back()->getTarget1Point();
-	mainWell.back()->getTarget3Point();
-	IdealLength = (mainWell.back()->pointT1 - mainWell[0]->pointInitial).norm() + (mainWell.back()->pointT3 - mainWell.back()->pointT1).norm();
-	if (IdealLength == 0)
-		return 0.;
-	mainDDI = DDI(mainPCartesian, mainPMD);
-
-	return mainLength/IdealLength +mainDDI;
-
-}
-
 double orderScore1(std::vector<TrajectoryTemplate*>& mainWell, std::vector<std::vector<Eigen::Vector3d>>& pCTrajectories, 
 	std::vector<std::vector<Eigen::Vector4d>>& pMDTrajectories,double SepFactorShift, double penalty) {
 	double mainLength = 0., mainDDI = 0., rSepFactor = 0.;
@@ -184,4 +181,27 @@ double orderScore1(std::vector<TrajectoryTemplate*>& mainWell, std::vector<std::
 				mainPCartesian, mainPMD,SepFactorShift));
 	}
 	return mainLength / IdealLength + rSepFactor +mainDDI;
+}
+
+double scoreSolver(std::vector<TrajectoryTemplate*>& tmp, const WellTrajectoryConstraints& cs, double penalty)
+{
+		double mainLength, mainDDI, IdealLength;;
+		int condition = solve(tmp);
+		if (condition != 0)
+		{
+			return penalty * condition/tmp.size(); // penalty * percent of incorrect templates.
+		}
+		mainLength = allLength(tmp);
+		std::vector<Eigen::Vector3d> mainPCartesian = allPointsCartesian(tmp);
+		std::vector<Eigen::Vector4d> mainPMD = allPointsMD(tmp);
+		tmp[0]->getInitPoint();
+		tmp.back()->getTarget1Point();
+		tmp.back()->getTarget3Point();
+		IdealLength = (tmp.back()->pointT1 - tmp[0]->pointInitial).norm() + (tmp.back()->pointT3 - tmp.back()->pointT1).norm();
+		if (IdealLength == 0)
+			return 0.;
+		mainDDI = DDI(mainPCartesian, mainPMD);
+		double lenPen = PenaltyLength(mainLength,cs.maxMD), ahdPen = PenaltyAHDNSEW(mainPCartesian, cs.maxDistEastWest, cs.maxDistNorthSouth, 100);
+
+		return mainLength / IdealLength + mainDDI + ahdPen + lenPen;
 }

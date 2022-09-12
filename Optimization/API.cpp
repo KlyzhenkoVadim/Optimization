@@ -8,10 +8,9 @@ void Solver::setData(Point2d& pInitial, GeoPoint& Targets) {
 	pointInitial = { pInitial.north,pInitial.east,0. };
 	pointsT1 = { Targets.northT1, Targets.eastT1, Targets.tvdT1 };
 	pointsT3 = { Targets.northT3, Targets.eastT3, Targets.tvdT3 };
-	for (size_t i = 0; i < 3; ++i) {
-		if (fabs(pointsT1[i] - pointsT3[i]) < EPSILON) {
+	if ((pointsT1 - pointsT3).norm() < EPSILON) 
+	{
 			horizontal = false;
-		}
 	}
 	if (horizontal) {
 		mainWell = [&](const Eigen::VectorXd& x) {
@@ -28,12 +27,13 @@ void Solver::setData(Point2d& pInitial, GeoPoint& Targets) {
 		};
 	}
 	else {
-		mainWell = [&](const Eigen::VectorXd& x) {
-			double m = 1800 / PI;
+		mainWell = [&](const Eigen::VectorXd& x)
+		{
+			double R = x[1] < EPSILON ? 1 / EPSILON : 1800 / PI / x[1];
 			std::vector<TrajectoryTemplate*> well;
-			Eigen::Vector3d pTHold = { pointInitial[0],pointInitial[1],x[0] };
-			well.push_back(new Hold(pointInitial, pTHold));
-			well.push_back(new CurveHold(pTHold, pointsT1, 0, 0, m));
+			well.push_back(new Hold(pointInitial, 0, 0, x[0], typeHold::TVD));
+			well.back()->getTarget1Point();
+			well.push_back(new CurveHold(well.back()->pointT1, pointsT1, 0, 0, R));
 			return well;
 		};
 	}
@@ -44,17 +44,12 @@ void Solver::setConstraints(const WellTrajectoryConstraints& cs)
 	OptimizeConstraints = cs;
 }
 
-PSOvalueType Solver::getPSOdata() {
-	return optData;
-};
-
 void Solver::Optimize() {
 	size_t numIterations = 150;
-	std::vector<double> inertia(numIterations, 0.9);
 	
 	std::function<double(Eigen::VectorXd)> score = [&](Eigen::VectorXd x) {
 		std::vector<TrajectoryTemplate*> tmpwell = mainWell(x);
-		double oneScore = OneWellScore(tmpwell);
+		double oneScore = scoreSolver(tmpwell,OptimizeConstraints);
 		for (auto x : tmpwell) {
 			delete x;
 		}
@@ -66,21 +61,59 @@ void Solver::Optimize() {
 		optData = PSO(score, minValues, maxValues, 30, 6, numIterations);
 	}
 	else {
-		std::vector<double> minValues{ 100.};
-		std::vector<double> maxValues{1000. };
-		optData = PSO(score, minValues, maxValues, 30, 1, numIterations);
+		std::vector<double> minValues{OptimizeConstraints.minDepthFirstHold,0};
+		std::vector<double> maxValues{pointsT1[2],OptimizeConstraints.maxDLS};
+		optData = PSO(score, minValues, maxValues, 5*minValues.size(), minValues.size(), numIterations);
 	}
 	trajectory = mainWell(optData.first);
-	int c = solve(trajectory);
+	condition = solve(trajectory);
+};
+
+PSOvalueType Solver::getPSOdata() {
+	return optData;
 };
 
 double Solver::getTrajectoryLength() {
+	if (condition != 0)
+	{
+		std::cout << "Warning! Impossible to build Trajectory with:\n HoldDepth:" << optData.first[0] << "\nDLS: " << optData.first[1] << "\n";
+		return 1 / EPSILON;
+	}
 	return allLength(trajectory);
 };
 
 std::vector<Eigen::Vector3d> Solver::getTrajectoryPoints() {
-	return allPointsCartesian(trajectory);
+	// ??? if solve > 0 ???
+	if (condition != 0)
+	{
+		std::cout << "Warning! Impossible to build Trajectory with:\n HoldDepth:" << optData.first[0] << "\nDLS: " << optData.first[1] << "\n";
+		pCtrajectory.push_back(pointInitial);
+	}
+	else
+	{
+		pCtrajectory = allPointsCartesian(trajectory);
+	}
+	return pCtrajectory;
 };
+
+std::vector<Eigen::Vector3d> Solver::getInclinometry()
+{
+	std::vector<Eigen::Vector3d> inclinometry;
+	if (condition != 0)
+	{
+		std::cout << "Warning! Impossible to build Trajectory with:\n HoldDepth:" << optData.first[0] << "\nDLS: " << optData.first[1] << "\n";
+		trajectory[0]->getInitPoint(CoordinateSystem::MD);
+		pMDtrajectory.push_back(trajectory[0]->pointInitialMD);
+	}
+	pMDtrajectory = allPointsMD(trajectory);
+	std::pair<double, double> tmpIncAzi;
+	for (size_t i = 0; i < pMDtrajectory.size(); ++i)
+	{
+		tmpIncAzi = CartesianToSpherical(Eigen::Vector3d{ pMDtrajectory[i][1],pMDtrajectory[i][2],pMDtrajectory[i][3] });
+		inclinometry.push_back({ pMDtrajectory[i][0],tmpIncAzi.first,tmpIncAzi.second });
+	}
+	return inclinometry;
+}
 
 
 
