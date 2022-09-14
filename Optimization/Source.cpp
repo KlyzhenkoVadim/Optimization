@@ -14,9 +14,10 @@
 #include "TestWells.h"
 #include "OptimizeWells.h"
 
+enum class platformNum { four, five, two };
 
 void outputWellOptimization(const std::vector<PSOvalueType>& opts, std::vector<std::vector<Eigen::Vector3d>>& pCWells, std::vector<std::vector<Eigen::Vector4d>>& pMDWells,
-	std::vector<Eigen::Vector3d>& targets, std::vector<Constraint>& cs);
+	std::vector<Eigen::Vector3d>& targets, std::vector<Constraint>& cs,platformNum num);
 
 void setMinMaxValuesWell(std::vector<double>& minValues, std::vector<double>& maxValues, const std::vector<Constraint> cs) {
 	minValues.push_back(400); // 100
@@ -37,47 +38,83 @@ void setMinMaxValuesWell(std::vector<double>& minValues, std::vector<double>& ma
 	maxValues.push_back(1.5); // 1e8
 };
 
+void setTargetsSlotting(std::vector<Eigen::Vector3d>& targets, platformNum num, bool newData)
+{
+	if (num == platformNum::four)
+	{
+		Eigen::Vector3d target40R = { 5803236,682857,2900 },target4001 = { 5803529,682498,2900 },
+			target4003 = { 5803536,683257,2900 }, target4000 = { 5803409,683700,2900 };
+		if (newData) {
+			target40R[2] = 2462;
+			target4001[2] = 2468;
+			target4003[2] = 2462;
+			target4000[2] = 2463;
+		}
+		targets = { target40R,target4001,target4003,target4000 };
+	}
+	if (num == platformNum::five)
+	{
+		Eigen::Vector3d target5008 = { 5804725,684117,2900 }, target5007 = { 5805418,683633,2900 },
+			target50R = { 5806589,684341,2900 }, target5006 = { 5806299,684056,2900 }, target5PO = { 5805071,683838,2900 };
+		if (newData)
+		{
+			target5008[2] = 2453;
+			target5007[2] = 2446;
+			target50R[2] = 2451;
+			target5006[2] = 2452;
+			target5PO[2] = 2448;
+		}
+		targets = {target5008,target5007,target50R,target5006,target5PO};
+	}
+	if (num == platformNum::two)
+	{
+		Eigen::Vector3d target4002 = { 5802919,680249,2900 }, target4PO = { 5802826,680679,2900 };
+		if (newData)
+		{
+			target4002[2] = 2468;
+			target4PO[2] = 2457;
+		}
+		targets = { target4002,target4PO };
+	}
+}
+
 int main()
 {
-	double R = 1200 / PI; //For targets4 THE BEST 5802898,683790,0 // 5804304, 682287.9,0
-	Eigen::Vector3d pinit2 = {5802508,680718,0}, pinit4 = { 5802898,683790,0 }, pinit5{ 5804519,684699,0 }, target40R = { 5803236,682857,2900 },//  5805450, 682009.6,0 - GOOD  //5802610, 681358
-		target4001 = { 5803529,682498,2900 }, target4003 = { 5803536,683257,2900 }, target4000 = { 5803409,683700,2900 },
-		target5008 = { 5804725,684117,2900 }, target5007 = { 5805418,683633,2900 }, target50R = { 5806589,684341,2900 },
-		target5006 = { 5806299,684056,2900 }, target5PO = { 5805071,683838,2900 },
-		target4002 = { 5802919,680249,2900 }, target4PO = { 5802826,680679,2900 };
-		//5802987,680237 target2s
-		//40R 4001 4003 4000
-	std::vector<Constraint> cs = { { {900,30,110},{900,90,170} }, { {2000,0,20},{2000,50,80} },{ {2600,0,20},{2600,40,80} } };
+	Eigen::Vector3d pinit2 = { 5802508,680718,0 }, pinit4 = { 5802898,683790,0 }, pinit5{ 5804519,684699,0 };
+	std::vector<Constraint> cs = { { {900,30,110},{900,90,170} }, { {2000,0,20},{2000,50,80} } };//,{ {2600,0,20},{2600,40,80} } };
 	std::vector<std::vector<Eigen::Vector3d>> pCWells;
 	std::vector < std::vector<Eigen::Vector4d>> pMDWells;
-	std::vector<Eigen::Vector3d>  targets = { target40R,target4001,target4003,target4000 }, target5s = {target5008,target5007,target50R,target5006,target5PO};
-	std::vector<Eigen::Vector3d> target2s = { target4002,target4PO };
+	std::vector<Eigen::Vector3d>  targets;
+	platformNum num = platformNum::five;
 	std::vector<PSOvalueType> opts;
-	std::vector<double> minValues{400,0,0,0,0,0}, maxValues{900,1.5,1.5,40,360,2900};
-	std::vector<Eigen::Vector3d>pC;
-	std::vector<Eigen::Vector4d>pMD;
-	Eigen::VectorXd x{{0,1.5}}; // 5804304, 682287.9
-	//OptimizeCHCHWells(pinit2, target2s, cs, minValues, maxValues, pCWells, pMDWells, opts);
-	Eigen::Vector3d pInit{ 0,0,0 }, target{ 100,500,1000 };
-	WellTrajectoryConstraints wc{400,1.5,5000,2000,2000};
-	//TestAPI(pinit4, target40R, wc);
-	testSolver(x,pInit, target, wc, pC, pMD);
-	//outputWellOptimization(opts, pCWells, pMDWells, target2s, cs);
+	//std::vector<double> minValues{400,0,0,0,0,0}, maxValues{2900,1.5,1.5,40,360,2900};
+	Eigen::Vector3d pInit{ 6873662.2424, 12469199.858, 0.0 },
+		target1{ 6872315.827,12471561.02,2670},
+		target3{ 6872949.754,12472920.49,2670};
+	WellTrajectoryConstraints wc{ 400,1.5,50000,30000,30000 };
+	Eigen::VectorXd x{ {2079.871, 0.4474861, 1.499093} };
+	std::vector<TrajectoryTemplate*> welltest;// = wellSolverHorizontal(x, pInit, target1, target3);
+	std::vector<Eigen::Vector3d> pC;
+	std::vector<Eigen::Vector4d> pMD;
+
 	return 0;
 }
 
 void outputWellOptimization(const std::vector<PSOvalueType>& opts, std::vector<std::vector<Eigen::Vector3d>>& pCWells, std::vector<std::vector<Eigen::Vector4d>>& pMDWells, 
-	std::vector<Eigen::Vector3d>&targets, std::vector<Constraint>& cs) 
+	std::vector<Eigen::Vector3d>&targets, std::vector<Constraint>& cs, platformNum num)
 {
 	for (size_t i = 0; i < targets.size(); ++i) {
-		//ShowOptData(opts[i], cs);
 		getOptData(opts[i]);
 	}
-	std::vector<std::string>  names, name5s = { "5008", "5007", "50R", "5006", "5PO"},name4s = { "40R", "4001", "4003", "4000" },
-		name2s = {"4002","4PO"};//
-	names = name2s;
-	std::string tmp = "C:/Users/klyzhenko.vs/Desktop/optimization/Optimization/Optimization/output/Cartesian/outputWell(", 
-		tmpInc = "C:/Users/klyzhenko.vs/Desktop/optimization/Optimization/Optimization/output/Inclinometry/inclinometry(";
+	std::vector<std::string>  names;
+	if (num == platformNum::five)
+		names = { "5008", "5007", "50R", "5006", "5PO" };
+	if (num == platformNum::four)
+		names = { "40R", "4001", "4003", "4000" };
+	if (num == platformNum::two)
+		names = { "4002","4PO" };
+	std::string tmp = "C:/Users/klyzhenko.vs/Desktop/optimization/Optimization/Optimization/output/Cartesian/outputWellNew(", 
+		tmpInc = "C:/Users/klyzhenko.vs/Desktop/optimization/Optimization/Optimization/output/Inclinometry/inclinometryNew(";
 	for (size_t i = 0; i < pCWells.size(); ++i) {
 		writeDataCartesian(pCWells[i], tmp + names[i] + ").txt");
 		writeInclinometry(pMDWells[i], tmpInc + names[i] + ").txt");

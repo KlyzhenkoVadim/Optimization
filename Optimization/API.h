@@ -54,7 +54,7 @@ private:
 	std::vector<Eigen::Vector3d> pCtrajectory;
 	std::vector<Eigen::Vector4d> pMDtrajectory;
 	wellType mainWell;
-	WellTrajectoryConstraints OptimizeConstraints{ 400,1.5,5000,2000,2000 };
+	WellTrajectoryConstraints OptimizeConstraints{400,1.5,1/EPSILON,1/EPSILON,1/EPSILON};
 	PSOvalueType optData;
 	bool horizontal = true;
 

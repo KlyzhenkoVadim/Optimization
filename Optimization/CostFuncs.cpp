@@ -38,25 +38,28 @@ double sepFactor(std::vector<Eigen::Vector3d>& pCartesianW1,
 	std::vector<Eigen::Vector3d>& pCartesianW2,std::vector<Eigen::Vector4d>& pMDW2,
 	double TVDstart ,bool actFunc, double penalty) {
 	size_t n = pCartesianW1.size(), m = pCartesianW2.size();
-	Eigen::MatrixXd distanceMatrix(n, m);//std::vector<std::vector<double>> distanceMatrix;
-	Eigen::MatrixXd scalarProdMatrix(n, m); //std::vector<std::vector<double>> scalarProdMatrix;
+	std::vector<std::vector<double>> distanceMatrix(n,std::vector<double>(m,1e3));
+	std::vector<std::vector<double>> scalarProdMatrix(n, std::vector<double>(m,0));
 	double sgm = 7e-3;
 	double eps = 1e-6;
 	bool flg = true;
+	double sepFactor = 1e3;
+	size_t StartW1 = n - 1;
+	size_t StartW2 = m - 1;
+	size_t k;
+	Eigen::Vector3d diffVector, tangentW1;
+
 	for (size_t i = 0; i < n; ++i) {
-		scalarProdMatrix(i,0) = -1.;
-		for (size_t j = 0; j < m; ++j) {
-			distanceMatrix(i,j) = 1e3;
-		}
+		scalarProdMatrix[i][0] = -1.;
 	}	
-	size_t StartW1 = n-1;
+	
 	for (size_t i = 0; i < n; ++i) {
 		if (pCartesianW1[i][2] > TVDstart) {
 			StartW1 = i;
 			break;
 		}
 	}
-	size_t StartW2 = m-1;
+	
 	for (size_t j = 0; j < m; ++j) {
 		if (pCartesianW2[j][2] > TVDstart){
 			StartW2 = j;
@@ -64,20 +67,20 @@ double sepFactor(std::vector<Eigen::Vector3d>& pCartesianW1,
 		}
 	}
 
-	size_t k = StartW2 + 1; // k = 1;
+	k = StartW2 + 1; // k = 1;
 	for (size_t idxN = StartW1; idxN < n; ++idxN) {
 		for (size_t idxM = k - 1; idxM < m; ++idxM) {
-			Eigen::Vector3d diffVector = pCartesianW2[idxM] - pCartesianW1[idxN];
-			Eigen::Vector3d tangentW1 = { pMDW1[idxN][1], pMDW1[idxN][2], pMDW1[idxN][3] };
+			diffVector = pCartesianW2[idxM] - pCartesianW1[idxN];
+			tangentW1 = { pMDW1[idxN][1], pMDW1[idxN][2], pMDW1[idxN][3] };
 			if (diffVector.norm() < eps) {
-				scalarProdMatrix(idxN, idxM) = 0;
-				distanceMatrix(idxN, idxM) = 0.;
+				scalarProdMatrix[idxN][idxM] = 0;
+				distanceMatrix[idxN][idxM] = 0.;
 			}
 			else {
-				scalarProdMatrix(idxN, idxM) = round(tangentW1.dot(diffVector) / tangentW1.norm() / diffVector.norm() * 100000) / 100000;
-				if (idxM > 1 and (signum(scalarProdMatrix(idxN, idxM)) != signum(scalarProdMatrix(idxN, idxM - 1)))) {
+				scalarProdMatrix[idxN][idxM] = round(tangentW1.dot(diffVector) / tangentW1.norm() / diffVector.norm() * 100000) / 100000;
+				if (idxM > 1 and (signum(scalarProdMatrix[idxN][idxM]) != signum(scalarProdMatrix[idxN][idxM - 1]))) {
 					if (pMDW1[idxN][0] + pMDW2[idxM][0] > eps)
-						distanceMatrix(idxN, idxM) = diffVector.norm() / (sgm * (pMDW1[idxN][0] + pMDW2[idxM][0]));
+						distanceMatrix[idxN][idxM] = diffVector.norm() / (sgm * (pMDW1[idxN][0] + pMDW2[idxM][0]));
 					if (flg) {
 						k = idxM;
 						flg = false;
@@ -87,10 +90,9 @@ double sepFactor(std::vector<Eigen::Vector3d>& pCartesianW1,
 		}
 		flg = true;
 	}
-		double sepFactor = 1e3;
 		for (size_t i = 0; i < n; ++i){
 			for (size_t j = 0; j < m; ++j) {
-				sepFactor = std::min(distanceMatrix(i, j), sepFactor);
+				sepFactor = std::min(distanceMatrix[i][j], sepFactor);
 			}
 		}
 
