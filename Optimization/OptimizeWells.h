@@ -10,7 +10,7 @@
 #include "CostFuncs.h"
 #include "PSO.h"
 #include <cmath>
-#include "API.h"
+#include "WellTrajectorySolver.h"
 #include "Curve.h"
 #include "TestWells.h"
 struct Layer {

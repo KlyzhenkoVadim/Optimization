@@ -11,7 +11,7 @@
 #include "CostFuncs.h"
 #include "PSO.h"
 #include <cmath>
-#include "API.h"
+#include "WellTrajectorySolver.h"
 #include "Curve.h"
 
 void writeInclinometry(const std::vector<Eigen::Vector4d>& pMD, std::string filename);

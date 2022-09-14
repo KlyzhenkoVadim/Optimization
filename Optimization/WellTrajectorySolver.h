@@ -45,7 +45,7 @@ struct WellPad
 
 using wellType = std::function<std::vector<TrajectoryTemplate*>(const Eigen::VectorXd& x)>;
 
-class Solver {
+class WellTrajectorySolver {
 private:
 	Eigen::Vector3d pointInitial; // Координата устья траектории
 	Eigen::Vector3d pointsT1, pointsT3; // Координаты целей траектории.
@@ -59,7 +59,7 @@ private:
 	bool horizontal = true;
 
 public:
-	Solver();
+	WellTrajectorySolver();
 	void setPSOdata();
 	void setData(Point2d& pInitial,GeoPoint& Targets);
 	void setConstraints(const WellTrajectoryConstraints& cs);

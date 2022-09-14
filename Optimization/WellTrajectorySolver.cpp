@@ -1,10 +1,10 @@
-#include "API.h"
+#include "WellTrajectorySolver.h"
 
-Solver::Solver() {};
+WellTrajectorySolver::WellTrajectorySolver() {};
 
-void Solver::setPSOdata() {};
+void WellTrajectorySolver::setPSOdata() {};
 
-void Solver::setData(Point2d& pInitial, GeoPoint& Targets) {
+void WellTrajectorySolver::setData(Point2d& pInitial, GeoPoint& Targets) {
 	pointInitial = { pInitial.north,pInitial.east,0. };
 	pointsT1 = { Targets.northT1, Targets.eastT1, Targets.tvdT1 };
 	pointsT3 = { Targets.northT3, Targets.eastT3, Targets.tvdT3 };
@@ -36,7 +36,7 @@ void Solver::setData(Point2d& pInitial, GeoPoint& Targets) {
 	}
 }
 
-void Solver::setConstraints(const WellTrajectoryConstraints& cs)
+void WellTrajectorySolver::setConstraints(const WellTrajectoryConstraints& cs)
 {
 	if(!std::isnan(cs.minDepthFirstHold))
 		OptimizeConstraints.minDepthFirstHold = cs.minDepthFirstHold;
@@ -50,7 +50,7 @@ void Solver::setConstraints(const WellTrajectoryConstraints& cs)
 		OptimizeConstraints.maxDistEastWest = cs.maxDistEastWest;
 }
 
-void Solver::Optimize() {
+void WellTrajectorySolver::Optimize() {
 	size_t numIterations = 150;
 	std::vector<double> minValues{ OptimizeConstraints.minDepthFirstHold,0 };
 	std::vector<double> maxValues{ pointsT1[2],OptimizeConstraints.maxDLS };
@@ -71,11 +71,11 @@ void Solver::Optimize() {
 	condition = solve(trajectory);
 };
 
-PSOvalueType Solver::getPSOdata() {
+PSOvalueType WellTrajectorySolver::getPSOdata() {
 	return optData;
 };
 
-double Solver::getTrajectoryLength() {
+double WellTrajectorySolver::getTrajectoryLength() {
 	if (condition != 0 or optData.second > 99)
 	{
 		std::cout << "Warning! Impossible to build the Trajectory or satisfy the Constraints with:\n HoldDepth:" << optData.first[0] << "\nDLS: " << optData.first[1] << "\n";
@@ -84,7 +84,7 @@ double Solver::getTrajectoryLength() {
 	return allLength(trajectory);
 };
 
-std::vector<Eigen::Vector3d> Solver::getTrajectoryPoints() {
+std::vector<Eigen::Vector3d> WellTrajectorySolver::getTrajectoryPoints() {
 	// ??? if solve > 0 ???
 	if (condition != 0 or optData.second > 99)
 	{
@@ -98,7 +98,7 @@ std::vector<Eigen::Vector3d> Solver::getTrajectoryPoints() {
 	return pCtrajectory;
 };
 
-std::vector<Eigen::Vector3d> Solver::getInclinometry()
+std::vector<Eigen::Vector3d> WellTrajectorySolver::getInclinometry()
 {
 	std::vector<Eigen::Vector3d> inclinometry;
 	if (condition != 0 or optData.second > 99)

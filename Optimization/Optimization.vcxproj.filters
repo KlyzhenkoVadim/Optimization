@@ -36,7 +36,7 @@
     <ClCompile Include="PSO.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="API.cpp">
+    <ClCompile Include="WellTrajectorySolver.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="Curve.cpp">
@@ -71,7 +71,7 @@
     <ClInclude Include="PSO.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="API.h">
+    <ClInclude Include="WellTrajectorySolver.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="Solver.h">

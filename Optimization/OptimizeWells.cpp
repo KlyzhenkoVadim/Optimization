@@ -384,7 +384,7 @@ void TestAPI(const Eigen::Vector3d& pInit, const Eigen::Vector3d& target1,const 
 {
 	Point2d Initial = { pInit[0], pInit[1] };
 	GeoPoint geoP = { target1[0],target1[1],target1[2],target3[0],target3[1],target3[2] };
-	Solver s = Solver();
+	WellTrajectorySolver s = WellTrajectorySolver();
 	s.setData(Initial, geoP);
 	s.setConstraints(wc);
 	for (size_t i = 0; i < 1; ++i)
