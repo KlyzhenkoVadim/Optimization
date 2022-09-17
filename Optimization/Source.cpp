@@ -13,11 +13,18 @@
 #include "Curve.h"
 #include "TestWells.h"
 #include "OptimizeWells.h"
+#include <filesystem>
+
+
+
+
 
 enum class platformNum { four, five, two };
+namespace fs = std::filesystem;
+const std::string path = "Results/";
 
 void outputWellOptimization(const std::vector<PSOvalueType>& opts, std::vector<std::vector<Eigen::Vector3d>>& pCWells, std::vector<std::vector<Eigen::Vector4d>>& pMDWells,
-	std::vector<Eigen::Vector3d>& targets, std::vector<Constraint>& cs,platformNum num);
+	std::vector<std::string> names);
 
 void setMinMaxValuesWell(std::vector<double>& minValues, std::vector<double>& maxValues, const std::vector<Constraint> cs) {
 	minValues.push_back(400); // 100
@@ -78,45 +85,42 @@ void setTargetsSlotting(std::vector<Eigen::Vector3d>& targets, platformNum num, 
 	}
 }
 
-int main()
+int main(int argc, char* argv[])
 {
+	std::string filename = argv[1];//"C:/Users/klyzhenko.vs/0CET/input.json";//
 	Eigen::Vector3d pinit2 = { 5802508,680718,0 }, pinit4 = { 5802898,683790,0 }, pinit5{ 5804519,684699,0 };
-	std::vector<Constraint> cs = { { {900,30,110},{900,90,170} }, { {2000,0,20},{2000,50,80} } };//,{ {2600,0,20},{2600,40,80} } };
+	std::vector<Constraint> cs;// = { { {900,30,110},{900,90,170} }, { {2000,0,20},{2000,50,80} },{ {2600,0,20},{2600,40,80} } };
 	std::vector<std::vector<Eigen::Vector3d>> pCWells;
 	std::vector < std::vector<Eigen::Vector4d>> pMDWells;
 	std::vector<Eigen::Vector3d>  targets;
-	platformNum num = platformNum::five;
 	std::vector<PSOvalueType> opts;
-	//std::vector<double> minValues{400,0,0,0,0,0}, maxValues{2900,1.5,1.5,40,360,2900};
-	Eigen::Vector3d pInit{ 6873662.2424, 12469199.858, 0.0 },
-		target1{ 6872315.827,12471561.02,2670},
-		target3{ 6872949.754,12472920.49,2670};
-	WellTrajectoryConstraints wc{ 400,1.5,50000,30000,30000 };
-	Eigen::VectorXd x{ {2079.871, 0.4474861, 1.499093} };
-	std::vector<TrajectoryTemplate*> welltest;// = wellSolverHorizontal(x, pInit, target1, target3);
-	std::vector<Eigen::Vector3d> pC;
-	std::vector<Eigen::Vector4d> pMD;
+	std::vector<double> minValues, maxValues;
+	Eigen::Vector3d pinit;
+	AllConstraints ac;
+	
+	
+	if (!fs::is_directory(path) || !fs::exists(path)) {
+		fs::create_directory(path);
+	}
+	
 
+	std::vector<std::string> names;
+	parseData(pinit, targets, ac, minValues, maxValues, names,filename);
+	OptimizeCHCHWells(pinit, targets, ac, minValues, maxValues, pCWells, pMDWells, opts);
+	outputWellOptimization(opts, pCWells, pMDWells, names);
 	return 0;
 }
 
-void outputWellOptimization(const std::vector<PSOvalueType>& opts, std::vector<std::vector<Eigen::Vector3d>>& pCWells, std::vector<std::vector<Eigen::Vector4d>>& pMDWells, 
-	std::vector<Eigen::Vector3d>&targets, std::vector<Constraint>& cs, platformNum num)
+void outputWellOptimization(const std::vector<PSOvalueType>& opts, std::vector<std::vector<Eigen::Vector3d>>& pCWells, std::vector<std::vector<Eigen::Vector4d>>& pMDWells,
+	std::vector<std::string> names)
 {
-	for (size_t i = 0; i < targets.size(); ++i) {
+	for (size_t i = 0; i < opts.size(); ++i) {
 		getOptData(opts[i]);
 	}
-	std::vector<std::string>  names;
-	if (num == platformNum::five)
-		names = { "5008", "5007", "50R", "5006", "5PO" };
-	if (num == platformNum::four)
-		names = { "40R", "4001", "4003", "4000" };
-	if (num == platformNum::two)
-		names = { "4002","4PO" };
-	std::string tmp = "C:/Users/klyzhenko.vs/Desktop/optimization/Optimization/Optimization/output/Cartesian/outputWellNew(", 
-		tmpInc = "C:/Users/klyzhenko.vs/Desktop/optimization/Optimization/Optimization/output/Inclinometry/inclinometryNew(";
+	std::string tmp = path + "cartesian", 
+		tmpInc = path + "inclinometry";
 	for (size_t i = 0; i < pCWells.size(); ++i) {
-		writeDataCartesian(pCWells[i], tmp + names[i] + ").txt");
-		writeInclinometry(pMDWells[i], tmpInc + names[i] + ").txt");
+		writeDataCartesian(pCWells[i], tmp + names[i] + ".txt");
+		writeInclinometry(pMDWells[i], tmpInc + names[i] + ".csv");
 	}
 }

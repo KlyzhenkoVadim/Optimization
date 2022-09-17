@@ -21,12 +21,12 @@ PSOvalueType PSO(std::function<double(const Eigen::VectorXd&)> func, const std::
 	
 	//std::random_device rd;
 	std::mt19937 gen(time(NULL));
-	std::uniform_real_distribution distCoefs(0., 1.);
+	std::uniform_real_distribution<double> distCoefs(0., 1.);
 	std::vector<std::uniform_real_distribution<double>> distrPos;
 	std::vector<std::uniform_real_distribution<double>> distrVel;
 	for (size_t i = 0; i < dimension; ++i) {
-		distrPos.push_back(std::uniform_real_distribution(minValues[i], maxValues[i]));
-		distrVel.push_back(std::uniform_real_distribution(-vMax[i], vMax[i]));
+		distrPos.push_back(std::uniform_real_distribution<double>(minValues[i], maxValues[i]));
+		distrVel.push_back(std::uniform_real_distribution<double>(-vMax[i], vMax[i]));
 	}
 	double minFunc = 1e3;
 	size_t idxgBest;

@@ -127,7 +127,7 @@ double PenaltyConstraint(std::vector<Constraint> cs, std::vector<Eigen::Vector3d
 	return pen;
 }
 
-std::vector<TrajectoryTemplate*> wellCHCH(const Eigen::VectorXd& x, const Eigen::Vector3d& pinit, const Eigen::Vector3d& target, const Constraint& c) {
+std::vector<TrajectoryTemplate*> wellCHCH(const Eigen::VectorXd& x, const Eigen::Vector3d& pinit, const Eigen::Vector3d& target) {
 	std::vector<TrajectoryTemplate*> tmp;
 	tmp.push_back(new Hold(pinit, 0, 0, x[0]));
 	tmp.back()->getTarget1Point();
@@ -239,7 +239,7 @@ void OptimizeWells(const Eigen::Vector3d& pinit, const std::vector<Eigen::Vector
 	}
 }
 
-void OptimizeCHCHWells(const Eigen::Vector3d& pinit, const std::vector<Eigen::Vector3d>& targets, const std::vector<Constraint>& cs,
+void OptimizeCHCHWells(const Eigen::Vector3d& pinit, const std::vector<Eigen::Vector3d>& targets, const AllConstraints& constraints,
 	const std::vector<double>& minValues, const std::vector<double>& maxValues, std::vector<std::vector<Eigen::Vector3d>>& pCWells,
 	std::vector<std::vector<Eigen::Vector4d>>& pMDWells, std::vector<PSOvalueType>& opts) 
 {
@@ -248,18 +248,18 @@ void OptimizeCHCHWells(const Eigen::Vector3d& pinit, const std::vector<Eigen::Ve
 	bool flag = true;
 
 	std::function<double(const Eigen::VectorXd&)> scoreCHCH = [&](const Eigen::VectorXd& x) {
-		std::vector<TrajectoryTemplate*> tmp = wellCHCH(x, pinit, target, cs[0]);
+		std::vector<TrajectoryTemplate*> tmp = wellCHCH(x, pinit, target);
 		int s = solve(tmp);
 		std::vector<Eigen::Vector3d> pCtmp = allPointsCartesian(tmp);
 		std::vector<Eigen::Vector4d>  pMDtmp = allPointsMD(tmp);
-		double cost = orderScore1(tmp, pCWells, pMDWells, TVDShift);// OneWellScore(tmp);//
-		double length = allLength(tmp);// dlsPen = PenaltyDLS(tmp, 100);
-		double penConstraints = PenaltyConstraint(cs, pCtmp, pMDtmp, 100);
+		double cost = orderScore1(tmp, pCWells, pMDWells, TVDShift);
+		double penLen = abs(constraints.wc.maxMD - 1 / EPSILON) < EPSILON ? 0 : PenaltyLength(allLength(tmp), constraints.wc.maxMD, 20);
+		double penConstraints = constraints.cs.size() == 0 ? 0 : PenaltyConstraint(constraints.cs, pCtmp, pMDtmp, 100);
 		double penIncWell = PenaltyIncWell(pMDtmp, 0, 65, 100);
 		for (auto x : tmp) {
 			delete x;
 		}
-		return cost + penConstraints + PenaltyLength(length,5000,20) + penIncWell;
+		return cost + penConstraints + penLen + penIncWell;
 	};
 
 	size_t index = 0;
@@ -275,7 +275,7 @@ void OptimizeCHCHWells(const Eigen::Vector3d& pinit, const std::vector<Eigen::Ve
 			}
 			std::cout << index << "\n";
 			index = idd + 1;
-			std::vector<TrajectoryTemplate*> well = wellCHCH(opt.first, pinit, target,cs[0]);
+			std::vector<TrajectoryTemplate*> well = wellCHCH(opt.first, pinit, target);
 			int cond = solve(well);
 			opts.push_back(opt);
 			pCWells.push_back(allPointsCartesian(well));
@@ -326,7 +326,7 @@ void testScoreCHCH(const Eigen::VectorXd& x,const Eigen::Vector3d& pinit, const 
 	std::vector<std::vector<Eigen::Vector3d>> pCWells;
 	std::vector<std::vector<Eigen::Vector4d>> pMDWells;
 	std::function<double(const Eigen::VectorXd&)> scoreCHCH = [&](const Eigen::VectorXd& x) {
-		std::vector<TrajectoryTemplate*> tmp = wellCHCH(x, pinit, target,cs[0]);
+		std::vector<TrajectoryTemplate*> tmp = wellCHCH(x, pinit, target);
 		int s = solve(tmp);
 		double cost = orderScore1(tmp, pCWells, pMDWells), dlsPen = PenaltyDLS(tmp, 500), length = allLength(tmp);
 		std::vector<Eigen::Vector3d> pCtmp = allPointsCartesian(tmp);
@@ -396,4 +396,66 @@ void TestAPI(const Eigen::Vector3d& pInit, const Eigen::Vector3d& target1,const 
 		writeDataCartesian(pC, "C:/Users/klyzhenko.vs/Desktop/optimization/Optimization/Optimization/output/Cartesian/wellAPI.txt");
 		writeDataCartesian(Innc, "C:/Users/klyzhenko.vs/Desktop/optimization/Optimization/Optimization/output/Inclinometry/innc.txt");
 	}
+}
+
+void parseData(Eigen::Vector3d& pinit, std::vector<Eigen::Vector3d>& targets,  AllConstraints& constraints,
+	 std::vector<double>& minValues, std::vector<double>& maxValues, std::vector<std::string>& names, const std::string& filename)
+{
+	//std::string filename = "C:/Users/klyzhenko.vs/0CET/input.json";
+	std::ifstream ifs(filename);
+	bool flag = ifs.is_open();
+	nlohmann::json jf = nlohmann::json::parse(ifs);
+	Eigen::Vector3d tmp;
+	std::pair<double, double> pp;
+	pinit = {jf["Platform"]["coord"][0], jf["Platform"]["coord"][1] ,0 };
+	for (auto x: jf["Platform"]["Targets"].items())
+	{
+		names.push_back(x.key());
+		tmp[0] = x.value()["T1"][0];
+		tmp[1] = x.value()["T1"][1];
+		tmp[2] = x.value()["T1"][2];
+		targets.push_back(tmp);
+	}
+	bool isnan;
+	for (auto y : jf["Constraints"]["Layers"])
+	{
+		isnan = false;
+		for (auto z : y) {
+			if (z.is_null())
+			{
+				isnan = true;
+				break;
+			}
+		}
+		if (!isnan)
+		{
+			constraints.cs.push_back(Constraint{ {(y["TVD"]),(y["inc"][0]),(y["azi"][0])},{(y["TVD"]),(y["inc"][1]),(y["azi"][1])}});
+		}
+	}
+	if(!jf["Constraints"]["MinHoldLength"].is_null())
+		constraints.wc.minDepthFirstHold = jf["Constraints"]["MinHoldLength"];
+	if (!jf["Constraints"]["MaxDLS"].is_null())
+		constraints.wc.maxDLS = jf["Constraints"]["MaxDLS"];
+	if (!jf["Constraints"]["MaxIncTarget"].is_null())
+		constraints.MaxIncTarget = jf["Constraints"]["MaxIncTarget"];
+	if (!jf["Constraints"]["MaxMD"].is_null())
+		constraints.wc.maxMD = jf["Constraints"]["MaxMD"];
+	if (!jf["Constraints"]["MaxAHD"].is_null())
+	{
+		constraints.wc.maxDistEastWest = jf["Constraints"]["MaxAHD"];
+		constraints.wc.maxDistNorthSouth = jf["Constraints"]["MaxAHD"];
+	}
+
+	minValues.push_back(constraints.wc.minDepthFirstHold);
+	minValues.push_back(0.);
+	minValues.push_back(0.);
+	minValues.push_back(0);
+	minValues.push_back(0);
+	minValues.push_back(0);
+	maxValues.push_back(targets[0][2]);
+	maxValues.push_back(constraints.wc.maxDLS);
+	maxValues.push_back(constraints.wc.maxDLS);
+	maxValues.push_back(constraints.MaxIncTarget);
+	maxValues.push_back(360);
+	maxValues.push_back(targets[0][2]);
 }

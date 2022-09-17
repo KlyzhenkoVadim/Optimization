@@ -74,9 +74,6 @@
     <ClInclude Include="WellTrajectorySolver.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="Solver.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
     <ClInclude Include="Curve.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
@@ -99,5 +96,6 @@
     <None Include="dataPSO.csv">
       <Filter>Исходные файлы</Filter>
     </None>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>
