@@ -20,9 +20,13 @@ Hold::Hold(const Eigen::Vector3d& pi, double inc, double azi, double L, typeHold
 	}
 	else if (type == typeHold::TVD) {
 		if (abs(direction[2]) < EPSILON) {
-			throw(std::runtime_error("HoldTVD is on HorizontalPlane"));
+			//throw(std::runtime_error("HoldTVD is on HorizontalPlane"));
+			this->Length = 0;
 		}
-		this->Length = (L - pi[2]) / direction[2];	
+		else
+		{
+			this->Length = (L - pi[2]) / direction[2];
+		}
 	}
 	pf = pi + Length * direction;
 }

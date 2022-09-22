@@ -133,27 +133,33 @@ std::pair<double, double> CartesianToSpherical(Eigen::Vector3d t) {
 	t.normalize();
 	double theta = acos(t[2]), phi;
 	if (theta < EPSILON)
+	{
 		return { 0,0 };
+	}
 	theta = theta * 180 / PI;
-	if (abs(t[0]) < EPSILON) {
+	if (abs(t[0]) <= EPSILON) 
+	{
 		phi = t[1] > 0 ? PI / 2 : 3 * PI / 2;
 		return { theta,180 / PI * phi };
 	}
+	
 	phi = atan(t[1] / t[0]);
 	if (phi > EPSILON) 
 	{
-		if (t[0] > 0  and t[1] > 0)
+		if (t[0] > 0)
 			return { theta,phi * 180 / PI };
-		else if (t[0] < 0 and t[1] < 0) {
+		else
+		{
 			phi += PI;
 			return { theta,180 / PI * phi };
 		}
 	}
-	else if(phi < -EPSILON) 
+	if(phi < -EPSILON)
 	{
-		if (t[0] > 0 and t[1] < 0)
+		if (t[0] > 0)
 			return { theta,360 + phi * 180 / PI };
-		else if (t[0] < 0 and t[1] > 0) {
+		else
+		{ 
 			phi += PI;
 			return{ theta, 180 / PI * phi };
 		}

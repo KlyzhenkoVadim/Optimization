@@ -1,32 +1,28 @@
-#include "Eigen/Dense"
-#include <iostream>
-#include <vector>
-#include "TrajectoryTemplate.h"
-#include "CurveHold.h"
-#include "CurveHoldCurveHold.h"
-#include "Hold.h"
-#include <fstream>
-#include "CostFuncs.h"
-#include "PSO.h"
-#include <cmath>
-#include "WellTrajectorySolver.h"
-#include "Curve.h"
-#include "TestWells.h"
+//#include "Eigen/Dense"
+//#include <iostream>
+//#include <vector>
+//#include "TrajectoryTemplate.h"
+//#include "CurveHold.h"
+//#include "CurveHoldCurveHold.h"
+//#include "Hold.h"
+//#include <fstream>
+//#include "CostFuncs.h"
+//#include "PSO.h"
+//#include <cmath>
+//#include "WellTrajectorySolver.h"
+//#include "Curve.h"
+//#include "TestWells.h"
 #include "OptimizeWells.h"
-#include <filesystem>
-
-
-
+//#include <filesystem>
+//#include "Slotting.h"
 
 
 enum class platformNum { four, five, two };
 namespace fs = std::filesystem;
 const std::string path = "Results/";
 
-void outputWellOptimization(const std::vector<PSOvalueType>& opts, std::vector<std::vector<Eigen::Vector3d>>& pCWells, std::vector<std::vector<Eigen::Vector4d>>& pMDWells,
-	std::vector<std::string> names);
-
-void setMinMaxValuesWell(std::vector<double>& minValues, std::vector<double>& maxValues, const std::vector<Constraint> cs) {
+void setMinMaxValuesWell(std::vector<double>& minValues, std::vector<double>& maxValues, const std::vector<Constraint> cs) 
+{
 	minValues.push_back(400); // 100
 	maxValues.push_back(900); // 400
 	for (size_t i = 0; i < 3; ++i) {
@@ -87,40 +83,26 @@ void setTargetsSlotting(std::vector<Eigen::Vector3d>& targets, platformNum num, 
 
 int main(int argc, char* argv[])
 {
-	std::string filename = argv[1];//"C:/Users/klyzhenko.vs/0CET/input.json";//
-	Eigen::Vector3d pinit2 = { 5802508,680718,0 }, pinit4 = { 5802898,683790,0 }, pinit5{ 5804519,684699,0 };
-	std::vector<Constraint> cs;// = { { {900,30,110},{900,90,170} }, { {2000,0,20},{2000,50,80} },{ {2600,0,20},{2600,40,80} } };
-	std::vector<std::vector<Eigen::Vector3d>> pCWells;
-	std::vector < std::vector<Eigen::Vector4d>> pMDWells;
-	std::vector<Eigen::Vector3d>  targets;
-	std::vector<PSOvalueType> opts;
-	std::vector<double> minValues, maxValues;
-	Eigen::Vector3d pinit;
-	AllConstraints ac;
-	
-	
+	//std::string filename = argv[1];// "C:/Users/klyzhenko.vs/0CET/input.json";//
+	//Eigen::Vector3d pinit2 = { 5802508,680718,0 }, pinit4 = { 5802898,683790,0 }, pinit5{ 5804519,684699,0 };
+	//std::vector<Constraint> cs = { { {900,30,110},{900,90,170} }, { {2000,0,20},{2000,50,80} },{ {2600,0,20},{2600,40,80} } };
+
 	if (!fs::is_directory(path) || !fs::exists(path)) {
 		fs::create_directory(path);
 	}
+	/*DirectionalDrillingSolver _ = DirectionalDrillingSolver();
+	_.setData(filename);
+	_.Optimize();
+	_.writeResults(path);*/
+	Eigen::VectorXd x{ {0,0.1,0.1,1,0,0,0} };
+	// holdMin,dls1Chch,dls2Chch2,Tvd1,Tvd2,inc1,azi1;
+	/*Eigen::Vector3d pInit{ 5802898,683790,0 }, pT1{ 500,0,1000}, pT3{ 1000,50,1000 },target40R = { 5803236,682857,2900 }, target4001 = { 5803529,682498,2900 },
+		target4003 = { 5803536,683257,2900 }, target4000 = { 5803409,683700,2900 };
+	std::vector<Eigen::Vector3d> targets3 = { target4001,target4003 }, targets1 = { target40R,target4000 };
+	OptimizeHorizontals(pInit, targets1,targets3);*/
+	Eigen::Vector3d v{1,1,0};
+	const auto [teta, phi] = CartesianToSpherical(v);
+	std::cout << teta << "," << phi << std::endl;
 	
-
-	std::vector<std::string> names;
-	parseData(pinit, targets, ac, minValues, maxValues, names,filename);
-	OptimizeCHCHWells(pinit, targets, ac, minValues, maxValues, pCWells, pMDWells, opts);
-	outputWellOptimization(opts, pCWells, pMDWells, names);
 	return 0;
-}
-
-void outputWellOptimization(const std::vector<PSOvalueType>& opts, std::vector<std::vector<Eigen::Vector3d>>& pCWells, std::vector<std::vector<Eigen::Vector4d>>& pMDWells,
-	std::vector<std::string> names)
-{
-	for (size_t i = 0; i < opts.size(); ++i) {
-		getOptData(opts[i]);
-	}
-	std::string tmp = path + "cartesian", 
-		tmpInc = path + "inclinometry";
-	for (size_t i = 0; i < pCWells.size(); ++i) {
-		writeDataCartesian(pCWells[i], tmp + names[i] + ".txt");
-		writeInclinometry(pMDWells[i], tmpInc + names[i] + ".csv");
-	}
 }

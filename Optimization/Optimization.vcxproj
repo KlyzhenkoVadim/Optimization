@@ -149,6 +149,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Penalties.cpp" />
     <ClCompile Include="WellTrajectorySolver.cpp" />
     <ClCompile Include="CostFuncs.cpp" />
     <ClCompile Include="Curve.cpp" />
@@ -163,6 +164,7 @@
     <ClCompile Include="TrajectoryTemplate.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Penalties.h" />
     <ClInclude Include="WellTrajectorySolver.h" />
     <ClInclude Include="CostFuncs.h" />
     <ClInclude Include="Curve.h" />

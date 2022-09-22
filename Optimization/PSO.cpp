@@ -2,8 +2,28 @@
 #include <fstream>
 void writePSO(double func, size_t iter, std::string filename);
 
+void writegBestPos(const Eigen::VectorXd& x, std::string filename)
+{
+	std::fstream file;
+	file.open(filename, std::ios::out | std::ios::app);
+	for (size_t i = 0; i < x.size();++i)
+	{
+		file << x[i]<<",";
+	}
+	file << std::endl;
+	file.close();
+}
+
+void writeCurrbestCost(double c, std::string filename)
+{
+	std::fstream file;
+	file.open(filename, std::ios::out | std::ios::app);
+	file << c << std::endl;
+	file.close();
+}
+
 PSOvalueType PSO(std::function<double(const Eigen::VectorXd&)> func, const std::vector<double>& minValues, const std::vector<double>& maxValues,
-	size_t numAgents, size_t dimension, size_t numIterations, const std::vector<double>& inertia, double socCoef, double indCoef){
+	size_t numAgents, size_t dimension, size_t numIterations, const std::vector<double>& inertia, double socCoef, double indCoef, const std::string& numtarget){
 	assert ("Number of bound conditions is not equal", minValues.size() != maxValues.size());
 	bool flag = false;
 	for (size_t i = 0; i < minValues.size();++i) {
@@ -21,21 +41,13 @@ PSOvalueType PSO(std::function<double(const Eigen::VectorXd&)> func, const std::
 	
 	//std::random_device rd;
 	std::mt19937 gen(time(NULL));
-	std::uniform_real_distribution<double> distCoefs(0., 1.);
-	std::vector<std::uniform_real_distribution<double>> distrPos;
-	std::vector<std::uniform_real_distribution<double>> distrVel;
-	for (size_t i = 0; i < dimension; ++i) {
-		distrPos.push_back(std::uniform_real_distribution<double>(minValues[i], maxValues[i]));
-		distrVel.push_back(std::uniform_real_distribution<double>(-vMax[i], vMax[i]));
-	}
+	std::uniform_real_distribution<double> dist;
 	double minFunc = 1e3;
 	size_t idxgBest;
 		for (size_t i = 0; i < numAgents; ++i) {
 			for (size_t j = 0; j < dimension; ++j) {
-				Xposition[i](j) = distrPos[j](gen);
-				//Velocities[i](j) = distrVel[j](gen);
+				Xposition[i](j) = minValues[j] + (maxValues[j] - minValues[j]) * dist(gen);
 				Velocities[i][j] = 0.;
-				
 			}
 		}
 
@@ -50,11 +62,14 @@ PSOvalueType PSO(std::function<double(const Eigen::VectorXd&)> func, const std::
 			}
 		}
 	gBestPos = Xposition[idxgBest];
-
+	//writegBestPos(gBestPos,"bestPosEvo"+numtarget+".txt");
+	//writeCurrbestCost(minFunc, "bestCurrEvo"+numtarget+".txt");
+	double r1, r2;
 	for (size_t iteration = 0; iteration < numIterations; ++iteration) {
 		// r1 r2
 		for (size_t idAg = 0; idAg < numAgents; ++idAg) {
-			double r1 = distCoefs(gen), r2 = distCoefs(gen);
+			r1 = dist(gen);
+			r2 = dist(gen);
 			for (size_t idim = 0; idim < dimension; ++idim) {
 				Velocities[idAg](idim) = (inertia[iteration] * Velocities[idAg](idim) +
 					r1 * indCoef * (pBestPos[idAg](idim) - Xposition[idAg](idim)) +
@@ -63,14 +78,15 @@ PSOvalueType PSO(std::function<double(const Eigen::VectorXd&)> func, const std::
 					Velocities[idAg](idim) = vMax[idim];
 				else if (Velocities[idAg](idim) + vMax[idim] < -1e-10)
 					Velocities[idAg](idim) = -vMax[idim];
-				if ((Xposition[idAg](idim) + Velocities[idAg](idim) - maxValues[idim] <= 1e-10) and
-					(Xposition[idAg](idim) + Velocities[idAg](idim) - minValues[idim] >= 1e-10))
+				if ((Xposition[idAg](idim) + Velocities[idAg](idim) - maxValues[idim] < 1e-10) and
+					(Xposition[idAg](idim) + Velocities[idAg](idim) - minValues[idim] > 1e-10))
 					Xposition[idAg](idim) += Velocities[idAg](idim);
-				else if((Xposition[idAg](idim) - Velocities[idAg](idim) - maxValues[idim] <= 1e-10) and
-					(Xposition[idAg](idim) - Velocities[idAg](idim) - minValues[idim] >= 1e-10))
+				else if((Xposition[idAg](idim) - Velocities[idAg](idim) - maxValues[idim] < 1e-10) and
+					(Xposition[idAg](idim) - Velocities[idAg](idim) - minValues[idim] > 1e-10))
 					Xposition[idAg](idim) -= Velocities[idAg](idim);
 			}
 		}
+		double tmpf = minFunc;
 		for (size_t idxAg = 0; idxAg < numAgents; ++idxAg) {
 			double tmpfuncMean = func(Xposition[idxAg]);
 			if (tmpfuncMean - func(pBestPos[idxAg]) < 1e-10)
@@ -78,12 +94,12 @@ PSOvalueType PSO(std::function<double(const Eigen::VectorXd&)> func, const std::
 			if (tmpfuncMean - minFunc < 1e-10) {
 				gBestPos = Xposition[idxAg];
 				minFunc = func(gBestPos);
+				//writegBestPos(gBestPos, "bestPosEvo" + numtarget + ".txt");
+				//writeCurrbestCost(minFunc, "bestCurrEvo" + numtarget + ".txt");
 			}
 		}
-		//writePSO(minFunc, iteration,"dataPSO.csv");
 	}
 	return {gBestPos,minFunc};
-
 }
 
 void writePSO(double func, size_t iter, std::string filename) {

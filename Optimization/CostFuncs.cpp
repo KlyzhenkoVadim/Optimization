@@ -12,27 +12,6 @@ int signum(double x) {
 	return 0;
 }
 
-double PenaltyLength(double length,double MaxLength, double penalty) {
-	double answer = length > MaxLength ? penalty : 0;
-	return answer;
-};
-
-double PenaltyAHDNSEW(const std::vector<Eigen::Vector3d>& pC, double EWMAX, double NSMAX, double penalty)
-{
-	double value = 0, EW = 0, NS = 0;
-	for (size_t i = 1; i < pC.size(); ++i)
-	{
-		NS += fabs(pC[i][0] - pC[i - 1][0]);
-		EW += fabs(pC[i][1] - pC[i - 1][1]);
-	}
-	if (EW - EWMAX > EPSILON or NS - NSMAX > EPSILON)
-	{
-		value = penalty;
-	}
-	return value;
-}
-
-
 double sepFactor(std::vector<Eigen::Vector3d>& pCartesianW1,
 	std::vector<Eigen::Vector4d>& pMDW1,
 	std::vector<Eigen::Vector3d>& pCartesianW2,std::vector<Eigen::Vector4d>& pMDW2,
