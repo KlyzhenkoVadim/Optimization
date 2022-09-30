@@ -44,18 +44,6 @@ Eigen::Vector3d CurveHold::getTangent2() {
 }
 
 void CurveHold::fit() {
-	/*if (R != R)
-	{
-		double psi = (p3 - p1).norm();
-		double eta = t1.dot(p3 - p1);
-		double ksi = sqrt(psi * psi - eta * eta);
-		R = ksi < EPSILON ? 1/EPSILON : psi * psi / 2 / ksi;
-		if (abs(eta) < EPSILON)
-			throw(std::runtime_error("???"));
-		alpha = 2 * atan(ksi / eta);
-		t2 = (p3 - p1 - R * tan(alpha / 2.0) * t1) / (R * tan(alpha / 2.0));
-		t2.normalize();
-	}*/
 	Eigen::Vector3d b1 = (p3 - p1).cross(t1);
 	Eigen::Vector3d n1 = t1.cross(b1);
 	n1.normalize();

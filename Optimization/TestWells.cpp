@@ -19,15 +19,6 @@ void writeDataCartesian(std::vector<Eigen::Vector3d>& pointsCartesian, std::stri
 	output.close();
 }
 
-void writeDataMD(std::vector<Eigen::Vector4d>& pointsMD, std::string filename) {
-	std::ofstream output;
-	output.open(filename);
-	for (size_t i = 0; i < pointsMD.size(); ++i) {
-		output << pointsMD[i][0] << "," << pointsMD[i][1] << "," << pointsMD[i][2] << "," << pointsMD[i][3] << std::endl;
-	}
-	output.close();
-}
-
 void writeInclinometry(const std::vector<Eigen::Vector4d>& pMD, std::string filename) {
 	std::ofstream output;
 	output.open(filename);

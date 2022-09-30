@@ -13,7 +13,6 @@ Eigen::Vector3d calcTangentVector(double azimuth, double inclination) {
 	return tangent;
 };
 
-
 interpolatedValueType TrajectoryTemplate::calcInterpolPoints(const Eigen::Vector3d& t1, const Eigen::Vector3d& t2, double alpha, size_t nums) {
 
 	std::vector<double> alphaSegment;
@@ -77,7 +76,7 @@ std::vector<Eigen::Vector4d> TrajectoryTemplate::calcInterpolMDPoints(const Eige
 	for (size_t idx = 0; idx < nums; ++idx) {
 		pointsMD[idx][0] = R * alphaInter[idx];
 		pointsMD[idx][1] = tInter[idx][0];
-		pointsMD[idx][2] = tInter[idx][1];
+		pointsMD[idx][2] = tInter[idx][1]; // auto[pointsMD[1],pointsMD[2]] = CartesianToSpherical(Eigen::Vector3d{tInter[idx][0],tInter[idx][1],tInter[idx][2]});
 		pointsMD[idx][3] = tInter[idx][2];
 	}
 

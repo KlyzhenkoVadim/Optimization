@@ -19,7 +19,7 @@ double sepFactor(std::vector<Eigen::Vector3d>& pCartesianW1,
 	size_t n = pCartesianW1.size(), m = pCartesianW2.size();
 	std::vector<std::vector<double>> distanceMatrix(n,std::vector<double>(m,1e3));
 	std::vector<std::vector<double>> scalarProdMatrix(n, std::vector<double>(m,0));
-	double sgm = 7e-3;
+	double sgm = 9e-3;
 	double eps = 1e-6;
 	bool flg = true;
 	double sepFactor = 1e3;
@@ -129,7 +129,7 @@ double DDI(std::vector<Eigen::Vector3d>& pCartesian,std::vector<Eigen::Vector4d>
 	double TVD = pCartesian.back()[2] - pCartesian[0][2] ;
 	DDI = log10((1. / 0.305) * ahd * MD * toruos / TVD);
 	if (actFunc) {
-		return sigmoid(DDI, penalty, -2.5, 6.1);
+		return sigmoid(DDI, penalty, -2.5, 6.25);
 	}
 	return DDI;
 }	

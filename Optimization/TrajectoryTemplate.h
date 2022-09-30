@@ -36,7 +36,7 @@ public:
 	std::vector<Eigen::Vector3d> calcInterpolCartesianPoints(const Eigen::Vector3d& p1,
 		const Eigen::Vector3d& t1,
 		const Eigen::Vector3d& t2,
-		double R, double alpha, size_t nums = 100);
+		double R, double alpha, size_t nums = 100);//CoordinateSystem coord);
 
 	std::vector<Eigen::Vector4d> calcInterpolMDPoints(const Eigen::Vector3d& p1,
 		const Eigen::Vector3d& t1,

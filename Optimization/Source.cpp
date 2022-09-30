@@ -90,19 +90,15 @@ int main(int argc, char* argv[])
 	if (!fs::is_directory(path) || !fs::exists(path)) {
 		fs::create_directory(path);
 	}
-	/*DirectionalDrillingSolver _ = DirectionalDrillingSolver();
-	_.setData(filename);
-	_.Optimize();
-	_.writeResults(path);*/
-	Eigen::VectorXd x{ {0,0.1,0.1,1,0,0,0} };
 	// holdMin,dls1Chch,dls2Chch2,Tvd1,Tvd2,inc1,azi1;
-	/*Eigen::Vector3d pInit{ 5802898,683790,0 }, pT1{ 500,0,1000}, pT3{ 1000,50,1000 },target40R = { 5803236,682857,2900 }, target4001 = { 5803529,682498,2900 },
-		target4003 = { 5803536,683257,2900 }, target4000 = { 5803409,683700,2900 };
+	Eigen::Vector3d pInit{ 5803898,683790,0 }, pT1{ 500,0,1000}, pT3{ 1000,50,1000 },target40R = { 5803236,682857,2900 }, 
+		target4001 = { 5803529,682498,2900 }, target4003 = { 5803536,683257,2900 }, target4000 = { 5803409,683700,2900 };
 	std::vector<Eigen::Vector3d> targets3 = { target4001,target4003 }, targets1 = { target40R,target4000 };
-	OptimizeHorizontals(pInit, targets1,targets3);*/
-	Eigen::Vector3d v{1,1,0};
-	const auto [teta, phi] = CartesianToSpherical(v);
-	std::cout << teta << "," << phi << std::endl;
-	
+	OptimizeHorizontals(pInit, targets1, targets3);
+	//OptimizeHorizontal(pInit,target4003, target4000); //  This is Hold-CHCH-CHCH sequence of templates.
+	// Optimize Two WElls with collision risks.
+	// Without Constraints....
+	//std::vector<TrajectoryTemplate*> tt = well2CHCH(x, pInit, targets1[0], targets3[0]); //  wellSolverHorizontal(x, pinit, target1, target3);
+		
 	return 0;
 }
