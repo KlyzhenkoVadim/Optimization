@@ -31,60 +31,35 @@ double OneWellScore(std::vector<TrajectoryTemplate*>& mainWell, double penalty) 
 	return mainLength / IdealLength + mainDDI;
 }
 
-void writeIteration(size_t id)
-{
-	std::string filename = "IterationInput.txt";
-	std::ofstream output;
-	output.open(filename, std::ios::out || std::ios::app);
-	output << id << std::endl;
-	output.close();
-}
-
-std::vector<TrajectoryTemplate*> wellSolverHorizontal(const Eigen::VectorXd& x, const Eigen::Vector3d& pinit, const Eigen::Vector3d& pT1, const Eigen::Vector3d& pT3)
-{
-	std::vector<TrajectoryTemplate*> well;
-	double DLSMax = 1.5;
-	well.push_back(new Hold(pinit, 0, 0, x[0], typeHold::TVD));
-	double inc = x[1], azi = x[2], TVD;
-	double TVDMin = x[0] + 1800 / PI * sin(PI / 180 * inc) / DLSMax;
-	TVD = TVDMin + (pT3[2] - TVDMin ) * x[3];
-	double R1 = x[4] < EPSILON ? 1 / EPSILON : 1800 / x[4] / PI;
-	double R2 = x[5] < EPSILON ? 1 / EPSILON : 1800 / x[5] / PI;
-	well.back()->getTarget1Point();
-	well.push_back(new Curve(well.back()->pointT1, 0, 0, inc, azi, TVD, TypeCurve::TVD));
-	well.back()->getTarget1Point();
-	well.push_back(new CurveHoldCurveHold(well.back()->pointT1, inc, azi, R1, R2, pT1, pT3));
-	return well;
-}
-
 std::vector<TrajectoryTemplate*> well2CHCH(const Eigen::VectorXd& x, const Eigen::Vector3d& pinit, const Eigen::Vector3d& pT1, const Eigen::Vector3d& pT3)
 {
 	std::vector<TrajectoryTemplate*> well;
 	double DLSMax = 1.5;
 	double R1 = x[1] < EPSILON ? 1 / EPSILON : 1800 / PI / x[1];
-	double R2 = x[2] < EPSILON ? 1 / EPSILON : 1800/ PI / x[2];
+	double R2 = x[2] < EPSILON ? 1 / EPSILON : 1800 / PI / x[2];
 	double R3 = x[3] < EPSILON ? 1 / EPSILON : 1800 / PI / x[3];
 	double R4 = x[4] < EPSILON ? 1 / EPSILON : 1800 / PI / x[4];
 	double inc = x[5], azi = x[6];
-	double NS = pT1[0] + 2000*(1-2*x[7]);
-	double EW = pT1[1] + 2000*(1-2*x[8]);
+	Eigen::Vector3d v = pT3 - pT1;
+	v.normalize();
+	double NS = pT1[0] + 2000 * (1 - 2 * x[7]);
+	double EW = pT1[1] + 2000 * (1 - 2 * x[8]);
 	double BETA = 100;
-	Eigen::Vector3d tmpT1 = {NS,EW,pT1[2] - 150};
+	Eigen::Vector3d tmpT3 = { NS,EW,pT1[2] - 150 }; 
+	
 	well.push_back(new Hold(pinit, 0, 0, x[0], typeHold::TVD));
 	well.back()->getTarget1Point();
-	well.push_back(new CurveHoldCurveHold(well.back()->pointT1, 0, 0, R1, R2, tmpT1,inc,azi,BETA));
+	well.push_back(new CurveHoldCurveHold(well.back()->pointT1, 0, 0, R1, R2, tmpT3,inc,azi,BETA));
 	well.back()->getTarget3Point();
 	well.push_back(new CurveHoldCurveHold(well.back()->pointT3, inc, azi, R3, R4, pT1, pT3));
 	return well;
 }
 
-
-
 void OptimizeHorizontal(const Eigen::Vector3d& pinit, const Eigen::Vector3d& pT1, const Eigen::Vector3d& pT3)
 {
 	std::function<double(const Eigen::VectorXd& x)> score = [&](const Eigen::VectorXd& x)
 	{
-		std::vector<TrajectoryTemplate*> tt = well2CHCH(x, pinit, pT1, pT3);//wellSolverHorizontal(x, pinit, pT1, pT3);
+		std::vector<TrajectoryTemplate*> tt = well2CHCH(x, pinit, pT1, pT3);
 		double score = OneWellScore(tt);
 		for (auto x : tt)
 		{
@@ -119,21 +94,21 @@ void OptimizeHorizontals(const Eigen::Vector3d& pinit, const std::vector<Eigen::
 	{
 		std::vector<TrajectoryTemplate*> tt = well2CHCH(x,pinit, target1, target3); //  wellSolverHorizontal(x, pinit, target1, target3);
 		double score = orderScore1(tt, pCWells, pMDWells, TVDShift);
-		//int s = solve(tt);
-		//auto pMD = allPointsMD(tt);
-		//auto pC = allPointsCartesian(tt);
-		//double penConstr = 0;// PenaltyConstraint(cs, pC, pMD, 100);
+		int s = solve(tt);
+		auto pMD = allPointsMD(tt);
+		auto pC = allPointsCartesian(tt);
+		double penConstr =  PenaltyConstraint(cs, pC, pMD, 100);
 		for (auto x : tt)
 		{
 			delete x;
 		}
-		return score;// +penConstr;
+		return score +penConstr;
 	};
 	std::vector<PSOvalueType> opts;
 	PSOvalueType tmpopt;
 	std::vector<TrajectoryTemplate*> tt;
-	//std::vector<double> minValues{400,0,0,0,0,0}, maxValues{2000,50,360,1,1.5,1.5};
-	std::vector<double> minValues{ 400,0,0,0,0,50,0,0,0,0,0 }, maxValues{target1[2],1.5,1.5,1.5,1.5,55,360,1,1,1,1};
+	std::vector<double> minValues{ 400,0,0,0,0,35,0,0,0,0,0 }, maxValues{target1[2],1.5,1.5,1.5,1.5,55,360,1,1,1,1};
+	
 	for (size_t i = 0; i < targets1.size(); ++i)
 	{
 		target1 = targets1[i];
@@ -146,7 +121,7 @@ void OptimizeHorizontals(const Eigen::Vector3d& pinit, const std::vector<Eigen::
 				getOptData(tmpopt);
 				TVDShift = std::max(TVDShift, tmpopt.first[0]);
 				opts.push_back(tmpopt);
-				tt = well2CHCH(tmpopt.first,pinit,target1,target3);// wellSolverHorizontal(tmpopt.first, pinit, target1, target3); // 
+				tt = well2CHCH(tmpopt.first,pinit,target1,target3);
 				int s = solve(tt);
 				pCWells.push_back(allPointsCartesian(tt));
 				pMDWells.push_back(allPointsMD(tt));

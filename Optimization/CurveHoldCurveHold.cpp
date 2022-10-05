@@ -62,7 +62,6 @@ void CurveHoldCurveHold::fit() {
 		p4Inter = p4;
 	}
 	
-
 	else
 	{
 

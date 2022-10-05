@@ -91,7 +91,7 @@ int main(int argc, char* argv[])
 		fs::create_directory(path);
 	}
 	// holdMin,dls1Chch,dls2Chch2,Tvd1,Tvd2,inc1,azi1;
-	Eigen::Vector3d pInit{ 5803898,683790,0 }, pT1{ 500,0,1000}, pT3{ 1000,50,1000 },target40R = { 5803236,682857,2900 }, 
+	Eigen::Vector3d pInit{ 5803198,684790,0 }, pT1{ 500,0,1000}, pT3{ 1000,50,1000 },target40R = { 5803236,682857,2900 }, 
 		target4001 = { 5803529,682498,2900 }, target4003 = { 5803536,683257,2900 }, target4000 = { 5803409,683700,2900 };
 	std::vector<Eigen::Vector3d> targets3 = { target4001,target4003 }, targets1 = { target40R,target4000 };
 	OptimizeHorizontals(pInit, targets1, targets3);
