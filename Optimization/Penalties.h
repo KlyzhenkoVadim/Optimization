@@ -1,3 +1,5 @@
+#ifndef PENALTIES_H_
+#define PENALTIES_H_
 #pragma once
 #include "TrajectoryTemplate.h"
 
@@ -32,3 +34,4 @@ double PenaltyLength(double length, double MaxLength, double penalty = 100);
 
 double PenaltyAHDNSEW(const std::vector<Eigen::Vector3d>& pC, double EWMAX, double NSMAX, double penalty = 100);
 
+#endif // PENALTIES_H_

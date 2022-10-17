@@ -1,3 +1,5 @@
+#ifndef CURVEHOLD_H_
+#define CURVEHOLD_H_
 #pragma once
 #include "TrajectoryTemplate.h"
 class CurveHold : public TrajectoryTemplate
@@ -39,3 +41,4 @@ public:
 	void getTarget3Point(CoordinateSystem coordinateSystem = CoordinateSystem::CARTESIAN) override;
 };
 
+#endif // CURVEHOLD_H_

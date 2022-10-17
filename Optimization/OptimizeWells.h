@@ -1,3 +1,5 @@
+#ifndef OPTIMIZEWELLS_H_
+#define OPTIMIZEWELLS_H_
 #pragma once
 #include "Eigen/Dense"
 #include <iostream>
@@ -27,3 +29,4 @@ void OptimizeHorizontals(const Eigen::Vector3d& pinit, const std::vector<Eigen::
 
 void testHorizontal(const Eigen::VectorXd& x,std::vector<TrajectoryTemplate*>& tt);
 
+#endif // OPTIMIZEWELLS_H_

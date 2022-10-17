@@ -1,3 +1,5 @@
+#ifndef COSTFUNCS_H_
+#define COSTFUNCS_H_
 #pragma once
 #include "TrajectoryTemplate.h"
 #include <cmath>
@@ -14,3 +16,5 @@ double orderScore1(std::vector<TrajectoryTemplate*>& mainWell, std::vector<std::
 	std::vector<std::vector<Eigen::Vector4d>>& pMDTrajectories,double SepFactorShift = 0,double penalty = 1000);
 
 double scoreSolver(std::vector<TrajectoryTemplate*>& tmp, const WellTrajectoryConstraints& cs, double penalty = 1000);
+
+#endif // COSTFUNCS_H_
