@@ -9,6 +9,13 @@ Curve::Curve(const Eigen::Vector3d& pi, double inc1, double azi1, double inc2, d
 	this->t1 = calcTangentVector(azi1, inc1);
 	this->t2 = calcTangentVector(azi2, inc2);
 	this->nums = nums;
+	this->RTVD = RTVD;
+	this->type = type;
+	this->condtition = Curve::fit();
+}
+
+int Curve::fit() 
+{
 	double dotprod = t1.dot(t2) / t1.norm() / t2.norm();
 	dotprod = fabs(dotprod - 1) < EPSILON ? 1 : dotprod;
 	alpha = acos(dotprod);
@@ -18,7 +25,7 @@ Curve::Curve(const Eigen::Vector3d& pi, double inc1, double azi1, double inc2, d
 	}
 	else if (type == TypeCurve::TVD) {
 		if (abs(t1[2] + t2[2]) < EPSILON) {
-			throw(std::runtime_error("points lie on HorizontalPlane"));
+			return -1;
 		}
 		if (abs(alpha) < EPSILON) { //  если alpha == 0 то дуга нулевая, и финальная точка = начальной. вне зависимости от TVD
 			this->R = 1 / EPSILON;
@@ -29,9 +36,13 @@ Curve::Curve(const Eigen::Vector3d& pi, double inc1, double azi1, double inc2, d
 			pf = pi + R * tan(alpha / 2) * (t1 + t2);
 		}
 	}
+	return 0;
 }
 
-void Curve::fit() {}
+int Curve::getCondition()
+{
+	return condtition;
+}
 
 void Curve::points(CoordinateSystem coordsys) {
 	if (coordsys == CoordinateSystem::CARTESIAN) {
@@ -62,15 +73,37 @@ void Curve::getInitPoint(CoordinateSystem coordinateSystem ) {
 }
 
 void Curve::getTarget1Point(CoordinateSystem coordinateSystem) {
-	if (coordinateSystem == CoordinateSystem::CARTESIAN)
-		pointT1 = pf;
+	if (condtition == 0)
+	{
+		if (coordinateSystem == CoordinateSystem::CARTESIAN)
+			pointT1 = pf;
+		else
+			pointMDT1 = { length(),t2[0],t2[1],t2[2] };
+	}
 	else
-		pointMDT1 = { length(),t2[0],t2[1],t2[2] };
+	{
+		Curve::getInitPoint(coordinateSystem);
+		if (coordinateSystem == CoordinateSystem::CARTESIAN)
+			pointT1 = pointInitial;
+		else
+			pointMDT1 = pointInitialMD;
+	}
 }
 
 void Curve::getTarget3Point(CoordinateSystem coordinateSystem) {
-	if (coordinateSystem == CoordinateSystem::CARTESIAN)
-		pointT3 = pf;
+	if (condtition == 0)
+	{
+		if (coordinateSystem == CoordinateSystem::CARTESIAN)
+			pointT3 = pf;
+		else
+			pointMDT3 = { length(),t2[0],t2[1],t2[2] };
+	}
 	else
-		pointMDT3 = { length(),t2[0],t2[1],t2[2] };
+	{
+		Curve::getInitPoint(coordinateSystem);
+		if (coordinateSystem == CoordinateSystem::CARTESIAN)
+			pointT3 = pointInitial;
+		else
+			pointMDT3 = pointInitialMD;
+	}
 }

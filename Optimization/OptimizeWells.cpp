@@ -15,7 +15,7 @@ double OneWellScore(std::vector<TrajectoryTemplate*>& mainWell, double penalty) 
 	double mainLength, mainDDI;
 	int condition = solve(mainWell);
 	if (condition != 0) {
-		return penalty * condition / mainWell.size(); // penalty * percent of incorrect templates.
+		return penalty * (-condition) / mainWell.size(); // penalty * percent of incorrect templates.
 	}
 	mainLength = allLength(mainWell);
 	std::vector<Eigen::Vector3d> mainPCartesian = allPointsCartesian(mainWell);
@@ -88,26 +88,22 @@ void OptimizeHorizontals(const Eigen::Vector3d& pinit, const std::vector<Eigen::
 	double TVDShift = 0;
 	std::vector<std::vector<Eigen::Vector3d>> pCWells;
 	std::vector<std::vector<Eigen::Vector4d>> pMDWells;
-	std::vector<Constraint> cs = { { {900, 30, 110}, { 900,90,170 }}, { {2000,0,20},{2000,50,80} },{ {2600,0,20},{2600,40,80} }};
+	//std::vector<Constraint> cs = { { {900, 30, 110}, { 900,90,170 }}, { {2000,0,20},{2000,50,80} },{ {2600,0,20},{2600,40,80} }};
 
 	std::function<double(const Eigen::VectorXd& x)> score = [&](const Eigen::VectorXd& x)
 	{
 		std::vector<TrajectoryTemplate*> tt = well2CHCH(x,pinit, target1, target3); //  wellSolverHorizontal(x, pinit, target1, target3);
 		double score = orderScore1(tt, pCWells, pMDWells, TVDShift);
-		int s = solve(tt);
-		auto pMD = allPointsMD(tt);
-		auto pC = allPointsCartesian(tt);
-		double penConstr =  PenaltyConstraint(cs, pC, pMD, 100);
 		for (auto x : tt)
 		{
 			delete x;
 		}
-		return score +penConstr;
+		return score;
 	};
 	std::vector<PSOvalueType> opts;
 	PSOvalueType tmpopt;
 	std::vector<TrajectoryTemplate*> tt;
-	std::vector<double> minValues{ 400,0,0,0,0,35,0,0,0,0,0 }, maxValues{target1[2],1.5,1.5,1.5,1.5,55,360,1,1,1,1};
+	std::vector<double> minValues{ 400,0,0,0,0,35,0,0,0 }, maxValues{target1[2],1.5,1.5,1.5,1.5,55,360,1,1};
 	
 	for (size_t i = 0; i < targets1.size(); ++i)
 	{
@@ -115,7 +111,7 @@ void OptimizeHorizontals(const Eigen::Vector3d& pinit, const std::vector<Eigen::
 		target3 = targets3[i];
 		for (size_t j = 0; j < 100; ++j)
 		{
-			tmpopt = PSO(score, minValues, maxValues, 5 * maxValues.size(), maxValues.size(), 250); // WAS 150 ITERATIONS
+			tmpopt = PSO(score, minValues, maxValues, 5 * maxValues.size(), maxValues.size(), 150); // WAS 150 ITERATIONS
 			if (tmpopt.second < 5)
 			{
 				getOptData(tmpopt);

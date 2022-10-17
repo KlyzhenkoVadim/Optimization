@@ -7,32 +7,48 @@ Hold::Hold(const Eigen::Vector3d& pi,const Eigen::Vector3d& pf, size_t nums) {
 	this->direction = pf - pi;
 	this->Length = direction.norm();
 	direction.normalize();
-
-
+	this->condition = Hold::fit();
 }
 
 Hold::Hold(const Eigen::Vector3d& pi, double inc, double azi, double L, typeHold type, size_t nums) {
 	this->pi = pi;
 	this->nums = nums;
 	this->direction = calcTangentVector(azi, inc);
-	if (type == typeHold::md) {
-		this->Length = L;
+	this->type = type;
+	this->MDTVD = L;
+	this->condition = Hold::fit();
+}
+
+int Hold::fit()
+{
+	if (type == typeHold::pEnd)
+	{
+		return 0;
 	}
-	else if (type == typeHold::TVD) {
-		if (abs(direction[2]) < EPSILON) {
-			//throw(std::runtime_error("HoldTVD is on HorizontalPlane"));
-			this->Length = 0;
+	else
+	{
+		if (type == typeHold::md) {
+			this->Length = MDTVD;
 		}
-		else
-		{
-			this->Length = (L - pi[2]) / direction[2];
+		else if (type == typeHold::TVD) {
+			if (abs(direction[2]) < EPSILON) {
+				return -1;
+			}
+			this->Length = abs((MDTVD - pi[2]) / direction[2]);
 		}
+		this->pf = pi + Length * direction;
+		return 0;
 	}
-	pf = pi + Length * direction;
+	
+}
+
+int Hold::getCondition()
+{
+	return condition;
 }
 
 double Hold::length() {
-	return Length;
+	return (1+condition)*Length;
 }
 
 void Hold::getInitPoint(CoordinateSystem coordinateSystem) {
@@ -42,20 +58,49 @@ void Hold::getInitPoint(CoordinateSystem coordinateSystem) {
 		pointInitialMD = { 0,direction[0],direction[1],direction[2] };
 }
 
-void Hold::getTarget3Point(CoordinateSystem coordinateSystem) {
-	if (coordinateSystem == CoordinateSystem::CARTESIAN)
-		pointT3 = this->pf;
-	else
-		pointMDT3 = { length(),direction[0],direction[1],direction[2] };
-}
 void Hold::getTarget1Point(CoordinateSystem coordinateSystem) {
-	if (coordinateSystem == CoordinateSystem::CARTESIAN)
-		pointT1 = this->pf;
+	if (condition == 0)
+	{
+		if (coordinateSystem == CoordinateSystem::CARTESIAN)
+			pointT1 = this->pf;
+		else
+			pointMDT1 = { length(),direction[0],direction[1],direction[2] };
+	}
 	else
-		pointMDT1 = { length(),direction[0],direction[1],direction[2] };
+	{
+		Hold::getInitPoint(coordinateSystem);
+		if (coordinateSystem == CoordinateSystem::CARTESIAN)
+		{
+			pointT1 = pointInitial;
+		}
+		else
+		{
+			pointMDT1 = pointInitialMD;
+		}
+	}
 }
 
-void Hold::fit() {}
+void Hold::getTarget3Point(CoordinateSystem coordinateSystem) {
+	if (condition == 0)
+	{
+		if (coordinateSystem == CoordinateSystem::CARTESIAN)
+			pointT3 = this->pf;
+		else
+			pointMDT3 = { length(),direction[0],direction[1],direction[2] };
+	}
+	else
+	{
+		Hold::getInitPoint(coordinateSystem);
+		if (coordinateSystem == CoordinateSystem::CARTESIAN)
+		{
+			pointT3 = pointInitial;
+		}
+		else
+		{
+			pointMDT3 = pointInitialMD;
+		}
+	}
+}
 
 void Hold::points(CoordinateSystem coordinateSystem) {
 	if (coordinateSystem == CoordinateSystem::CARTESIAN) {

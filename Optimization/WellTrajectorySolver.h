@@ -6,66 +6,58 @@
 #include "Hold.h"
 #include "CostFuncs.h"
 #include "PSO.h"
+#include <string>
 
-struct GeoPoint {
-	double northT1;
-	double eastT1;
-	double tvdT1;
-
-	double northT3;
-	double eastT3;
-	double tvdT3;
-
-	double H;
-
-	double frGas;
-	double frLiq;
-
-	std::string name;
-	std::string date;
-};
-
-struct Point2d
+namespace well_trajectory
 {
-	double north;
-	double east;
-	
-};
+	struct Point2d
+	{
+		double north;
+		double east;
+	};
 
-struct WellPad
-{
-	bool isWellPad;
+	struct Target {
+		double northT1;
+		double eastT1;
+		double tvdT1;
 
-	Point2d coord; // координаты центра кустовой площадки
+		double northT3;
+		double eastT3;
+		double tvdT3;
 
-	std::vector<GeoPoint> geoAims; // координаты геологических целей
-};
+		double H;
 
+		double frGas;
+		double frLiq;
 
+		std::string name;
+		std::string date;
+	};
 
-using wellType = std::function<std::vector<TrajectoryTemplate*>(const Eigen::VectorXd& x)>;
+	using wellType = std::function<std::vector<TrajectoryTemplate*>(const Eigen::VectorXd& x)>;
 
-class WellTrajectorySolver {
-private:
-	Eigen::Vector3d pointInitial; //  оордината усть€ траектории
-	Eigen::Vector3d pointsT1, pointsT3; //  оординаты целей траектории.
-	std::vector<TrajectoryTemplate*> trajectory;
-	int condition = 0;
-	std::vector<Eigen::Vector3d> pCtrajectory;
-	std::vector<Eigen::Vector4d> pMDtrajectory;
-	wellType mainWell;
-	WellTrajectoryConstraints OptimizeConstraints{400,1.5,1/EPSILON,1/EPSILON,1/EPSILON};
-	PSOvalueType optData;
-	bool horizontal = true;
+	class WellTrajectorySolver {
+	private:
+		Eigen::Vector3d pointInitial; //  оордината усть€ траектории
+		Eigen::Vector3d pointsT1, pointsT3; //  оординаты целей траектории.
+		std::vector<TrajectoryTemplate*> trajectory;
+		int condition = 0;
+		std::vector<Eigen::Vector3d> pCtrajectory;
+		std::vector<Eigen::Vector4d> pMDtrajectory;
+		wellType mainWell;
+		WellTrajectoryConstraints OptimizeConstraints{ 400,1.5,1 / EPSILON,1 / EPSILON,1 / EPSILON };
+		PSOvalueType optData;
+		bool horizontal = true;
 
-public:
-	WellTrajectorySolver();
-	void setPSOdata();
-	void setData(Point2d& pInitial,GeoPoint& Targets);
-	void setConstraints(const WellTrajectoryConstraints& cs);
-	void Optimize();
-	PSOvalueType getPSOdata();
-	std::vector<Eigen::Vector3d> getTrajectoryPoints();
-	std::vector<Eigen::Vector3d> getInclinometry();
-	double getTrajectoryLength();
-};
+	public:
+		WellTrajectorySolver();
+		void setPSOdata();
+		void setData(Point2d& pInitial, Target& Targets);
+		void setConstraints(const WellTrajectoryConstraints& cs);
+		void optimize();
+		PSOvalueType getPSOdata();
+		std::vector<Eigen::Vector3d> getTrajectoryPoints();
+		std::vector<Eigen::Vector3d> getInclinometry();
+		double getTrajectoryLength();
+	};
+}

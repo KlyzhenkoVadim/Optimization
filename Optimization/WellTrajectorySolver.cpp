@@ -1,16 +1,18 @@
-#include "WellTrajectorySolver.h"
+#include "WelltrajectorySolver.h"
+
+using namespace well_trajectory;
 
 WellTrajectorySolver::WellTrajectorySolver() {};
 
 void WellTrajectorySolver::setPSOdata() {};
 
-void WellTrajectorySolver::setData(Point2d& pInitial, GeoPoint& Targets) {
+void WellTrajectorySolver::setData(Point2d& pInitial, Target& Targets) {
 	pointInitial = { pInitial.north,pInitial.east,0. };
 	pointsT1 = { Targets.northT1, Targets.eastT1, Targets.tvdT1 };
 	pointsT3 = { Targets.northT3, Targets.eastT3, Targets.tvdT3 };
-	if ((pointsT1 - pointsT3).norm() < EPSILON) 
+	if ((pointsT1 - pointsT3).norm() < EPSILON)
 	{
-			horizontal = false;
+		horizontal = false;
 	}
 	if (horizontal) {
 		mainWell = [&](const Eigen::VectorXd& x) {
@@ -38,25 +40,25 @@ void WellTrajectorySolver::setData(Point2d& pInitial, GeoPoint& Targets) {
 
 void WellTrajectorySolver::setConstraints(const WellTrajectoryConstraints& cs)
 {
-	if(!std::isnan(cs.minDepthFirstHold))
+	if (!std::isnan(cs.minDepthFirstHold))
 		OptimizeConstraints.minDepthFirstHold = cs.minDepthFirstHold;
 	if (!std::isnan(cs.maxMD))
-		OptimizeConstraints.maxMD= cs.maxMD;
+		OptimizeConstraints.maxMD = cs.maxMD;
 	if (!std::isnan(cs.maxDLS))
-		OptimizeConstraints.maxDLS= cs.maxDLS;
+		OptimizeConstraints.maxDLS = cs.maxDLS;
 	if (!std::isnan(cs.maxDistNorthSouth))
 		OptimizeConstraints.maxDistNorthSouth = cs.maxDistNorthSouth;
 	if (!std::isnan(cs.maxDistEastWest))
 		OptimizeConstraints.maxDistEastWest = cs.maxDistEastWest;
 }
 
-void WellTrajectorySolver::Optimize() {
+void WellTrajectorySolver::optimize() {
 	size_t numIterations = 150;
 	std::vector<double> minValues{ OptimizeConstraints.minDepthFirstHold,0 };
 	std::vector<double> maxValues{ pointsT1[2],OptimizeConstraints.maxDLS };
 	std::function<double(Eigen::VectorXd)> score = [&](Eigen::VectorXd x) {
 		std::vector<TrajectoryTemplate*> tmpwell = mainWell(x);
-		double oneScore = scoreSolver(tmpwell,OptimizeConstraints);
+		double oneScore = scoreSolver(tmpwell, OptimizeConstraints);
 		for (auto x : tmpwell) {
 			delete x;
 		}
@@ -116,6 +118,3 @@ std::vector<Eigen::Vector3d> WellTrajectorySolver::getInclinometry()
 	}
 	return inclinometry;
 }
-
-
-

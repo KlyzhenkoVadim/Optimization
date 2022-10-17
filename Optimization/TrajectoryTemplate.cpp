@@ -76,7 +76,7 @@ std::vector<Eigen::Vector4d> TrajectoryTemplate::calcInterpolMDPoints(const Eige
 	for (size_t idx = 0; idx < nums; ++idx) {
 		pointsMD[idx][0] = R * alphaInter[idx];
 		pointsMD[idx][1] = tInter[idx][0];
-		pointsMD[idx][2] = tInter[idx][1]; // auto[pointsMD[1],pointsMD[2]] = CartesianToSpherical(Eigen::Vector3d{tInter[idx][0],tInter[idx][1],tInter[idx][2]});
+		pointsMD[idx][2] = tInter[idx][1];
 		pointsMD[idx][3] = tInter[idx][2];
 	}
 
@@ -118,12 +118,7 @@ std::vector<Eigen::Vector4d> allPointsMD(std::vector<TrajectoryTemplate* >& Well
 int solve(std::vector<TrajectoryTemplate*>& Well) {
 	int numErrors = 0;
 	for (size_t idx = 0; idx < Well.size(); ++idx) {
-		try {
-			Well[idx]->fit();
-		}
-		catch (const std::runtime_error& error) {
-			numErrors += 1;
-		}
+		numErrors += Well[idx]->getCondition();
 	}
 	return numErrors;
 }

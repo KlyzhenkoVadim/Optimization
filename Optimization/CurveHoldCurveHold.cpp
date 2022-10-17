@@ -18,6 +18,7 @@ CurveHoldCurveHold::CurveHoldCurveHold(const Eigen::Vector3d& p1, double tetta1,
 	this->nums = nums;
 	this->betta = betta;
 	this->pInter = p4 - t4 * betta;
+	this->condition = CurveHoldCurveHold::fit();
 };
 
 CurveHoldCurveHold::CurveHoldCurveHold(const Eigen::Vector3d& p1, double tetta1, double phi1, double R1, double R2, const Eigen::Vector3d& pT1,
@@ -39,9 +40,11 @@ CurveHoldCurveHold::CurveHoldCurveHold(const Eigen::Vector3d& p1, double tetta1,
 	this->R2 = R2;
 	this->nums = nums;
 	this->eps = eps;
+	this->condition = CurveHoldCurveHold::fit();
 };
 
-void CurveHoldCurveHold::fit() {
+int CurveHoldCurveHold::fit() 
+{
 	//ѕроверка на пересечение окружностей
 	Eigen::Vector3d b1 = (pInter - p1).cross(t1);
 	Eigen::Vector3d n1 = t1.cross(b1);
@@ -66,7 +69,7 @@ void CurveHoldCurveHold::fit() {
 	{
 
 		if ((pInter - r1).norm() < R1 or (p1 - r4).norm() < R2) {
-			throw std::runtime_error("Error: Cannot reach p1/p4 from p4/p1 using Curve-hold!");
+			return -1;
 		}
 
 		std::vector<double> alphaFirst(2);
@@ -75,19 +78,27 @@ void CurveHoldCurveHold::fit() {
 		auto getaAlphaCurrCurvate = [&](bool flag, const auto& p) { // flag = 0 - first curveHold
 			if (false == flag) {
 				CurveHold firstCurveHold(p1, p, t1, R1);
-				firstCurveHold.fit();
-				return firstCurveHold.getAlpha();
+				if (firstCurveHold.getCondition() == 0)
+					return firstCurveHold.getAlpha();
+				else
+					return -1.;
 			}
 			else {
 				CurveHold secondCurveHold(pInter, p, -t4, R2);
-				secondCurveHold.fit();
-				return secondCurveHold.getAlpha();
+				if (secondCurveHold.getCondition() == 0)
+					return secondCurveHold.getAlpha();
+				else
+					return -1.;
 			}
 		};
 
 		alphaFirst[0] = getaAlphaCurrCurvate(0, pInter);
+		if (alphaFirst[0] < -EPSILON)
+			return -1;
 		Eigen::Vector3d p1j = p1 + R1 * tan(alphaFirst[0] / 2) * t1;
 		alphaSecond[0] = getaAlphaCurrCurvate(1, p1j);
+		if (alphaSecond[0] < -EPSILON)
+			return -1;
 		Eigen::Vector3d pInterj = pInter - R2 * tan(alphaSecond[0] / 2) * t4;
 
 		const size_t maxIter = 1e3;
@@ -95,8 +106,12 @@ void CurveHoldCurveHold::fit() {
 
 		while (iter < maxIter) {
 			alphaFirst[1] = getaAlphaCurrCurvate(0, pInterj);
+			if (alphaFirst[1] < -EPSILON)
+				return -1;
 			p1j = p1 + R1 * tan(alphaFirst[1] / 2) * t1;
 			alphaSecond[1] = getaAlphaCurrCurvate(1, p1j);
+			if (alphaSecond[1] < -EPSILON)
+				return -1;
 			pInterj = pInter - R2 * tan(alphaSecond[1] / 2) * t4;
 
 			if (sqrt((alphaFirst[1] - alphaFirst[0]) * (alphaFirst[1] - alphaFirst[0]) + (alphaSecond[1] - alphaSecond[0]) * (alphaSecond[1] - alphaSecond[0])) < eps) {
@@ -109,7 +124,7 @@ void CurveHoldCurveHold::fit() {
 		}
 
 		if (iter == 999) {
-			throw std::runtime_error("Error: Iterations do not converge!");
+			return -1;
 		}
 
 		t = (pInterj - p1j);
@@ -124,10 +139,16 @@ void CurveHoldCurveHold::fit() {
 
 		for (size_t idx = 0; idx < t.size(); ++idx) {
 			if (fabs(tmp[idx] - t[idx]) > 1e-4) {
-				throw std::runtime_error("Error: Cannot reach the Target!");
+				return -1;
 			}
 		}
 	}
+	return 0;
+}
+
+int CurveHoldCurveHold::getCondition()
+{
+	return condition;
 }
 
 void CurveHoldCurveHold::getInitPoint(CoordinateSystem coordinateSystem) {

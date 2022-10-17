@@ -94,7 +94,9 @@ int main(int argc, char* argv[])
 	Eigen::Vector3d pInit{ 5803198,684790,0 }, pT1{ 500,0,1000}, pT3{ 1000,50,1000 },target40R = { 5803236,682857,2900 }, 
 		target4001 = { 5803529,682498,2900 }, target4003 = { 5803536,683257,2900 }, target4000 = { 5803409,683700,2900 };
 	std::vector<Eigen::Vector3d> targets3 = { target4001,target4003 }, targets1 = { target40R,target4000 };
+	Eigen::VectorXd x{ {401.7063, 0.9223895, 1.22082, 1.438245, 1.499416, 49.89553, 99.3652, 0.4803601, 0.5733377} };
 	OptimizeHorizontals(pInit, targets1, targets3);
+	
 	//OptimizeHorizontal(pInit,target4003, target4000); //  This is Hold-CHCH-CHCH sequence of templates.
 	// Optimize Two WElls with collision risks.
 	// Without Constraints....

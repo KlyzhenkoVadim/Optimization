@@ -139,7 +139,7 @@ double orderScore1(std::vector<TrajectoryTemplate*>& mainWell, std::vector<std::
 	double mainLength = 0., mainDDI = 0., rSepFactor = 0.;
 	int condition = solve(mainWell);
 	if (condition != 0) {
-		return 10*penalty * condition / mainWell.size(); // penalty * percent of incorrect templates.
+		return 10*penalty *(-condition) / mainWell.size(); // penalty * percent of incorrect templates.
 	}
 	mainLength = allLength(mainWell); 
 	std::vector<Eigen::Vector3d> mainPCartesian = allPointsCartesian(mainWell);
@@ -170,7 +170,7 @@ double scoreSolver(std::vector<TrajectoryTemplate*>& tmp, const WellTrajectoryCo
 		int condition = solve(tmp);
 		if (condition != 0)
 		{
-			return penalty * condition/tmp.size(); // penalty * percent of incorrect templates.
+			return penalty *(-condition)/tmp.size(); // penalty * percent of incorrect templates.
 		}
 		mainLength = allLength(tmp);
 		std::vector<Eigen::Vector3d> mainPCartesian = allPointsCartesian(tmp);

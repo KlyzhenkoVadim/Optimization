@@ -20,12 +20,14 @@ private:
 	//std::vector<Eigen::Vector4d> pointsMD;
 	double alpha;
 	double betta;
+	int condition;
+	int fit();
 
 public:
 	CurveHold(const Eigen::Vector3d& p1, const Eigen::Vector3d& p3, double teta, double phi, double R, size_t nums = 50);
 	CurveHold(const Eigen::Vector3d& p1, const Eigen::Vector3d& p3, const Eigen::Vector3d& t1, double R, size_t nums = 50);
 	//CurveHold(const Eigen::Vector3d& p1, const Eigen::Vector3d& p3, double teta, double phi, size_t nums = 100);
-	void fit() override;
+	int getCondition() override;
 	void points(CoordinateSystem coordinateSystem) override;
 	double length() override;
 	double getAlpha();
