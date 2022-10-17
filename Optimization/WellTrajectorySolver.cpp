@@ -1,4 +1,4 @@
-#include "WelltrajectorySolver.h"
+#include "WellTrajectorySolver.h"
 
 using namespace well_trajectory;
 
