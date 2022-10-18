@@ -1,5 +1,3 @@
-#ifndef CURVE_H_
-#define CURVE_H_
 #pragma once
 #include "TrajectoryTemplate.h"
 
@@ -26,5 +24,3 @@ public:
 	void getTarget1Point(CoordinateSystem coordinateSystem = CoordinateSystem::CARTESIAN) override;
 	void getTarget3Point(CoordinateSystem coordinateSystem = CoordinateSystem::CARTESIAN) override;
 };
-
-#endif // CURVE_H_

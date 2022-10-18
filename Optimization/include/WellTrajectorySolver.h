@@ -1,5 +1,3 @@
-#ifndef WELLTRAJECTORYSOLVER_H_
-#define WELLTRAJECTORYSOLVER_H_
 #pragma once
 #include "TrajectoryTemplate.h"
 #include "CurveHold.h"
@@ -63,5 +61,3 @@ namespace well_trajectory
 		double getTrajectoryLength();
 	};
 }
-
-#endif // WELLTRAJECTORYSOLVER_H_

@@ -1,5 +1,3 @@
-#ifndef TRAJECTORYTEMPLATE_H_
-#define TRAJECTORYTEMPLATE_H_
 #pragma once
 #include <vector>
 #include "Eigen/Dense"
@@ -54,5 +52,3 @@ std::vector<Eigen::Vector3d> allPointsCartesian(std::vector<TrajectoryTemplate*>
 std::vector<Eigen::Vector4d> allPointsMD(std::vector<TrajectoryTemplate* >& Well);
 
 int solve(std::vector<TrajectoryTemplate*>& Well);
-
-#endif // TRAJECTORYTEMPLATE_H

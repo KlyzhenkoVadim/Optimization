@@ -1,5 +1,3 @@
-#ifndef PSO_H_
-#define PSO_H_
 #pragma once
 #include "Eigen\Dense"
 #include <random>
@@ -11,4 +9,3 @@ PSOvalueType PSO(std::function<double(const Eigen::VectorXd&)> func, const std::
 	size_t numAgents, size_t dimension,size_t numIterations = 100, const std::vector<double>& inertia= std::vector<double>(500,0.9),
 	double socCoef = 0.3, double indCoef = 0.5,const std::string& numtarget = "");
 
-#endif // PSO_H_
