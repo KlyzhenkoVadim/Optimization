@@ -30,6 +30,7 @@ public:
 	int getCondition() override;
 	void points(CoordinateSystem coordinateSystem) override;
 	double length() override;
+	double getTortuosity() override;
 	double getAlpha();
 	Eigen::Vector3d getPointInterpol();
 	Eigen::Vector3d getTangent2();

@@ -20,6 +20,7 @@ public:
 	int getCondition() override;
 	void points(CoordinateSystem coordinateSystem) override;
 	double length() override;
+	double getTortuosity() override;
 	void getInitPoint(CoordinateSystem coordinateSystem = CoordinateSystem::CARTESIAN) override;
 	void getTarget1Point(CoordinateSystem coordinateSystem = CoordinateSystem::CARTESIAN) override;
 	void getTarget3Point(CoordinateSystem coordinateSystem = CoordinateSystem::CARTESIAN) override;

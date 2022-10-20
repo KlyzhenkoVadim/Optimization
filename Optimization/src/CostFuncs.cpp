@@ -106,18 +106,17 @@ double dls(Eigen::Vector3d& tangent1, Eigen::Vector3d& tangent2) {
 	return (180. / PI) * acos(dotProd);
 }
 
-double Tortuosity(std::vector<Eigen::Vector4d>& pointsMD) {
+double Tortuosity(std::vector<TrajectoryTemplate*>& well) {
 	double tortuos = 0.;
-	for (size_t i = 1; i < pointsMD.size(); ++i) {
-		Eigen::Vector3d tPresent = { pointsMD[i][1],pointsMD[i][2],pointsMD[i][3]};
-		Eigen::Vector3d tPrev = { pointsMD[i-1][1],pointsMD[i-1][2],pointsMD[i-1][3]};
-		tortuos += dls(tPresent, tPrev);
+	for (size_t i = 1; i < well.size(); ++i) 
+	{
+		tortuos += well[i]->getTortuosity();
 	}
 	return tortuos;
 }
 
-double DDI(std::vector<Eigen::Vector3d>& pCartesian,std::vector<Eigen::Vector4d>& pMD, bool actFunc, double penalty) {
-	double toruos = Tortuosity(pMD);
+double DDI(std::vector<Eigen::Vector3d>& pCartesian, bool actFunc, double penalty) {
+	double toruos = Tortuosity();
 	double DDI;
 	std::vector<double> pX, pY;
 	for (size_t idx = 0; idx < pCartesian.size(); ++idx) {

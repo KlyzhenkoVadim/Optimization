@@ -51,6 +51,11 @@ double Hold::length() {
 	return (1+condition)*Length;
 }
 
+double Hold::getTortuosity()
+{
+	return 0.;
+}
+
 void Hold::getInitPoint(CoordinateSystem coordinateSystem) {
 	if (coordinateSystem == CoordinateSystem::CARTESIAN)
 		pointInitial = this->pi;

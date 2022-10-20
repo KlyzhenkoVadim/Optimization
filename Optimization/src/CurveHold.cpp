@@ -33,6 +33,11 @@ double CurveHold::length() {
 	return arc + betta;
 }
 
+double CurveHold::getTortuosity()
+{
+	return alpha;
+}
+
 double CurveHold::getAlpha() {
 	return alpha;
 }

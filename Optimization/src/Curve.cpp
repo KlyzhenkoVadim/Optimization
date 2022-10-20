@@ -65,6 +65,11 @@ double Curve::length() {
 	return alpha * R;
 }
 
+double Curve::getTortuosity()
+{
+	return alpha;
+}
+
 void Curve::getInitPoint(CoordinateSystem coordinateSystem ) {
 	if (coordinateSystem == CoordinateSystem::CARTESIAN)
 		pointInitial = this->pi;

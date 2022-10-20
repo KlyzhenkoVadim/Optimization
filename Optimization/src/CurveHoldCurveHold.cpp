@@ -260,3 +260,8 @@ double CurveHoldCurveHold::length() {
 	double arc2 = alpha2 < EPSILON ? 0 : R2 * alpha2;
 	return arc1 + arc2 + holdLength + betta;
 }
+
+double CurveHoldCurveHold::getTortuosity()
+{
+	return alpha1 + alpha2;
+}
