@@ -103,6 +103,25 @@ int CurveHold::fit() {
 	return 0;
 }
 
+Eigen::Vector3d CurveHold::FunctionPoint(double md) // md [0,1]
+{
+	if (md * length() - alpha * R > -EPSILON)
+	{
+		return p3 - (1 - md) * length() * t2;
+	}
+	return p1 + R * tan(md * alpha / 2) * (t1 + FunctionTangent(md));
+}
+
+Eigen::Vector3d CurveHold::FunctionTangent(double md) // md [0,1]
+{
+	if (md * length() - alpha * R > -EPSILON)
+	{
+		return t2;
+	}
+	return t1* sin((1 - md) * alpha) / sin(alpha) + t2 * sin(md * alpha) / sin(alpha);
+
+}
+
 int CurveHold::getCondition()
 {
 	return condition;

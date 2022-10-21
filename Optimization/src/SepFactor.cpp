@@ -37,6 +37,19 @@ double SeparationFactor(const std::vector<Eigen::Vector3d>& pC1,
 	return sf;
 }
 
+
+double SeparationFactorNewton(std::vector<TrajectoryTemplate*>& well1, std::vector<TrajectoryTemplate*>& well2)
+{
+	double sgm = 9e-3;
+	double L1 = allLength(well1), L2 = allLength(well2);
+	auto g = [&](double t, double s)
+	{
+		return (FunctionWellPoint(t, well1) - FunctionWellPoint(s, well2)).norm() / (sgm * (L1 * t + L2 * s));
+	};
+	// TODO: Доделать до конца, и сравнить насколько быстро сходится
+}
+
+
 void gabbage_collector(std::vector<TrajectoryTemplate*>& well)
 {
 	for (auto x : well)

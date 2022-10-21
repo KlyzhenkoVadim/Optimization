@@ -56,6 +56,16 @@ double Hold::getTortuosity()
 	return 0.;
 }
 
+Eigen::Vector3d Hold::FunctionPoint(double md) // md[0,1]
+{
+	return pi + md * length() * direction;
+}
+
+Eigen::Vector3d Hold::FunctionTangent(double md) // md[0,1]
+{
+	return direction;
+}
+
 void Hold::getInitPoint(CoordinateSystem coordinateSystem) {
 	if (coordinateSystem == CoordinateSystem::CARTESIAN)
 		pointInitial = this->pi;

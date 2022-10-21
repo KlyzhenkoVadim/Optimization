@@ -48,6 +48,8 @@ public:
 	void points(CoordinateSystem coordinateSystem) override;
 	double length() override;
 	double getTortuosity() override;
+	Eigen::Vector3d FunctionPoint(double md) override;
+	Eigen::Vector3d FunctionTangent(double md) override;
 
 	void getInitPoint(CoordinateSystem coordinateSystem = CoordinateSystem::CARTESIAN) override;
 	void getTarget1Point(CoordinateSystem coordinateSystem = CoordinateSystem::CARTESIAN) override;
