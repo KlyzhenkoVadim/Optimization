@@ -12,6 +12,10 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+
+include_directories(./include)
+include_directories(./src)
+
 set(HEADERS
 	./include/CostFuncs.h 
 	./include/CurveHold.h 
@@ -44,6 +48,5 @@ set(SOURCES
 	./src/TestWells.cpp
 )
 include_directories(${eigen_SOURCE_DIR})
-include_directories(./include)
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
 target_link_libraries(${PROJECT_NAME} PUBLIC eigen)
