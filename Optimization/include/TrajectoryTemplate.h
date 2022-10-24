@@ -55,6 +55,6 @@ std::vector<Eigen::Vector4d> allPointsMD(std::vector<TrajectoryTemplate* >& Well
 
 Eigen::Vector3d FunctionWellPoint(double md, std::vector<TrajectoryTemplate*>& well); // md[0,1]
 
-Eigen::Vector3d FunctionWellPoint(double md, std::vector<TrajectoryTemplate*>& well); // md[0,1]
+Eigen::Vector3d FunctionWellTangent(double md, std::vector<TrajectoryTemplate*>& well); // md[0,1]
 
 int solve(std::vector<TrajectoryTemplate*>& Well);

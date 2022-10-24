@@ -105,20 +105,26 @@ int CurveHold::fit() {
 
 Eigen::Vector3d CurveHold::FunctionPoint(double md) // md [0,1]
 {
-	if (md * length() - alpha * R > -EPSILON)
+	double L = length();
+	double s = md * L / alpha / R;
+	if (s - 1 > EPSILON)
 	{
-		return p3 - (1 - md) * length() * t2;
+		if (betta < EPSILON)
+			return p3;
+		return p3 - (1 - md) * L  * t2;
 	}
-	return p1 + R * tan(md * alpha / 2) * (t1 + FunctionTangent(md));
+	Eigen::Vector3d tstar = FunctionTangent(md);
+	return p1 + R * tan(s*alpha/2) * (t1 + tstar);
 }
 
 Eigen::Vector3d CurveHold::FunctionTangent(double md) // md [0,1]
 {
-	if (md * length() - alpha * R > -EPSILON)
+	double L = length(), s = md * L / alpha / R;
+	if (s - 1 > EPSILON)
 	{
 		return t2;
 	}
-	return t1* sin((1 - md) * alpha) / sin(alpha) + t2 * sin(md * alpha) / sin(alpha);
+	return t1* sin((1 - s) * alpha) / sin(alpha) + t2 * sin(s * alpha) / sin(alpha);
 
 }
 

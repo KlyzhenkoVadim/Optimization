@@ -183,16 +183,16 @@ Eigen::Vector3d CurveHoldCurveHold::FunctionPoint(double md) // md [0,1]
 	double arc2 = alpha2 * R2; 
 	if (md * L < arc1)
 	{
-		return p1 + R1 * tan(md * alpha1 / 2) * (t1 + FunctionTangent(md));
+		return p1 + R1 * tan(md*L/arc1 * alpha1 / 2) * (t1 + FunctionTangent(md));
 	}
-	if (0 < md * L - arc1 < holdLength)
+	if (md * L - arc1 > 0 && md * L - arc1 < holdLength)
 	{
 		return p1Inter + (md * L - arc1) * t;
 	}
-	if (0 < md * L - arc1 - holdLength < arc2)
+	if (md * L - arc1 - holdLength > 0 && md * L - arc1 - holdLength < arc2)
 	{
 		double s = (md * L - arc1 - holdLength) / arc2;
-		return pInter - R2 * tan(s * alpha2 / 2) * (t4 + FunctionTangent(md));
+		return p4Inter + R2 * tan(s * alpha2 / 2) * (t + FunctionTangent(md));
 	}
 	else
 		return p4 - (1 - md) * L * t4;
@@ -204,15 +204,16 @@ Eigen::Vector3d CurveHoldCurveHold::FunctionTangent(double md) // md [0,1]
 	double arc1 = alpha1 * R1, arc2 = alpha2 * R2;
 	if (md * L < arc1)
 	{
-		return t1 * sin((1 - md) * alpha1) / sin(alpha1) + t * sin(md * alpha1) / sin(alpha1);
+		return t1 * sin((1 - md*L/arc1) * alpha1) / sin(alpha1) + t * sin(md*L/arc1 * alpha1) / sin(alpha1);
 	}
-	if (0 < md * L - arc1 < holdLength)
+	if (md * L - arc1 > 0 && md * L - arc1 < holdLength)
 	{
 		return t;
 	}
-	if (0 < md * L - arc1 - holdLength < arc2)
+	if (md * L - arc1 - holdLength > 0 && md * L - arc1 - holdLength < arc2)
 	{
-		return t * sin((1 - md) * alpha2) / sin(alpha2) + t4 * sin(md * alpha2) / sin(alpha2);
+		double s = (md * L - arc1 - holdLength) / arc2;
+		return t * sin((1 - s) * alpha2) / sin(alpha2) + t4 * sin(s * alpha2) / sin(alpha2);
 	}
 	else
 		return t4;
@@ -223,8 +224,8 @@ void CurveHoldCurveHold::points(CoordinateSystem coordinateSystem) {
 	double arc1 = R1 * alpha1;
 	double arc2 = R2 * alpha2;
 	double h = length() / nums;
-	int arc1Nums = std::max(10, int(arc1 / h));
-	int arc2Nums = std::max(10, int(arc2 / h));
+	int arc1Nums = std::max(5, int(arc1 / h));
+	int arc2Nums = std::max(5, int(arc2 / h));
 	int nHold1 = std::max(2, int(holdLength / h));
 	int nHold2 = std::max(2, int(betta / h));
 	if (coordinateSystem == CoordinateSystem::CARTESIAN) {
