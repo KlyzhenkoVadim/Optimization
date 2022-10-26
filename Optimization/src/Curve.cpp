@@ -65,6 +65,24 @@ double Curve::length() {
 	return alpha * R;
 }
 
+double Curve::getTortuosity()
+{
+	return alpha;
+}
+
+Eigen::Vector3d Curve::FunctionPoint(double md) // md \in [0,1]
+{
+	Eigen::Vector3d t_star = FunctionTangent(md);
+	return pi + R * tan(md*alpha/2) * (t1 + t_star);
+}
+
+Eigen::Vector3d Curve::FunctionTangent(double md)
+{
+	if (alpha < EPSILON)
+		return t1;
+	return t1 * sin((1 - md) * alpha) / sin(alpha) + t2 * sin(md*alpha) / sin(alpha);
+}
+
 void Curve::getInitPoint(CoordinateSystem coordinateSystem ) {
 	if (coordinateSystem == CoordinateSystem::CARTESIAN)
 		pointInitial = this->pi;

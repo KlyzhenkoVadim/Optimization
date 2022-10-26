@@ -24,6 +24,9 @@ public:
 	virtual int getCondition() = 0;
 	virtual void points(CoordinateSystem coordinateSystem) = 0;
 	virtual double length() = 0;
+	virtual double getTortuosity() = 0;
+	virtual Eigen::Vector3d FunctionPoint(double md) = 0;
+	virtual Eigen::Vector3d FunctionTangent(double md) = 0;
 	virtual void getInitPoint(CoordinateSystem coordinateSystem = CoordinateSystem::CARTESIAN) = 0;
 	virtual void getTarget1Point(CoordinateSystem coordinateSystem = CoordinateSystem::CARTESIAN) = 0;
 	virtual void getTarget3Point(CoordinateSystem coordinateSystem = CoordinateSystem::CARTESIAN) = 0;
@@ -32,7 +35,6 @@ public:
 
 	Eigen::Vector3d pointInitial,pointT1, pointT3;
 	Eigen::Vector4d pointInitialMD, pointMDT1, pointMDT3;
-
 	std::vector<Eigen::Vector3d> calcInterpolCartesianPoints(const Eigen::Vector3d& p1,
 		const Eigen::Vector3d& t1,
 		const Eigen::Vector3d& t2,
@@ -50,5 +52,9 @@ double allLength(std::vector<TrajectoryTemplate*>& Well);
 std::vector<Eigen::Vector3d> allPointsCartesian(std::vector<TrajectoryTemplate*>& Well);
 
 std::vector<Eigen::Vector4d> allPointsMD(std::vector<TrajectoryTemplate* >& Well);
+
+Eigen::Vector3d FunctionWellPoint(double md, std::vector<TrajectoryTemplate*>& well); // md[0,1]
+
+Eigen::Vector3d FunctionWellTangent(double md, std::vector<TrajectoryTemplate*>& well); // md[0,1]
 
 int solve(std::vector<TrajectoryTemplate*>& Well);

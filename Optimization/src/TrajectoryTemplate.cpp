@@ -115,6 +115,40 @@ std::vector<Eigen::Vector4d> allPointsMD(std::vector<TrajectoryTemplate* >& Well
 	return pointsMD;
 }
 
+Eigen::Vector3d FunctionWellPoint(double md,std::vector<TrajectoryTemplate*>& well) // md[0,1]
+{
+	double L = allLength(well);
+	double tmpL = 0, s = 0;
+	int idx = 0;
+	for (size_t i = 0; well.size(); ++i)
+	{
+		tmpL += well[i]->length();
+		if (md * L - tmpL < EPSILON)
+		{
+			idx = i;
+			s = 1 - (tmpL - md * L) / well[i]->length();
+			return well[i]->FunctionPoint(s);
+		}
+	}
+}
+
+Eigen::Vector3d FunctionWellTangent(double md, std::vector<TrajectoryTemplate*>& well) // md[0,1]
+{
+	double L = allLength(well);
+	double tmpL = 0, s = 0;
+	int idx = 0;
+	for (size_t i = 0; well.size(); ++i)
+	{
+		tmpL += well[i]->length();
+		if (md * L - tmpL < EPSILON)
+		{
+			idx = i;
+			s = 1 - (tmpL - md * L) / well[i]->length();
+			return well[i]->FunctionTangent(s);
+		}
+	}
+}
+
 int solve(std::vector<TrajectoryTemplate*>& Well) {
 	int numErrors = 0;
 	for (size_t idx = 0; idx < Well.size(); ++idx) {

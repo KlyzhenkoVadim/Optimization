@@ -26,7 +26,7 @@ double sepFactor(std::vector<Eigen::Vector3d>& pCartesianW1,
 	size_t StartW1 = n - 1;
 	size_t StartW2 = m - 1;
 	size_t k;
-	Eigen::Vector3d diffVector, tangentW1;
+	Eigen::Vector3d diffVector, tangentW1;// tangentW2;
 
 	for (size_t i = 0; i < n; ++i) {
 		scalarProdMatrix[i][0] = -1.;
@@ -51,6 +51,7 @@ double sepFactor(std::vector<Eigen::Vector3d>& pCartesianW1,
 		for (size_t idxM = k - 1; idxM < m; ++idxM) {
 			diffVector = pCartesianW2[idxM] - pCartesianW1[idxN];
 			tangentW1 = { pMDW1[idxN][1], pMDW1[idxN][2], pMDW1[idxN][3] };
+			//tangentW2 = { pMDW2[idxM][1],pMDW2[idxM][2],pMDW2[idxM][3] };
 			if (diffVector.norm() < eps) {
 				scalarProdMatrix[idxN][idxM] = 0;
 				distanceMatrix[idxN][idxM] = 0.;
@@ -106,18 +107,17 @@ double dls(Eigen::Vector3d& tangent1, Eigen::Vector3d& tangent2) {
 	return (180. / PI) * acos(dotProd);
 }
 
-double Tortuosity(std::vector<Eigen::Vector4d>& pointsMD) {
+double Tortuosity(std::vector<TrajectoryTemplate*>& well) {
 	double tortuos = 0.;
-	for (size_t i = 1; i < pointsMD.size(); ++i) {
-		Eigen::Vector3d tPresent = { pointsMD[i][1],pointsMD[i][2],pointsMD[i][3]};
-		Eigen::Vector3d tPrev = { pointsMD[i-1][1],pointsMD[i-1][2],pointsMD[i-1][3]};
-		tortuos += dls(tPresent, tPrev);
+	for (size_t i = 1; i < well.size(); ++i) 
+	{
+		tortuos += well[i]->getTortuosity();
 	}
 	return tortuos;
 }
 
-double DDI(std::vector<Eigen::Vector3d>& pCartesian,std::vector<Eigen::Vector4d>& pMD, bool actFunc, double penalty) {
-	double toruos = Tortuosity(pMD);
+double DDI(std::vector<TrajectoryTemplate*>& well,const std::vector<Eigen::Vector3d>& pCartesian, bool actFunc, double penalty) {
+	double toruos = Tortuosity(well);
 	double DDI;
 	std::vector<double> pX, pY;
 	for (size_t idx = 0; idx < pCartesian.size(); ++idx) {
@@ -125,7 +125,7 @@ double DDI(std::vector<Eigen::Vector3d>& pCartesian,std::vector<Eigen::Vector4d>
 		pY.push_back(pCartesian[idx][1]);
 	}
 	double ahd = AHD(pX,pY);
-	double MD = pMD.back()[0] - pMD[0][0];
+	double MD = allLength(well);
 	double TVD = pCartesian.back()[2] - pCartesian[0][2] ;
 	DDI = log10((1. / 0.305) * ahd * MD * toruos / TVD);
 	if (actFunc) {
@@ -151,7 +151,7 @@ double orderScore1(std::vector<TrajectoryTemplate*>& mainWell, std::vector<std::
 	IdealLength = (mainWell.back()->pointT1 - mainWell[0]->pointInitial).norm() + (mainWell.back()->pointT3 - mainWell.back()->pointT1).norm();
 	if (IdealLength == 0)
 		return 0.;
-	mainDDI = DDI(mainPCartesian, mainPMD);
+	mainDDI = DDI(mainWell,mainPCartesian);
 	if (pCTrajectories.size() == 0) {
 		return mainLength/IdealLength + mainDDI;
 	}
@@ -181,7 +181,7 @@ double scoreSolver(std::vector<TrajectoryTemplate*>& tmp, const WellTrajectoryCo
 		IdealLength = (tmp.back()->pointT1 - tmp[0]->pointInitial).norm() + (tmp.back()->pointT3 - tmp.back()->pointT1).norm();
 		if (IdealLength == 0)
 			return 0.;
-		mainDDI = DDI(mainPCartesian, mainPMD);
+		mainDDI = DDI(tmp,mainPCartesian);
 		double lenPen = PenaltyLength(mainLength,cs.maxMD), ahdPen = PenaltyAHDNSEW(mainPCartesian, cs.maxDistEastWest, cs.maxDistNorthSouth, 100);
 
 		return mainLength / IdealLength + mainDDI + ahdPen + lenPen;

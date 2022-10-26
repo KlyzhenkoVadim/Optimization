@@ -27,7 +27,7 @@ double OneWellScore(std::vector<TrajectoryTemplate*>& mainWell, double penalty) 
 	IdealLength = (mainWell.back()->pointT1 - mainWell[0]->pointInitial).norm() + (mainWell.back()->pointT3 - mainWell.back()->pointT1).norm();
 	if (IdealLength == 0)
 		return 0.;
-	mainDDI = DDI(mainPCartesian, mainPMD);
+	mainDDI = DDI(mainWell, mainPCartesian);
 	return mainLength / IdealLength + mainDDI;
 }
 
