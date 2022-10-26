@@ -18,8 +18,8 @@ double OneWellScore(std::vector<TrajectoryTemplate*>& mainWell, double penalty) 
 		return penalty * (-condition) / mainWell.size(); // penalty * percent of incorrect templates.
 	}
 	mainLength = allLength(mainWell);
-	std::vector<Eigen::Vector3d> mainPCartesian = allPointsCartesian(mainWell);
-	std::vector<Eigen::Vector4d> mainPMD = allPointsMD(mainWell);
+	//std::vector<Eigen::Vector3d> mainPCartesian = allPointsCartesian(mainWell);
+	//std::vector<Eigen::Vector4d> mainPMD = allPointsMD(mainWell);
 	double IdealLength;
 	mainWell[0]->getInitPoint();
 	mainWell.back()->getTarget1Point();
@@ -27,7 +27,7 @@ double OneWellScore(std::vector<TrajectoryTemplate*>& mainWell, double penalty) 
 	IdealLength = (mainWell.back()->pointT1 - mainWell[0]->pointInitial).norm() + (mainWell.back()->pointT3 - mainWell.back()->pointT1).norm();
 	if (IdealLength == 0)
 		return 0.;
-	mainDDI = DDI(mainWell, mainPCartesian);
+	mainDDI = 0;// DDI(mainWell, mainPCartesian);
 	return mainLength / IdealLength + mainDDI;
 }
 
@@ -78,8 +78,6 @@ void OptimizeHorizontal(const Eigen::Vector3d& pinit, const Eigen::Vector3d& pT1
 		}
 	}
 	getOptData(opt);
-	std::vector<TrajectoryTemplate*> well = well2CHCH(opt.first, pinit, pT1, pT3);
-	testHorizontal(opt.first,well);
 }
 
 void OptimizeHorizontals(const Eigen::Vector3d& pinit, const std::vector<Eigen::Vector3d>& targets1, const std::vector<Eigen::Vector3d>& targets3)
@@ -126,7 +124,7 @@ void OptimizeHorizontals(const Eigen::Vector3d& pinit, const std::vector<Eigen::
 				break;
 			}
 		}
-		writeDataCartesian(pCWells[i], "output/Cartesian/pHorizontal" + std::to_string(i + 1) + ".txt");
+		writeDataCartesian(pCWells[i], "../output/Cartesian/pHorizontal" + std::to_string(i + 1) + ".txt");
 	}
 }
 

@@ -14,3 +14,9 @@ double orderScore1(std::vector<TrajectoryTemplate*>& mainWell, std::vector<std::
 	std::vector<std::vector<Eigen::Vector4d>>& pMDTrajectories,double SepFactorShift = 0,double penalty = 1000);
 
 double scoreSolver(std::vector<TrajectoryTemplate*>& tmp, const WellTrajectoryConstraints& cs, double penalty = 1000);
+
+double dls(Eigen::Vector3d& tangent1, Eigen::Vector3d& tangent2);
+
+double Tortuosity_sum(const std::vector<Eigen::Vector4d>& pmd);
+
+double Tortuosity(std::vector<TrajectoryTemplate*>& well);

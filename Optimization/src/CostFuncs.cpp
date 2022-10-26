@@ -97,27 +97,42 @@ double dls(Eigen::Vector3d& tangent1, Eigen::Vector3d& tangent2) {
 		return 0.;
 	}
 	double dotProd= tangent1.dot(tangent2) / tangent1.norm() / tangent2.norm();
-	if (dotProd + 1 < EPSILON or dotProd - 1 > EPSILON) {
-		return 0.;
-	}
+	if (abs(dotProd) > 1)
+		return 0;
+
+	/*if (abs(dotProd - 1) < )
 	if (fabs(dotProd - 1.) < EPSILON)
 		dotProd = 1.;
 	if (fabs(dotProd + 1) < EPSILON)
-		dotProd = -1.;
+		dotProd = -1.;*/
 	return (180. / PI) * acos(dotProd);
 }
 
 double Tortuosity(std::vector<TrajectoryTemplate*>& well) {
 	double tortuos = 0.;
-	for (size_t i = 1; i < well.size(); ++i) 
+	for (size_t i = 0; i < well.size(); ++i) 
 	{
 		tortuos += well[i]->getTortuosity();
+	}
+	return 180/PI*tortuos;
+}
+
+double Tortuosity_sum(const std::vector<Eigen::Vector4d>& pmd)
+{
+	double tortuos = 0;
+	Eigen::Vector3d tang1, tang2;
+	for (size_t i = 1; i < pmd.size(); ++i)
+	{
+		tang1 = { pmd[i - 1][1],pmd[i-1][2] ,pmd[i - 1][3] };
+		tang2 = {pmd[i][1],pmd[i][2] ,pmd[i][3]} ;
+		tortuos += dls(tang1,tang2);
 	}
 	return tortuos;
 }
 
 double DDI(std::vector<TrajectoryTemplate*>& well,const std::vector<Eigen::Vector3d>& pCartesian, bool actFunc, double penalty) {
-	double toruos = Tortuosity(well);
+	std::vector<Eigen::Vector4d> pmd = allPointsMD(well);
+	double toruos = Tortuosity(well); 
 	double DDI;
 	std::vector<double> pX, pY;
 	for (size_t idx = 0; idx < pCartesian.size(); ++idx) {
@@ -161,7 +176,7 @@ double orderScore1(std::vector<TrajectoryTemplate*>& mainWell, std::vector<std::
 			sepFactor(pCTrajectories[idx], pMDTrajectories[idx],
 				mainPCartesian, mainPMD,SepFactorShift));
 	}
-	return mainLength / IdealLength + rSepFactor +mainDDI;
+	return mainLength / IdealLength + rSepFactor + mainDDI;
 }
 
 double scoreSolver(std::vector<TrajectoryTemplate*>& tmp, const WellTrajectoryConstraints& cs, double penalty)

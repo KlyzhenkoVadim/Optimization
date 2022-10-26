@@ -58,3 +58,22 @@ Eigen::Vector3d FunctionWellPoint(double md, std::vector<TrajectoryTemplate*>& w
 Eigen::Vector3d FunctionWellTangent(double md, std::vector<TrajectoryTemplate*>& well); // md[0,1]
 
 int solve(std::vector<TrajectoryTemplate*>& Well);
+
+
+//struct CurveStatus
+//{
+//private:
+//	double md;
+//	std::vector<TrajectoryTemplate*> well;
+//	enum class segmorarc { segment, arc };
+//public:
+//	CurveStatus(double md,std::vector<TrajectoryTemplate*>& well)
+//	{
+//		this->md = md;
+//		this->well = well;
+//	}
+//	segmorarc isarc;
+//	Eigen::Vector3d currPoint, currTangent;
+//	double cumulativeTortuosity;
+//	double cumulativeLength = allLength(well) * md;
+//};
