@@ -24,11 +24,7 @@ void writeCurrbestCost(double c, std::string filename)
 
 PSOvalueType PSO(std::function<double(const Eigen::VectorXd&)> func, const std::vector<double>& minValues, const std::vector<double>& maxValues,
 	size_t numAgents, size_t dimension, size_t numIterations, const std::vector<double>& inertia, double socCoef, double indCoef, const std::string& numtarget){
-	assert ("Number of bound conditions is not equal", minValues.size() != maxValues.size());
 	bool flag = false;
-	for (size_t i = 0; i < minValues.size();++i) {
-		assert("MinValue more than MaxValues", minValues[i] - maxValues[i] > 1e-10);
-	}
 	std::vector<double> vMax;
 	for (size_t idx = 0; idx < dimension; ++idx) {
 		vMax.push_back(fabs(maxValues[idx] - minValues[idx]) / 2);

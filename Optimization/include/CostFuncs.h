@@ -17,6 +17,4 @@ double scoreSolver(std::vector<TrajectoryTemplate*>& tmp, const WellTrajectoryCo
 
 double dls(Eigen::Vector3d& tangent1, Eigen::Vector3d& tangent2);
 
-double Tortuosity_sum(const std::vector<Eigen::Vector4d>& pmd);
-
 double Tortuosity(std::vector<TrajectoryTemplate*>& well);

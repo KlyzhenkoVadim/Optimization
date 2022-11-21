@@ -84,7 +84,6 @@ double sepFactor(std::vector<Eigen::Vector3d>& pCartesianW1,
 
 double AHD(std::vector<double>& pX, std::vector<double>& pY) {
 	double AHD = 0;
-	assert("length pX and pY must be equal", pX.size() != pY.size());
 	for (size_t i = 1; i < pX.size(); ++i) {
 		
 		AHD += sqrt((pX[i] - pX[i - 1])*(pX[i] - pX[i - 1]) + (pY[i] - pY[i - 1])*(pY[i] - pY[i - 1]));
@@ -99,12 +98,6 @@ double dls(Eigen::Vector3d& tangent1, Eigen::Vector3d& tangent2) {
 	double dotProd= tangent1.dot(tangent2) / tangent1.norm() / tangent2.norm();
 	if (abs(dotProd) > 1)
 		return 0;
-
-	/*if (abs(dotProd - 1) < )
-	if (fabs(dotProd - 1.) < EPSILON)
-		dotProd = 1.;
-	if (fabs(dotProd + 1) < EPSILON)
-		dotProd = -1.;*/
 	return (180. / PI) * acos(dotProd);
 }
 
@@ -117,22 +110,9 @@ double Tortuosity(std::vector<TrajectoryTemplate*>& well) {
 	return 180/PI*tortuos;
 }
 
-double Tortuosity_sum(const std::vector<Eigen::Vector4d>& pmd)
-{
-	double tortuos = 0;
-	Eigen::Vector3d tang1, tang2;
-	for (size_t i = 1; i < pmd.size(); ++i)
-	{
-		tang1 = { pmd[i - 1][1],pmd[i-1][2] ,pmd[i - 1][3] };
-		tang2 = {pmd[i][1],pmd[i][2] ,pmd[i][3]} ;
-		tortuos += dls(tang1,tang2);
-	}
-	return tortuos;
-}
-
 double DDI(std::vector<TrajectoryTemplate*>& well,const std::vector<Eigen::Vector3d>& pCartesian, bool actFunc, double penalty) {
 	std::vector<Eigen::Vector4d> pmd = allPointsMD(well);
-	double toruos = Tortuosity(well); 
+	double tortuos = Tortuosity(well); 
 	double DDI;
 	std::vector<double> pX, pY;
 	for (size_t idx = 0; idx < pCartesian.size(); ++idx) {
@@ -142,7 +122,7 @@ double DDI(std::vector<TrajectoryTemplate*>& well,const std::vector<Eigen::Vecto
 	double ahd = AHD(pX,pY);
 	double MD = allLength(well);
 	double TVD = pCartesian.back()[2] - pCartesian[0][2] ;
-	DDI = log10((1. / 0.305) * ahd * MD * toruos / TVD);
+	DDI = log10((1. / 0.305) * ahd * MD * tortuos / TVD);
 	if (actFunc) {
 		return sigmoid(DDI, penalty, -2.5, 6.25);
 	}
