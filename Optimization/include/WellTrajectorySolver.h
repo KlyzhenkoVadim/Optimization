@@ -4,7 +4,6 @@
 #include "CurveHoldCurveHold.h"
 #include "Curve.h"
 #include "Hold.h"
-#include "CostFuncs.h"
 #include "PSO.h"
 #include <string>
 
@@ -34,6 +33,22 @@ namespace well_trajectory
 		std::string date;
 	};
 
+	struct Layer {
+		double TVD, theta, phi;
+	};
+
+	struct Constraint {
+		Layer lMin, lMax;
+	};
+
+	struct WellTrajectoryConstraints {
+		double minDepthFirstHold;
+		double maxDLS;
+		double maxMD;
+		double maxDistEastWest;
+		double maxDistNorthSouth;
+	};
+
 	using wellType = std::function<std::vector<TrajectoryTemplate*>(const Eigen::VectorXd& x)>;
 
 	class WellTrajectorySolver {
@@ -50,7 +65,7 @@ namespace well_trajectory
 		bool horizontal = true;
 
 	public:
-		WellTrajectorySolver();
+		WellTrajectorySolver() {};
 		void setPSOdata();
 		void setData(Point2d& pInitial, Target& Targets);
 		void setConstraints(const WellTrajectoryConstraints& cs);
@@ -60,4 +75,5 @@ namespace well_trajectory
 		std::vector<Eigen::Vector3d> getInclinometry();
 		double getTrajectoryLength();
 	};
-}
+	double scoreSolver(std::vector<TrajectoryTemplate*>& well, const WellTrajectoryConstraints& cs, double penalty = 1000.);
+} // end namespace

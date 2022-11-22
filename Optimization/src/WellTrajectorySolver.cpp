@@ -1,12 +1,54 @@
 #include "WellTrajectorySolver.h"
 
-using namespace well_trajectory;
+double well_trajectory::scoreSolver(std::vector<TrajectoryTemplate*>& well, const WellTrajectoryConstraints& cs, double penalty)
+{
+	int condition = solve(well);
+	if (condition != 0)
+	{
+		return penalty * (-condition) / well.size(); // penalty * percent of incorrect templates.
+	}
+	double md = allLength(well);
+	if (md > cs.maxMD)
+	{
+		return 100.;
+	}
+	well[0]->getInitPoint();
+	well.back()->getTarget1Point();
+	well.back()->getTarget3Point();
+	double IdealLength = (well.back()->pointT1 - well[0]->pointInitial).norm() + (well.back()->pointT3 - well.back()->pointT1).norm();
+	if (IdealLength == 0)
+		return 0.;
 
-WellTrajectorySolver::WellTrajectorySolver() {};
+	double tortuosity = 0;
+	for (size_t i = 0; i < well.size(); ++i)
+	{
+		tortuosity += well[i]->getTortuosity();
+	}
+	tortuosity = 180. / PI * tortuosity;
+	double ahd = 0;
+	std::vector<Eigen::Vector3d> points3d = allPointsCartesian(well);
+	double NS = 0, EW = 0;
+	for (size_t i = 1; i < points3d.size(); ++i)
+	{
+		NS += fabs(points3d[i][0] - points3d[i - 1][0]);
+		EW += fabs(points3d[i][1] - points3d[i - 1][1]);
+		ahd += sqrt((points3d[i][0] - points3d[i - 1][0]) * (points3d[i][0] - points3d[i - 1][0])
+			+ (points3d[i][1] - points3d[i - 1][1]) * (points3d[i][1] - points3d[i - 1][1]));
+	}
+	if (EW - cs.maxDistEastWest > EPSILON || NS - cs.maxDistNorthSouth > EPSILON)
+	{
+		return 100.;
+	}
+	
+	double tvd = points3d.back()[2] - points3d[0][2];
+	double ddi = log10((1. / 0.305) * ahd * md * tortuosity / tvd);
+	ddi  = 5. / (1 + exp(-2.5 * (ddi - 6.25)));
+	return md / IdealLength + ddi;
+}
 
-void WellTrajectorySolver::setPSOdata() {};
+void well_trajectory::WellTrajectorySolver::setPSOdata() {};
 
-void WellTrajectorySolver::setData(Point2d& pInitial, Target& Targets) {
+void well_trajectory::WellTrajectorySolver::setData(Point2d& pInitial, Target& Targets) {
 	pointInitial = { pInitial.north,pInitial.east,0. };
 	pointsT1 = { Targets.northT1, Targets.eastT1, Targets.tvdT1 };
 	pointsT3 = { Targets.northT3, Targets.eastT3, Targets.tvdT3 };
@@ -38,7 +80,7 @@ void WellTrajectorySolver::setData(Point2d& pInitial, Target& Targets) {
 	}
 }
 
-void WellTrajectorySolver::setConstraints(const WellTrajectoryConstraints& cs)
+void well_trajectory::WellTrajectorySolver::setConstraints(const WellTrajectoryConstraints& cs)
 {
 	if (!std::isnan(cs.minDepthFirstHold))
 		OptimizeConstraints.minDepthFirstHold = cs.minDepthFirstHold;
@@ -52,11 +94,11 @@ void WellTrajectorySolver::setConstraints(const WellTrajectoryConstraints& cs)
 		OptimizeConstraints.maxDistEastWest = cs.maxDistEastWest;
 }
 
-void WellTrajectorySolver::optimize() {
+void well_trajectory::WellTrajectorySolver::optimize() {
 	size_t numIterations = 150;
 	std::vector<double> minValues{ OptimizeConstraints.minDepthFirstHold,0 };
 	std::vector<double> maxValues{ pointsT1[2],OptimizeConstraints.maxDLS };
-	std::function<double(Eigen::VectorXd)> score = [&](Eigen::VectorXd x) {
+	auto score = [&](const Eigen::VectorXd& x) {
 		std::vector<TrajectoryTemplate*> tmpwell = mainWell(x);
 		double oneScore = scoreSolver(tmpwell, OptimizeConstraints);
 		for (auto x : tmpwell) {
@@ -73,11 +115,11 @@ void WellTrajectorySolver::optimize() {
 	condition = solve(trajectory);
 };
 
-PSOvalueType WellTrajectorySolver::getPSOdata() {
+PSOvalueType well_trajectory::WellTrajectorySolver::getPSOdata() {
 	return optData;
 };
 
-double WellTrajectorySolver::getTrajectoryLength() {
+double well_trajectory::WellTrajectorySolver::getTrajectoryLength() {
 	if (condition != 0 or optData.second > 99)
 	{
 		std::cout << "Warning! Impossible to build the Trajectory or satisfy the Constraints with:\n HoldDepth:" << optData.first[0] << "\nDLS: " << optData.first[1] << "\n";
@@ -86,7 +128,7 @@ double WellTrajectorySolver::getTrajectoryLength() {
 	return allLength(trajectory);
 };
 
-std::vector<Eigen::Vector3d> WellTrajectorySolver::getTrajectoryPoints() {
+std::vector<Eigen::Vector3d> well_trajectory::WellTrajectorySolver::getTrajectoryPoints() {
 	// ??? if solve > 0 ???
 	if (condition != 0 or optData.second > 99)
 	{
@@ -100,7 +142,7 @@ std::vector<Eigen::Vector3d> WellTrajectorySolver::getTrajectoryPoints() {
 	return pCtrajectory;
 };
 
-std::vector<Eigen::Vector3d> WellTrajectorySolver::getInclinometry()
+std::vector<Eigen::Vector3d> well_trajectory::WellTrajectorySolver::getInclinometry()
 {
 	std::vector<Eigen::Vector3d> inclinometry;
 	if (condition != 0 or optData.second > 99)
