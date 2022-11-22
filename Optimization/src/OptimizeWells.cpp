@@ -18,7 +18,7 @@ double OneWellScore(std::vector<TrajectoryTemplate*>& mainWell, double penalty) 
 		return penalty * (-condition) / mainWell.size(); // penalty * percent of incorrect templates.
 	}
 	mainLength = allLength(mainWell);
-	//std::vector<Eigen::Vector3d> mainPCartesian = allPointsCartesian(mainWell);
+	std::vector<Eigen::Vector3d> mainPCartesian = allPointsCartesian(mainWell);
 	//std::vector<Eigen::Vector4d> mainPMD = allPointsMD(mainWell);
 	double IdealLength;
 	mainWell[0]->getInitPoint();
@@ -27,7 +27,7 @@ double OneWellScore(std::vector<TrajectoryTemplate*>& mainWell, double penalty) 
 	IdealLength = (mainWell.back()->pointT1 - mainWell[0]->pointInitial).norm() + (mainWell.back()->pointT3 - mainWell.back()->pointT1).norm();
 	if (IdealLength == 0)
 		return 0.;
-	mainDDI = 0;// DDI(mainWell, mainPCartesian);
+	mainDDI = DDI(mainWell, mainPCartesian);
 	return mainLength / IdealLength + mainDDI;
 }
 
@@ -67,7 +67,7 @@ void OptimizeHorizontal(const Eigen::Vector3d& pinit, const Eigen::Vector3d& pT1
 		}
 		return score;
 	};
-	std::vector<double> minValues{ 400,0,0,0,0,35,0,0,0,0}, maxValues{ pT1[2],1.5,1.5,1.5,1.5,55,360,1,1,1};
+	std::vector<double> minValues{ 400,0,0,0,0,35,0,0,0}, maxValues{ pT1[2],1.5,1.5,1.5,1.5,55,360,1,1};
 	PSOvalueType opt;
 	for (size_t i = 0; i < 500; ++i)
 	{
