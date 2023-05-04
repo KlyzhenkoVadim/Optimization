@@ -20,14 +20,6 @@ CurveHold::CurveHold(const Eigen::Vector3d& p1, const Eigen::Vector3d& p3, const
 	this->condition = CurveHold::fit();
 }
 
-//CurveHold::CurveHold(const Eigen::Vector3d& p1, const Eigen::Vector3d& p3, double teta, double phi, size_t nums) {
-//	this->p1 = p1;
-//	this->p3 = p3;
-//	this->t1 = calcTangentVector(phi, teta);
-//	this->R = NAN;
-//	this->nums = nums;
-//}
-
 double CurveHold::length() {
 	double arc = alpha * R;
 	return arc + betta;

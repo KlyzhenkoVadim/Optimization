@@ -110,21 +110,25 @@ double Tortuosity(std::vector<TrajectoryTemplate*>& well) {
 	return 180/PI*tortuos;
 }
 
-double DDI(std::vector<TrajectoryTemplate*>& well,const std::vector<Eigen::Vector3d>& pCartesian, bool actFunc, double penalty) {
-	std::vector<Eigen::Vector4d> pmd = allPointsMD(well);
+double DDI(std::vector<TrajectoryTemplate*>& well,const std::vector<Eigen::Vector3d>& pCartesian, bool actFunc, double penalty) 
+{
 	double tortuos = Tortuosity(well); 
 	double DDI;
 	std::vector<double> pX, pY;
-	for (size_t idx = 0; idx < pCartesian.size(); ++idx) {
-		pX.push_back(pCartesian[idx][0]);
-		pY.push_back(pCartesian[idx][1]);
+	size_t size = pCartesian.size();
+	pX.reserve(size);
+	pY.reserve(size);
+	for (size_t idx = 0; idx < size; ++idx) {
+		auto p = pCartesian[idx];
+		pX.push_back(p[0]);
+		pY.push_back(p[1]);
 	}
 	double ahd = AHD(pX,pY);
 	double MD = allLength(well);
 	double TVD = pCartesian.back()[2] - pCartesian[0][2] ;
 	DDI = log10((1. / 0.305) * ahd * MD * tortuos / TVD);
 	if (actFunc) {
-		return sigmoid(DDI, penalty, -2.5, 6.25);
+		return sigmoid(DDI, penalty, -2.5, 6.25); // ???
 	}
 	return DDI;
 }	
@@ -144,18 +148,21 @@ double orderScore1(std::vector<TrajectoryTemplate*>& mainWell, std::vector<std::
 	mainWell.back()->getTarget1Point();
 	mainWell.back()->getTarget3Point();
 	IdealLength = (mainWell.back()->pointT1 - mainWell[0]->pointInitial).norm() + (mainWell.back()->pointT3 - mainWell.back()->pointT1).norm();
-	if (IdealLength == 0)
+	if (std::abs(IdealLength) < std::numeric_limits<double>::epsilon())
 		return 0.;
 	mainDDI = DDI(mainWell,mainPCartesian);
-	if (pCTrajectories.size() == 0) {
-		return mainLength/IdealLength + mainDDI;
+	size_t size = pCTrajectories.size();
+
+	for (size_t idx = 0; idx < size; ++idx) {
+		auto p = pCTrajectories[idx];
+		auto incl = pMDTrajectories[idx];
+		rSepFactor += std::max(
+			sepFactor(mainPCartesian,mainPMD,p,
+			incl, SepFactorShift),
+			sepFactor(p,incl,mainPCartesian,
+				mainPMD,SepFactorShift));
 	}
-	for (size_t idx = 0; idx < pCTrajectories.size(); ++idx) {
-		rSepFactor += std::max(sepFactor(mainPCartesian, mainPMD, pCTrajectories[idx],
-			pMDTrajectories[idx], SepFactorShift),
-			sepFactor(pCTrajectories[idx], pMDTrajectories[idx],
-				mainPCartesian, mainPMD,SepFactorShift));
-	}
+
 	return mainLength / IdealLength + rSepFactor + mainDDI;
 }
 

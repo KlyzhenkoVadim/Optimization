@@ -117,10 +117,7 @@ std::vector<Eigen::Vector4d> allPointsMD(std::vector<TrajectoryTemplate* >& Well
 
 Eigen::Vector3d FunctionWellPoint(double md,std::vector<TrajectoryTemplate*>& well) // md[0,1]
 {
-	if (md < 0)
-		md = 0;
-	if (md > 1)
-		md = 1;
+	md = std::max(0.0, std::min(1.0, md));
 	double L = allLength(well);
 	double tmpL = 0, s = 0;
 	int idx = 0;
@@ -139,10 +136,7 @@ Eigen::Vector3d FunctionWellPoint(double md,std::vector<TrajectoryTemplate*>& we
 
 Eigen::Vector3d FunctionWellTangent(double md, std::vector<TrajectoryTemplate*>& well) // md[0,1]
 {
-	if (md < 0)
-		md = 0;
-	if (md > 1)
-		md = 1;
+	md = std::max(0.0, std::min(1.0, md));
 	double L = allLength(well);
 	double tmpL = 0, s = 0;
 	int idx = 0;

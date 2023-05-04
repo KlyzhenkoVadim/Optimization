@@ -1,5 +1,6 @@
 #include "PSO.h"
 #include <fstream>
+
 void writePSO(double func, size_t iter, std::string filename);
 
 void writegBestPos(const Eigen::VectorXd& x, std::string filename)
@@ -59,7 +60,7 @@ PSOvalueType PSO(std::function<double(const Eigen::VectorXd&)> func, const std::
 		}
 	gBestPos = Xposition[idxgBest];
 	//writegBestPos(gBestPos,"bestPosEvo"+numtarget+".txt");
-	//writeCurrbestCost(minFunc, "bestCurrEvo"+numtarget+".txt");
+	//writeCurrbestCost(minFunc, numtarget+".txt");
 	double r1, r2;
 	for (size_t iteration = 0; iteration < numIterations; ++iteration) {
 		// r1 r2
@@ -67,19 +68,21 @@ PSOvalueType PSO(std::function<double(const Eigen::VectorXd&)> func, const std::
 			r1 = dist(gen);
 			r2 = dist(gen);
 			for (size_t idim = 0; idim < dimension; ++idim) {
-				Velocities[idAg](idim) = (inertia[iteration] * Velocities[idAg](idim) +
-					r1 * indCoef * (pBestPos[idAg](idim) - Xposition[idAg](idim)) +
-					r2 * socCoef * (gBestPos[idim] - Xposition[idAg](idim)));
-				if (Velocities[idAg](idim) - vMax[idim] > 1e-10)
-					Velocities[idAg](idim) = vMax[idim];
-				else if (Velocities[idAg](idim) + vMax[idim] < -1e-10)
-					Velocities[idAg](idim) = -vMax[idim];
-				if ((Xposition[idAg](idim) + Velocities[idAg](idim) - maxValues[idim] < 1e-10) and
-					(Xposition[idAg](idim) + Velocities[idAg](idim) - minValues[idim] > 1e-10))
-					Xposition[idAg](idim) += Velocities[idAg](idim);
-				else if((Xposition[idAg](idim) - Velocities[idAg](idim) - maxValues[idim] < 1e-10) and
-					(Xposition[idAg](idim) - Velocities[idAg](idim) - minValues[idim] > 1e-10))
-					Xposition[idAg](idim) -= Velocities[idAg](idim);
+				auto& v = Velocities[idAg](idim);
+				auto& x = Xposition[idAg](idim);
+				v = (inertia[iteration] * v +
+					r1 * indCoef * (pBestPos[idAg](idim) - x) +
+					r2 * socCoef * (gBestPos[idim] - x));
+				if (v - vMax[idim] > 1e-10)
+					v = vMax[idim];
+				else if (v + vMax[idim] < -1e-10)
+					v = -vMax[idim];
+				if ((x + v - maxValues[idim] < 1e-10) &&
+					(x + v - minValues[idim] > 1e-10))
+					x += v;
+				else if ((x - v - maxValues[idim] < 1e-10) &&
+					(x - v - minValues[idim] > 1e-10))
+					x -= v;
 			}
 		}
 		double tmpf = minFunc;
@@ -91,9 +94,10 @@ PSOvalueType PSO(std::function<double(const Eigen::VectorXd&)> func, const std::
 				gBestPos = Xposition[idxAg];
 				minFunc = func(gBestPos);
 				//writegBestPos(gBestPos, "bestPosEvo" + numtarget + ".txt");
-				//writeCurrbestCost(minFunc, "bestCurrEvo" + numtarget + ".txt");
+				//writeCurrbestCost(minFunc, numtarget + ".txt");
 			}
 		}
+		//writeCurrbestCost(minFunc, numtarget + ".txt");
 	}
 	return {gBestPos,minFunc};
 }

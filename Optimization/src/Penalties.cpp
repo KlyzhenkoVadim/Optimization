@@ -25,12 +25,14 @@ double PenaltyDLS(std::vector<TrajectoryTemplate*>& Well, double penalty) {
 double PenaltyIncWell(const std::vector<Eigen::Vector4d>& pMD, double incMin, double incMax, double penalty)
 {
 	double value = 0, currInc = -1;
-	for (size_t i = 0; i < pMD.size(); ++i)
+	size_t size = pMD.size();
+	for (size_t i = 0; i < size; ++i)
 	{
-		currInc = CartesianToSpherical(Eigen::Vector3d{ pMD[i][1],pMD[i][2],pMD[i][3] }).first;
+		auto p = pMD[i];
+		currInc = CartesianToSpherical(Eigen::Vector3d{ p[1],p[2],p[3] }).first;
 		if (currInc - incMin > -EPSILON and currInc - incMax < EPSILON)
 			continue;
-		value += penalty / pMD.size();
+		value += penalty / size;
 	}
 	return value;
 }
