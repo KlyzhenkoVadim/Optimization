@@ -29,6 +29,8 @@ set(HEADERS
 	./include/Penalties.h
 	./include/Slotting.h
 	./include/TestWells.h
+	./include/trajectory_test.h
+	./include/optimize_wells_test.h
 )
 	
 
@@ -46,6 +48,8 @@ set(SOURCES
 	./src/Slotting.cpp
 	./src/Source.cpp
 	./src/TestWells.cpp
+	./src/trajectory_test.cpp
+	./src/optimize_wells_test.cpp
 )
 include_directories(${eigen_SOURCE_DIR})
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
