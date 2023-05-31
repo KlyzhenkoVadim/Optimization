@@ -57,7 +57,7 @@ void well_trajectory::WellTrajectorySolver::setData(Point2d& pInitial, Target& T
 		horizontal = false;
 	}
 	if (horizontal) {
-		mainWell = [&](const Eigen::VectorXd& x) {
+		mainWell = [&](const std::vector<double>& x) {
 			double R1 = x[1] < EPSILON ? 1 / EPSILON : 1800 / x[1] / PI;
 			double R2 = x[2] < EPSILON ? 1 / EPSILON : 1800 / x[2] / PI;
 			std::vector<TrajectoryTemplate*> well;
@@ -68,7 +68,7 @@ void well_trajectory::WellTrajectorySolver::setData(Point2d& pInitial, Target& T
 		};
 	}
 	else {
-		mainWell = [&](const Eigen::VectorXd& x)
+		mainWell = [&](const std::vector<double>& x)
 		{
 			double R = x[1] < EPSILON ? 1 / EPSILON : 1800 / PI / x[1];
 			std::vector<TrajectoryTemplate*> well;
@@ -98,10 +98,10 @@ void well_trajectory::WellTrajectorySolver::optimize() {
 	size_t numIterations = 150;
 	std::vector<double> minValues{ OptimizeConstraints.minDepthFirstHold,0 };
 	std::vector<double> maxValues{ pointsT1[2],OptimizeConstraints.maxDLS };
-	auto score = [&](const Eigen::VectorXd& x) {
+	auto score = [&](const std::vector<double>& x) {
 		std::vector<TrajectoryTemplate*> tmpwell = mainWell(x);
 		double oneScore = scoreSolver(tmpwell, OptimizeConstraints);
-		for (auto x : tmpwell) {
+		for (auto& x : tmpwell) {
 			delete x;
 		}
 		return oneScore;
@@ -111,7 +111,7 @@ void well_trajectory::WellTrajectorySolver::optimize() {
 		maxValues.push_back(OptimizeConstraints.maxDLS);
 	}
 	optData = PSO(score, minValues, maxValues, 5 * minValues.size(), minValues.size(), numIterations);
-	trajectory = mainWell(optData.first);
+	trajectory = mainWell(optData.optVec);
 	condition = solve(trajectory);
 };
 
@@ -120,9 +120,9 @@ PSOvalueType well_trajectory::WellTrajectorySolver::getPSOdata() {
 };
 
 double well_trajectory::WellTrajectorySolver::getTrajectoryLength() {
-	if (condition != 0 or optData.second > 99)
+	if (condition != 0 || optData.cost > 99)
 	{
-		std::cout << "Warning! Impossible to build the Trajectory or satisfy the Constraints with:\n HoldDepth:" << optData.first[0] << "\nDLS: " << optData.first[1] << "\n";
+		std::cout << "Warning! Impossible to build the Trajectory or satisfy the Constraints with:\n HoldDepth:" << optData.optVec[0] << "\nDLS: " << optData.optVec[1] << "\n";
 		return 1 / EPSILON;
 	}
 	return allLength(trajectory);
@@ -130,9 +130,9 @@ double well_trajectory::WellTrajectorySolver::getTrajectoryLength() {
 
 std::vector<Eigen::Vector3d> well_trajectory::WellTrajectorySolver::getTrajectoryPoints() {
 	// ??? if solve > 0 ???
-	if (condition != 0 or optData.second > 99)
+	if (condition != 0 || optData.cost > 99)
 	{
-		std::cout << "Warning! Impossible to build the Trajectory or satisfy the Constraints with:\n HoldDepth:" << optData.first[0] << "\nDLS: " << optData.first[1] << "\n";
+		std::cout << "Warning! Impossible to build the Trajectory or satisfy the Constraints with:\n HoldDepth:" << optData.optVec[0] << "\nDLS: " << optData.optVec[1] << "\n";
 		pCtrajectory.push_back(pointInitial);
 	}
 	else
@@ -145,9 +145,9 @@ std::vector<Eigen::Vector3d> well_trajectory::WellTrajectorySolver::getTrajector
 std::vector<Eigen::Vector3d> well_trajectory::WellTrajectorySolver::getInclinometry()
 {
 	std::vector<Eigen::Vector3d> inclinometry;
-	if (condition != 0 or optData.second > 99)
+	if (condition != 0 || optData.cost > 99)
 	{
-		std::cout << "Warning! Impossible to build the Trajectory or satisfy the Constraints with:\n HoldDepth:" << optData.first[0] << "\nDLS: " << optData.first[1] << "\n";
+		std::cout << "Warning! Impossible to build the Trajectory or satisfy the Constraints with:\n HoldDepth:" << optData.optVec[0] << "\nDLS: " << optData.optVec[1] << "\n";
 		trajectory[0]->getInitPoint(CoordinateSystem::MD);
 		pMDtrajectory.push_back(trajectory[0]->pointInitialMD);
 	}

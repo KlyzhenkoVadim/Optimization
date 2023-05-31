@@ -30,7 +30,7 @@ double PenaltyIncWell(const std::vector<Eigen::Vector4d>& pMD, double incMin, do
 	{
 		auto p = pMD[i];
 		currInc = CartesianToSpherical(Eigen::Vector3d{ p[1],p[2],p[3] }).first;
-		if (currInc - incMin > -EPSILON and currInc - incMax < EPSILON)
+		if (currInc - incMin > -EPSILON && currInc - incMax < EPSILON)
 			continue;
 		value += penalty / size;
 	}
@@ -91,11 +91,11 @@ double PenaltyConstraint(std::vector<Constraint> cs, std::vector<Eigen::Vector3d
 		}
 		Eigen::Vector3d tmpVec = { pMD[id][1],pMD[id][2],pMD[id][3] };
 		incAzi = CartesianToSpherical(tmpVec);
-		if (!(incAzi.first - cs[i].lMin.theta > -EPSILON and incAzi.first - cs[i].lMax.theta < EPSILON)) {
+		if (!(incAzi.first - cs[i].lMin.theta > -EPSILON && incAzi.first - cs[i].lMax.theta < EPSILON)) {
 			pen += penalty / cs.size() / 2;
 		}
-		if ((incAzi.first > EPSILON) and !((incAzi.second - cs[i].lMin.phi > -EPSILON and incAzi.second - cs[i].lMax.phi < EPSILON)
-			or (incAzi.second - (cs[i].lMin.phi + 180) > -EPSILON and incAzi.second - (cs[i].lMax.phi + 180) < EPSILON))) {
+		if ((incAzi.first > EPSILON) && !((incAzi.second - cs[i].lMin.phi > -EPSILON && incAzi.second - cs[i].lMax.phi < EPSILON)
+			|| (incAzi.second - (cs[i].lMin.phi + 180) > -EPSILON && incAzi.second - (cs[i].lMax.phi + 180) < EPSILON))) {
 			pen += penalty / cs.size() / 2;
 		}
 	}
@@ -115,7 +115,7 @@ double PenaltyAHDNSEW(const std::vector<Eigen::Vector3d>& pC, double EWMAX, doub
 		NS += fabs(pC[i][0] - pC[i - 1][0]);
 		EW += fabs(pC[i][1] - pC[i - 1][1]);
 	}
-	if (EW - EWMAX > EPSILON or NS - NSMAX > EPSILON)
+	if (EW - EWMAX > EPSILON || NS - NSMAX > EPSILON)
 	{
 		value = penalty;
 	}

@@ -61,7 +61,7 @@ void DirectionalDrillingSolver::setData(std::string filename)
 	maxValues.push_back(targets[0][2]);	
 }
 
-std::vector<TrajectoryTemplate*> DirectionalDrillingSolver::wellfunction(const Eigen::VectorXd& x, const Eigen::Vector3d& pinit, const Eigen::Vector3d& target)
+std::vector<TrajectoryTemplate*> DirectionalDrillingSolver::wellfunction(const std::vector<double>& x, const Eigen::Vector3d& pinit, const Eigen::Vector3d& target)
 {
 	std::vector<TrajectoryTemplate*> tmp;
 	tmp.push_back(new Hold(pinit, 0, 0, x[0]));
@@ -78,7 +78,7 @@ void DirectionalDrillingSolver::Optimize()
 	double TVDShift = 0;
 	bool flag = true;
 
-	std::function<double(const Eigen::VectorXd&)> score = [&](const Eigen::VectorXd& x)
+	std::function<double(const std::vector<double>&)> score = [&](const std::vector<double>& x)
 	{
 		std::vector<TrajectoryTemplate*> tmp = wellfunction(x, pinit, target);
 		int s = solve(tmp);
@@ -88,7 +88,7 @@ void DirectionalDrillingSolver::Optimize()
 		double penLen = abs(constraints.wc.maxMD - 1 / EPSILON) < EPSILON ? 0 : PenaltyLength(allLength(tmp), constraints.wc.maxMD, 20);
 		double penConstraints = constraints.cs.size() == 0 ? 0 : PenaltyConstraint(constraints.cs, pCtmp, pMDtmp, 100);
 		double penIncWell = PenaltyIncWell(pMDtmp, 0, 65, 100);
-		for (auto x : tmp) {
+		for (auto& x : tmp) {
 			delete x;
 		}
 		return cost + penConstraints + penLen + penIncWell;
@@ -106,19 +106,19 @@ void DirectionalDrillingSolver::Optimize()
 		for (size_t j = 0; j < 50; ++j)
 		{
 			opt = PSO(score, minValues, maxValues, 3 * minValues.size(), minValues.size(),
-				150, std::vector<double>(150, 0.7298), 1.49618, 1.49618, std::to_string(i));
-			if (opt.second - 10 < EPSILON)
+				150, std::vector<double>(150, 0.7298), 1.49618, 1.49618);
+			if (opt.cost - 10 < EPSILON)
 			{
 				std::cout << std::endl;
 				break;
 			}
 		}
-		std::vector<TrajectoryTemplate*> well = wellfunction(opt.first, pinit, target);
+		std::vector<TrajectoryTemplate*> well = wellfunction(opt.optVec, pinit, target);
 		int cond = solve(well);
 		opts.push_back(opt);
 		pCWells.push_back(allPointsCartesian(well));
 		pMDWells.push_back(allPointsMD(well));
-		TVDShift = std::max(TVDShift, opt.first[0]);
+		TVDShift = std::max(TVDShift, opt.optVec[0]);
 	}
 }
 

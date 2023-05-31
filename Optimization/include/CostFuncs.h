@@ -4,11 +4,13 @@
 #include <iostream>
 #include "Penalties.h"
 
-double sepFactor(std::vector<Eigen::Vector3d>& pCartesianW1,std::vector<Eigen::Vector4d>& pMDW1,
-				std::vector<Eigen::Vector3d>& pCartesianW2, std::vector<Eigen::Vector4d>& pMDW2,
+double sepFactor(const std::vector<Eigen::Vector3d>& pCartesianW1, const std::vector<Eigen::Vector4d>& pMDW1,
+				const std::vector<Eigen::Vector3d>& pCartesianW2, const std::vector<Eigen::Vector4d>& pMDW2,
 				double TVDstart = 0 ,bool actFunc = true , double penalty = 20);
 
 double DDI(std::vector<TrajectoryTemplate*>& well, const std::vector<Eigen::Vector3d>& pCartesian, bool actFunc = true, double penalty = 5);
+
+double ERD(const std::vector<Eigen::Vector3d>& points);
 
 double orderScore1(std::vector<TrajectoryTemplate*>& mainWell, std::vector<std::vector<Eigen::Vector3d>>& pCTrajectories,
 	std::vector<std::vector<Eigen::Vector4d>>& pMDTrajectories,double SepFactorShift = 0,double penalty = 1000);

@@ -24,7 +24,7 @@ private:
 	std::vector<Eigen::Vector3d> targets;
 	std::vector<double> minValues, maxValues;
 	std::vector<std::string> names;
-	std::vector<TrajectoryTemplate*> wellfunction(const Eigen::VectorXd& x, const Eigen::Vector3d& pinit, const Eigen::Vector3d& target);
+	std::vector<TrajectoryTemplate*> wellfunction(const std::vector<double>& x, const Eigen::Vector3d& pinit, const Eigen::Vector3d& target);
 	std::vector<PSOvalueType> opts;
 	std::vector<std::vector<Eigen::Vector3d>> pCWells;
 	std::vector<std::vector<Eigen::Vector4d>> pMDWells;

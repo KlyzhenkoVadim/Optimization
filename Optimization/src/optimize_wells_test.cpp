@@ -35,7 +35,7 @@ void horizontal_optimize_test()
 	int dim = max_dim;
 	auto score = [&](double(& val)[max_dim])
 	{
-		Eigen::VectorXd x(max_dim);
+		std::vector<double> x(max_dim);
 		for (size_t i = 0; i < max_dim; ++i)
 			x[i] = val[i];
 		std::vector<TrajectoryTemplate*> well = well2CHCH(x,pinit,target1,target3);
@@ -72,7 +72,7 @@ void ddi_test()
 		//assert(abs(Tortuosity(tmpwell) - Tortuosity_sum(pmd)) < 1);
 		delete x;
 	}
-	Eigen::VectorXd x{ {412.723, 0.9665206, 0.5035774, 1.452895, 1.071906, 41.73488, 280.6988, 0.5478006, 0.4144362} };
+	std::vector<double> x{ {412.723, 0.9665206, 0.5035774, 1.452895, 1.071906, 41.73488, 280.6988, 0.5478006, 0.4144362} };
 	Eigen::Vector3d pinit{ 5803198,684790,0 }, target1{ 5803236,682857,2900 }, target3{ 5803529,682498,2900 };
 	std::vector<TrajectoryTemplate*> well = well2CHCH(x, pinit, target1, target3);
 	std::vector<Eigen::Vector4d> pmd = allPointsMD(well);

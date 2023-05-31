@@ -12,10 +12,12 @@ int signum(double x) {
 	return 0;
 }
 
-double sepFactor(std::vector<Eigen::Vector3d>& pCartesianW1,
-	std::vector<Eigen::Vector4d>& pMDW1,
-	std::vector<Eigen::Vector3d>& pCartesianW2,std::vector<Eigen::Vector4d>& pMDW2,
-	double TVDstart ,bool actFunc, double penalty) {
+double sepFactor(const std::vector<Eigen::Vector3d>& pCartesianW1,
+	const std::vector<Eigen::Vector4d>& pMDW1,
+	const std::vector<Eigen::Vector3d>& pCartesianW2,
+	const std::vector<Eigen::Vector4d>& pMDW2,
+	double TVDstart ,bool actFunc, double penalty) 
+{
 	size_t n = pCartesianW1.size(), m = pCartesianW2.size();
 	std::vector<std::vector<double>> distanceMatrix(n,std::vector<double>(m,1e3));
 	std::vector<std::vector<double>> scalarProdMatrix(n, std::vector<double>(m,0));
@@ -26,7 +28,7 @@ double sepFactor(std::vector<Eigen::Vector3d>& pCartesianW1,
 	size_t StartW1 = n - 1;
 	size_t StartW2 = m - 1;
 	size_t k;
-	Eigen::Vector3d diffVector, tangentW1;// tangentW2;
+	Eigen::Vector3d diffVector, tangentW1;
 
 	for (size_t i = 0; i < n; ++i) {
 		scalarProdMatrix[i][0] = -1.;
@@ -51,16 +53,16 @@ double sepFactor(std::vector<Eigen::Vector3d>& pCartesianW1,
 		for (size_t idxM = k - 1; idxM < m; ++idxM) {
 			diffVector = pCartesianW2[idxM] - pCartesianW1[idxN];
 			tangentW1 = { pMDW1[idxN][1], pMDW1[idxN][2], pMDW1[idxN][3] };
-			//tangentW2 = { pMDW2[idxM][1],pMDW2[idxM][2],pMDW2[idxM][3] };
+			double mdsum = pMDW1[idxN][0] + pMDW2[idxM][0];
 			if (diffVector.norm() < eps) {
 				scalarProdMatrix[idxN][idxM] = 0;
 				distanceMatrix[idxN][idxM] = 0.;
 			}
 			else {
 				scalarProdMatrix[idxN][idxM] = round(tangentW1.dot(diffVector) / tangentW1.norm() / diffVector.norm() * 100000) / 100000;
-				if (idxM > 1 and (signum(scalarProdMatrix[idxN][idxM]) != signum(scalarProdMatrix[idxN][idxM - 1]))) {
-					if (pMDW1[idxN][0] + pMDW2[idxM][0] > eps)
-						distanceMatrix[idxN][idxM] = diffVector.norm() / (sgm * (pMDW1[idxN][0] + pMDW2[idxM][0]));
+				if (idxM > 1 && (signum(scalarProdMatrix[idxN][idxM]) != signum(scalarProdMatrix[idxN][idxM - 1]))) {
+					if (mdsum > eps)
+						distanceMatrix[idxN][idxM] = diffVector.norm() / (sgm * mdsum);
 					if (flg) {
 						k = idxM;
 						flg = false;
@@ -85,14 +87,15 @@ double sepFactor(std::vector<Eigen::Vector3d>& pCartesianW1,
 double AHD(std::vector<double>& pX, std::vector<double>& pY) {
 	double AHD = 0;
 	for (size_t i = 1; i < pX.size(); ++i) {
-		
-		AHD += sqrt((pX[i] - pX[i - 1])*(pX[i] - pX[i - 1]) + (pY[i] - pY[i - 1])*(pY[i] - pY[i - 1]));
+		double dx = pX[i] - pX[i - 1];
+		double dy = pY[i] - pY[i - 1];
+		AHD += sqrt(dx*dx + dy*dy);
 	}
 	return AHD;
 }
 
 double dls(Eigen::Vector3d& tangent1, Eigen::Vector3d& tangent2) {
-	if (tangent1.norm() < EPSILON or tangent2.norm() < EPSILON) {
+	if (tangent1.norm() < EPSILON || tangent2.norm() < EPSILON) {
 		return 0.;
 	}
 	double dotProd= tangent1.dot(tangent2) / tangent1.norm() / tangent2.norm();
@@ -120,8 +123,8 @@ double DDI(std::vector<TrajectoryTemplate*>& well,const std::vector<Eigen::Vecto
 	pY.reserve(size);
 	for (size_t idx = 0; idx < size; ++idx) {
 		auto p = pCartesian[idx];
-		pX.push_back(p[0]);
-		pY.push_back(p[1]);
+		pX.push_back(p.x());
+		pY.push_back(p.y());
 	}
 	double ahd = AHD(pX,pY);
 	double MD = allLength(well);
@@ -132,13 +135,44 @@ double DDI(std::vector<TrajectoryTemplate*>& well,const std::vector<Eigen::Vecto
 	}
 	return DDI;
 }	
+/*
+std::vector<Eigen::Vector3d> p1{
+	{0,0,1},{0,0,2}
+};
+std::vector<Eigen::Vector3d> p2{
+	{0,0,0,},{1,0,0}
+};
+assert(ERD(p1) < EPSILON);
+assert(std::abs(ERD(p2)-1.0) < EPSILON);
+*/
+double ERD(const std::vector<Eigen::Vector3d>& points)
+{
+	size_t size = points.size();
+	std::vector<double> x, y;
+	x.reserve(size);
+	y.reserve(size);
+	double max_z = 0.;
+	for (const auto& p : points)
+	{
+		x.emplace_back(p.x());
+		y.emplace_back(p.y());
+		if (p.z() > max_z)
+		{
+			max_z = p.z();
+		}
+	}
+	double ahd = AHD(x, y);
+	double tvd = max_z - points.front().z();
+	double res = tvd < std::numeric_limits<double>::epsilon() ? EPSILON : ahd / tvd;
+	return res;
+}
 
 double orderScore1(std::vector<TrajectoryTemplate*>& mainWell, std::vector<std::vector<Eigen::Vector3d>>& pCTrajectories, 
 	std::vector<std::vector<Eigen::Vector4d>>& pMDTrajectories,double SepFactorShift, double penalty) {
 	double mainLength = 0., mainDDI = 0., rSepFactor = 0.;
 	int condition = solve(mainWell);
 	if (condition != 0) {
-		return 10*penalty *(-condition) / mainWell.size(); // penalty * percent of incorrect templates.
+		return penalty *(-condition) / mainWell.size(); // penalty * percent of incorrect templates.
 	}
 	mainLength = allLength(mainWell); 
 	std::vector<Eigen::Vector3d> mainPCartesian = allPointsCartesian(mainWell);
@@ -163,7 +197,9 @@ double orderScore1(std::vector<TrajectoryTemplate*>& mainWell, std::vector<std::
 				mainPMD,SepFactorShift));
 	}
 
-	return mainLength / IdealLength + rSepFactor + mainDDI;
+	double mainERD = ERD(mainPCartesian);
+
+	return mainLength / IdealLength + rSepFactor + /*mainERD*/mainDDI;
 }
 
 double scoreSolver(std::vector<TrajectoryTemplate*>& tmp, const WellTrajectoryConstraints& cs, double penalty)

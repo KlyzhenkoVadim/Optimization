@@ -49,7 +49,7 @@ namespace well_trajectory
 		double maxDistNorthSouth;
 	};
 
-	using wellType = std::function<std::vector<TrajectoryTemplate*>(const Eigen::VectorXd& x)>;
+	using wellType = std::function<std::vector<TrajectoryTemplate*>(const std::vector<double>& x)>;
 
 	class WellTrajectorySolver {
 	private:

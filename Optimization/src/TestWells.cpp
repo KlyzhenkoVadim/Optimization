@@ -1,10 +1,10 @@
 #include "TestWells.h"
 
 void getOptData(PSOvalueType op) {
-	std::cout << "gBestCost: " << op.second << std::endl;
+	std::cout << "gBestCost: " << op.cost << std::endl;
 	std::cout << "gBestPos: ";
 	std::cout<< std::setprecision(7);
-	for (auto x : op.first)
+	for (auto x : op.optVec)
 		std::cout << x << ", ";
 	std::cout << std::endl;
 }

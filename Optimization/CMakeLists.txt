@@ -5,9 +5,10 @@ include(FetchContent)
 FetchContent_Declare(eigen
 	GIT_REPOSITORY "https://gitlab.com/libeigen/eigen"
 	GIT_TAG "3bb6a48d8c171cf20b5f8e48bfb4e424fbd4f79e")
-
+#FetchContent_Declare(nlohmann
+#	GIT_REPOSITORY "https://github.com/nlohmann/json.git"
+#	GIT_TAG "bc889afb4c5bf1c0d8ee29ef35eaaf4c8bef8a5d")
 FetchContent_MakeAvailable(eigen)
-
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -52,5 +53,6 @@ set(SOURCES
 	./src/optimize_wells_test.cpp
 )
 include_directories(${eigen_SOURCE_DIR})
+#include_directories(${nlohmann_SOURCE_DIR})
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
-target_link_libraries(${PROJECT_NAME} PUBLIC eigen)
+target_link_libraries(${PROJECT_NAME} PRIVATE eigen)

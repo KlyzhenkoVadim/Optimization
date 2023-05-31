@@ -65,7 +65,7 @@ int CurveHold::fit() {
 		double etta = t1.dot(p3 - p1);
 		double ksi = sqrt(psi * psi - etta * etta);
 
-		if (etta < EPSILON and ksi - 2 * R < EPSILON) {
+		if (etta < EPSILON && ksi - 2 * R < EPSILON) {
 			return -1;
 		}
 

@@ -56,7 +56,7 @@ int CurveHoldCurveHold::fit()
 	r1 = p1 + R1 * n1;
 	r4 = pInter + R2 * n4;
 
-	if (b1.norm() < EPSILON and b4.norm() < EPSILON) {
+	if (b1.norm() < EPSILON && b4.norm() < EPSILON) {
 		t = t1;
 		holdLength = (pInter - p1).norm();
 		alpha1 = 0;
@@ -68,7 +68,7 @@ int CurveHoldCurveHold::fit()
 	else
 	{
 
-		if ((pInter - r1).norm() < R1 or (p1 - r4).norm() < R2) {
+		if ((pInter - r1).norm() < R1 || (p1 - r4).norm() < R2) {
 			return -1;
 		}
 
