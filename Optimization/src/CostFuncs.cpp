@@ -22,6 +22,7 @@ double sepFactor(const std::vector<Eigen::Vector3d>& pCartesianW1,
 	std::vector<std::vector<double>> distanceMatrix(n,std::vector<double>(m,1e3));
 	std::vector<std::vector<double>> scalarProdMatrix(n, std::vector<double>(m,0));
 	double sgm = 9e-3;
+	sgm = sgm * 2.; // TODO: DELETE
 	double eps = 1e-6;
 	bool flg = true;
 	double sepFactor = 1e3;
@@ -79,7 +80,7 @@ double sepFactor(const std::vector<Eigen::Vector3d>& pCartesianW1,
 		}
 
 		if (actFunc) {
-			return sigmoid(sepFactor, penalty, 100, 1.5);
+			return sigmoid(sepFactor, penalty, 10., 1.5);//return sigmoid(sepFactor, penalty, 100, 1.5);
 		}
 		return sepFactor;
 	}

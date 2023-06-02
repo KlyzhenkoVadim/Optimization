@@ -45,7 +45,7 @@ std::vector<TrajectoryTemplate*> well2CHCH(const std::vector<double>& x, const E
 	
 	double BETA = 110.;
 	Eigen::Vector3d tmpT3 = { NS,EW,pT1[2] - 150 };// ??? 
-	
+	//tmpT3 += Eigen::Vector3d{0, 0, -500};//todo: delete
 	well.push_back(new Hold(pinit, 0, 0, hold0, typeHold::TVD)); // !!!
 	well.back()->getTarget1Point();
 	well.push_back(new CurveHoldCurveHold(well.back()->pointT1, 0, 0, R1, R2, tmpT3,inc,azi,BETA));
@@ -84,6 +84,12 @@ void OptimizeHorizontal(const Eigen::Vector3d& pinit, const Eigen::Vector3d& pT1
 
 void OptimizeHorizontals(const std::vector<Eigen::Vector3d>& pinits, const std::vector<Eigen::Vector3d>& targets1, const std::vector<Eigen::Vector3d>& targets3)
 {
+	const std::string aloneOptDir{"alone_optimization/"};
+	const std::string colriskOptDir{"colrisk_optimization/"};
+	const std::string l1OptDir{"l1_optimization/"};
+	const std::string l2OptDir{"l2_optimization/"};
+
+
 	Eigen::Vector3d pinit = pinits[0];
 	Eigen::Vector3d target1 = targets1[0], target3 = targets3[0];
 	double TVDShift = 0;
@@ -94,7 +100,7 @@ void OptimizeHorizontals(const std::vector<Eigen::Vector3d>& pinits, const std::
 	}
 	size_t size = targets1.size();
 	size_t nParams = 9;
-	size_t nParticles = /*5 * nParams*/ 100;
+	size_t nParticles = /*5 * nParams*/ 50; // 100
 	size_t nIterations = 150;
 	
 	std::vector<std::vector<Eigen::Vector3d>> pCWells;
@@ -134,7 +140,7 @@ void OptimizeHorizontals(const std::vector<Eigen::Vector3d>& pinits, const std::
 		{
 			delete x;
 		}
-		return score + l_reg * regNorm(x, x_reg,2);
+		return score /*+ l_reg * regNorm(x, x_reg,2)*/;
 	};
 
 	auto onescore = [&](const std::vector<double>& x)
@@ -155,18 +161,18 @@ void OptimizeHorizontals(const std::vector<Eigen::Vector3d>& pinits, const std::
 
 	std::vector<double> minValues{ 0,0,0,0,0,0,0,0,0 }, maxValues{ 1,1.,1.,1.,1.,1,1,1,1 };
 	//FOR REGULARIZATION
-	for (size_t i = 0; i < target1.size(); ++i)
-	{
-		tmpopt = PSO(onescore, minValues, maxValues, nParticles, nParams, nIterations, std::vector<double>(nIterations, 0.7298), 1.49618, 1.49618);
-		arr_xreg.push_back(tmpopt.optVec);
-	}//FOR REGULARIZATION 
+	//for (size_t i = 0; i < target1.size(); ++i)
+	//{
+	//	tmpopt = PSO(onescore, minValues, maxValues, nParticles, nParams, nIterations, std::vector<double>(nIterations, 0.7298), 1.49618, 1.49618);
+	//	arr_xreg.push_back(tmpopt.optVec);
+	//}//FOR REGULARIZATION 
 	nlohmann::json jRes;
 	for (size_t i = 0; i < size; ++i)
 	{
 		pinit = pinits[i];
 		target1 = targets1[i];
 		target3 = targets3[i];
-		x_reg = arr_xreg[i];
+		//x_reg = arr_xreg[i];
 
 		for (size_t j = 0; j < 500; ++j)
 		{
@@ -232,7 +238,8 @@ void OptimizeHorizontals(const std::vector<Eigen::Vector3d>& pinits, const std::
 		std::string OPT_L1 = "with_colrisk_l1.json";
 		std::string OPT_L2 = "with_colrisk_l2.json";
 		*/
-		writeGG("../output/with_colrisk_l2test.json", jRes);
+		
+		writeGG("../output/"+colriskOptDir+"colrisk_opt0.json", jRes);
 		//writeDataCartesian(pCWells[i], "../output/Cartesian/case1OneScore" + std::to_string(i + 1) + ".txt");
 	}
 	double sum_cost = 0.;
@@ -257,7 +264,7 @@ void OptimizeTogether(const std::vector<Eigen::Vector3d>& pinits, const std::vec
 	}
 	size_t size = targets1.size();
 	size_t nParams = 9;
-	size_t nParticles = /*5 * nParams*/ 200;
+	size_t nParticles = /*5 * nParams*/ 20;
 	size_t nIterations = 300;
 
 	std::vector<std::vector<Eigen::Vector3d>> pCWells;
@@ -372,7 +379,7 @@ void OptimizeTogether(const std::vector<Eigen::Vector3d>& pinits, const std::vec
 		}
 		jRes.push_back(j);
 	}
-	writeGG("../output/together_worisks.json", jRes);
+	writeGG("../output/together_worisks0.json", jRes);
 }
 
 void testHorizontal(const Eigen::VectorXd& x,std::vector<TrajectoryTemplate*>& tt)
@@ -388,4 +395,93 @@ void writeGG(const std::string& filename, const nlohmann::json& jresults)
 	std::ofstream ofs(filename);
 	ofs << jresults << std::endl;
 	ofs.close();
+}
+
+void aloneOpt()
+{
+	Eigen::Vector3d pinit{0, 0, 0};
+	Eigen::Vector3d pt1{2000., 0, 1000.};
+	double mDls = 0.6;
+	double mHold = 200.;
+	std::vector<double> minValues{100.0,0.0};
+	std::vector<double> maxValues{300.0,1.0};
+	size_t nAgents = 10;
+	size_t nDim = 2;
+	size_t nIterations = 150;
+	double w = 0.7298;
+	double c1 = 1.49618;
+	/*nIterations,std::vector<double>(nIterations, 0.7298), 1.49618, 1.49618,true*/
+	auto well = [&](const std::vector<double>& x)
+	{
+		double hold = x[0];
+		double r = DlsToRadius(x[1]);
+		std::vector<TrajectoryTemplate*> tt;
+		tt.reserve(2);
+		tt.push_back(new Hold(pinit, 0., 0., hold));
+		tt.back()->getTarget3Point();
+		tt.push_back(new CurveHold(tt.back()->pointT3, pt1, 0., 0., r));
+		return tt;
+	};
+
+	auto score = [&](const std::vector<double>& x)
+	{
+		auto tt = well(x);
+		double result = OneWellScore(tt);
+		for (auto& t : tt)
+		{
+			delete t;
+		}
+		return result;
+	};
+
+	auto opt = PSO(score, minValues, maxValues, nAgents, nDim, nIterations,
+		std::vector<double>(nIterations, w), c1, c1, true);
+
+	nlohmann::json jRes;
+
+	nlohmann::json jt;
+	jt["name"] = "example";
+	std::vector<TrajectoryTemplate*> tExample = well(std::vector<double>{mHold, mDls});
+	size_t condition = solve(tExample);
+	if (condition)
+		std::cout << "error-tExample";
+	auto points = allPointsCartesian(tExample);
+	double len_example = allLength(tExample);
+	double ddi_example = DDI(tExample, points, false);
+	for (auto& z : tExample)
+		delete z;
+
+	jt["pInit"] = pinit;
+	jt["pT1"] = pt1;
+	jt["pT3"] = pt1;
+	jt["Hold"] = mHold;
+	jt["DLS"] = mDls;
+	jt["length"] = len_example;
+	jt["points"] = points;
+	jt["DDI"] = ddi_example;
+	jRes.push_back(jt);
+
+	nlohmann::json jOpt;
+	jOpt["name"] = "opt-trajectory";
+	jOpt["pInit"] = pinit;
+	jOpt["pT1"] = pt1;
+	jOpt["pT3"] = pt1;
+	jOpt["PSO-history"] = opt.costHist;
+	auto tOpt = well(opt.optVec);
+	auto points_opt = allPointsCartesian(tOpt);
+	double ddi = DDI(tOpt, points_opt, false);
+	double length = allLength(tOpt);
+	for (auto& z : tOpt)
+		delete z;
+	jOpt["points"] = points_opt;
+	auto& j = jOpt["opt-result"];
+	j["cost"] = opt.cost;
+	j["Hold"] = opt.optVec[0];
+	j["DLS"] = opt.optVec[1];
+	j["length"] = length;
+	j["DDI"] = ddi;
+	
+	jRes.push_back(jOpt);
+	
+	writeGG("../output/alone_res1.json", jRes);
 }

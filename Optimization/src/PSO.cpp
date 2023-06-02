@@ -74,7 +74,6 @@ PSOvalueType PSO(std::function<double(const std::vector<double>&)> func, const s
 	//writegBestPos(gBestPos,"bestPosEvo"+numtarget+".txt");
 	//writeCurrbestCost(minFunc, numtarget+".txt");
 	double r1, r2;
-	size_t maxIterations = 1000;
 	double R = 0.5;
 	for (size_t iteration = 0; iteration < numIterations; ++iteration)
 	{

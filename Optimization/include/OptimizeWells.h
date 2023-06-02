@@ -31,3 +31,5 @@ void OptimizeTogether(const std::vector<Eigen::Vector3d>& pinits, const std::vec
 void testHorizontal(const Eigen::VectorXd& x,std::vector<TrajectoryTemplate*>& tt);
 
 void writeGG(const std::string& filename, const nlohmann::json& jresults);
+
+void aloneOpt();

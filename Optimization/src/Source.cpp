@@ -7,8 +7,33 @@
 
 typedef Eigen::Vector3d Vec3d;
 
-void simpleTemplates()
+void well2_example()
 {
+	Vec3d pinit{ 0,0,0 };
+	Vec3d pt1{ 3000,0,2000 };
+	Vec3d pt3{ 3800,0,2000 };
+	std::vector<double> x{0.1, 1., 1.2, 1, 1, 0., 0, 1.5, 0.5};
+	auto w = well2CHCH(x, pinit, pt1, pt3);
+	size_t cond = solve(w);
+	if (cond)
+	{
+		std::cout << "error";
+		return;
+	}
+	auto points = allPointsCartesian(w);
+	nlohmann::json j;
+	j["points"] = points;
+	j["VHold"] = x[0] * 900. + 100.;
+	j["dls1"] = x[1];
+	j["dls2"] = x[2];
+	j["dls3"] = x[3];
+	j["dls4"] = x[4];
+	j["inc"] = 180. * x[5];
+	j["azi"] = 360. * x[6];
+	j["NS"] = pt1[0] + 1000. * (1. - 2. * x[7]);
+	j["EW"] = pt1[1] + 1000. * (1. - 2. * x[8]);
+
+	writeGG("../output/well2_example.json", j);
 
 }
 
@@ -47,5 +72,7 @@ int main()
 	std::vector<Vec3d> targets3 = { target4001,target4003 }, targets1 = { target40R,target4000 };
 	OptimizeHorizontals(pInit, targets1, targets3);*/
 	testCase1();
+	//aloneOpt();
+	//well2_example();
 	return 0;
 }
