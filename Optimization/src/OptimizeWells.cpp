@@ -98,10 +98,10 @@ void OptimizeHorizontals(const std::vector<Eigen::Vector3d>& pinits, const std::
 		std::cout << "error";
 		return;
 	}
-	size_t size = targets1.size();
-	size_t nParams = 9;
-	size_t nParticles = /*5 * nParams*/ 50; // 100
-	size_t nIterations = 150;
+	const size_t size = targets1.size();
+	const size_t nParams = 9;
+	const size_t nParticles = /*5 * nParams*/ 50; // 100
+	const size_t nIterations = 150;
 	
 	std::vector<std::vector<Eigen::Vector3d>> pCWells;
 	std::vector<std::vector<Eigen::Vector4d>> pMDWells;
@@ -140,7 +140,7 @@ void OptimizeHorizontals(const std::vector<Eigen::Vector3d>& pinits, const std::
 		{
 			delete x;
 		}
-		return score /*+ l_reg * regNorm(x, x_reg,2)*/;
+		return score + l_reg * regNorm(x, x_reg,2);
 	};
 
 	auto onescore = [&](const std::vector<double>& x)
@@ -161,94 +161,179 @@ void OptimizeHorizontals(const std::vector<Eigen::Vector3d>& pinits, const std::
 
 	std::vector<double> minValues{ 0,0,0,0,0,0,0,0,0 }, maxValues{ 1,1.,1.,1.,1.,1,1,1,1 };
 	//FOR REGULARIZATION
-	//for (size_t i = 0; i < target1.size(); ++i)
-	//{
-	//	tmpopt = PSO(onescore, minValues, maxValues, nParticles, nParams, nIterations, std::vector<double>(nIterations, 0.7298), 1.49618, 1.49618);
-	//	arr_xreg.push_back(tmpopt.optVec);
-	//}//FOR REGULARIZATION 
-	nlohmann::json jRes;
-	for (size_t i = 0; i < size; ++i)
+	for (size_t i = 0; i < target1.size(); ++i)
 	{
-		pinit = pinits[i];
-		target1 = targets1[i];
-		target3 = targets3[i];
-		//x_reg = arr_xreg[i];
-
-		for (size_t j = 0; j < 500; ++j)
+		tmpopt = PSO(onescore, minValues, maxValues, nParticles, nParams, nIterations, std::vector<double>(nIterations, 0.7298), 1.49618, 1.49618);
+		arr_xreg.push_back(tmpopt.optVec);
+	}//FOR REGULARIZATION
+	
+	//std::vector<std::array<size_t, 3>> indexes{{0, 1, 2}, { 0, 2, 1 }, { 1,0,2 }, { 1,2,0 }, { 2,0,1 }, { 2,1,0 }};
+	std::vector<std::array<size_t, 3>> indexes{{0, 1, 2}};
+	for (const auto& num : indexes)
+	{
+		std::string name;
+		nlohmann::json jRes;
+		for (size_t idx = 0; idx < 3;++idx)
 		{
-			tmpopt = PSO(score, minValues, maxValues, nParticles, nParams, nIterations,std::vector<double>(nIterations, 0.7298), 1.49618, 1.49618,true); // WAS 150 ITERATIONS
-			if (tmpopt.cost < 5.0) // TODO: уточнить, какое значение должно быть.. was (5.0)
-			{
-				getOptData(tmpopt);
-				TVDShift = std::max(TVDShift, tmpopt.optVec[0]);
-				opts.push_back(tmpopt);
-				tt = well2CHCH(tmpopt.optVec, pinit, target1, target3);
-				int s = solve(tt);
-				const auto& points_c = allPointsCartesian(tt);
-				const auto& points_inc = allPointsMD(tt);
-				double length = allLength(tt);
-				double ddi = DDI(tt,points_c,false);
-				pCWells.push_back(points_c);
-				pMDWells.push_back(points_inc);
-				for (auto& y : tt)
-					delete y;
-				std::cout << "trajectory #" + std::to_string(i + 1) + " optimized in " + std::to_string(j + 1) + " iterations." << std::endl;
-				nlohmann::json j;
-				j["name"] = "well-" + std::to_string(i + 1);
-				j["pInit"] = pinit;
-				j["pT1"] = target1;
-				j["pT3"] = target3;
-				j["points"] = points_c;
-				j["PSO-history"] = tmpopt.costHist;
-				
-				auto& jOpt = j["opt-result"];
-				jOpt["reg"] = 2;
-				jOpt["cost"] = tmpopt.cost;
-				jOpt["DDI"] = ddi;
-				jOpt["length"] = length;
-				jOpt["opt-vec"] = tmpopt.optVec;
-				jOpt["VHold"] = tmpopt.optVec[0] * 900. + 100.;
-				jOpt["dls1"] = tmpopt.optVec[1];
-				jOpt["dls2"] = tmpopt.optVec[2];
-				jOpt["dls3"] = tmpopt.optVec[3];
-				jOpt["dls4"] = tmpopt.optVec[4];
-				auto& jSf = jOpt["separation"];
-				for (int k = 0; k < i; ++k)
-				{
-					nlohmann::json jt;
-					jt["name-ref"] = "well-" + std::to_string(i + 1);
-					jt["name-offset"] = jRes[k]["name"].get<std::string>();
-					jt["sf"] = sepFactor(points_c, points_inc, pCWells[k], pMDWells[k], 0, false);
-					jSf.push_back(jt);
-					
-				}
-				jOpt["inc"] = 180. * tmpopt.optVec[5];
-				jOpt["azi"] = 360. * tmpopt.optVec[6];
-				jOpt["NS"] = target1[0] + 1000. * (1. - 2. * tmpopt.optVec[7]);
-				jOpt["EW"] = target1[1] + 1000. * (1. - 2. * tmpopt.optVec[8]);
+			size_t i = num[idx];
+			name += std::to_string(i + 1);
+			
+			pinit = pinits[i];
+			target1 = targets1[i];
+			target3 = targets3[i];
+			x_reg = arr_xreg[i];
 
-				jRes.push_back(j);
-				
-				break;
+			for (size_t j = 0; j < 500; ++j)
+			{
+				tmpopt = PSO(score, minValues, maxValues, nParticles, nParams, nIterations, std::vector<double>(nIterations, 0.7298), 1.49618, 1.49618, true); // WAS 150 ITERATIONS
+				if (tmpopt.cost < 6.0) // TODO: уточнить, какое значение должно быть.. was (5.0)
+				{
+					getOptData(tmpopt);
+					TVDShift = std::max(TVDShift, tmpopt.optVec[0]);
+					opts.push_back(tmpopt);
+					tt = well2CHCH(tmpopt.optVec, pinit, target1, target3);
+					int s = solve(tt);
+					const auto& points_c = allPointsCartesian(tt);
+					const auto& points_inc = allPointsMD(tt);
+					double length = allLength(tt);
+					double ddi = DDI(tt, points_c, false);
+					pCWells.push_back(points_c);
+					pMDWells.push_back(points_inc);
+					for (auto& y : tt)
+						delete y;
+					std::cout << "trajectory #" + std::to_string(i + 1) + " optimized in " + std::to_string(j + 1) + " iterations." << std::endl;
+					nlohmann::json j;
+					j["order"] = num;
+					j["name"] = "well-" + std::to_string(i + 1);
+					j["pInit"] = pinit;
+					j["pT1"] = target1;
+					j["pT3"] = target3;
+					j["points"] = points_c;
+					j["PSO-history"] = tmpopt.costHist;
+
+					auto& jOpt = j["opt-result"];
+					jOpt["reg"] = 2;
+					jOpt["l-reg"] = l_reg;
+					jOpt["cost"] = tmpopt.cost;
+					jOpt["DDI"] = ddi;
+					jOpt["length"] = length;
+					jOpt["opt-vec"] = tmpopt.optVec;
+					jOpt["VHold"] = tmpopt.optVec[0] * 900. + 100.;
+					jOpt["dls1"] = tmpopt.optVec[1];
+					jOpt["dls2"] = tmpopt.optVec[2];
+					jOpt["dls3"] = tmpopt.optVec[3];
+					jOpt["dls4"] = tmpopt.optVec[4];
+					auto& jSf = jOpt["separation"];
+					for (int k = 0; k < idx; ++k)
+					{
+						nlohmann::json jt;
+						jt["name-ref"] = "well-" + std::to_string(i + 1);
+						jt["name-offset"] = jRes[k]["name"].get<std::string>();
+						jt["sf"] = sepFactor(points_c, points_inc, pCWells[k], pMDWells[k], 0, false);
+						jSf.push_back(jt);
+
+					}
+					jOpt["inc"] = 180. * tmpopt.optVec[5];
+					jOpt["azi"] = 360. * tmpopt.optVec[6];
+					jOpt["NS"] = target1[0] + 1000. * (1. - 2. * tmpopt.optVec[7]);
+					jOpt["EW"] = target1[1] + 1000. * (1. - 2. * tmpopt.optVec[8]);
+
+					jRes.push_back(j);
+
+					break;
+				}
 			}
 		}
-		/*
-		std::string ALONE_OPT = "testcase_wo_separation.json";
-		std::string COLRISK_OPT = "with_colrisk.json";
-		std::string OPT_L1 = "with_colrisk_l1.json";
-		std::string OPT_L2 = "with_colrisk_l2.json";
-		*/
-		
-		writeGG("../output/"+colriskOptDir+"colrisk_opt0.json", jRes);
-		//writeDataCartesian(pCWells[i], "../output/Cartesian/case1OneScore" + std::to_string(i + 1) + ".txt");
+
+		pCWells.clear();
+		pMDWells.clear();
+
+		writeGG("../output/" + l2OptDir + "l2_opt" + name + ".json", jRes);
+				//writeDataCartesian(pCWells[i], "../output/Cartesian/case1OneScore" + std::to_string(i + 1) + ".txt");
 	}
-	double sum_cost = 0.;
-	for (auto x : opts)
-	{
-		sum_cost += x.cost;
-		std::cout << x.cost<< ", ";
-	}
-	std::cout << sum_cost << "\n";
+	//nlohmann::json jRes;
+	//for (size_t i = 0; i < size; ++i)
+	//{
+	//	pinit = pinits[i];
+	//	target1 = targets1[i];
+	//	target3 = targets3[i];
+	//	//x_reg = arr_xreg[i];
+
+	//	for (size_t j = 0; j < 500; ++j)
+	//	{
+	//		tmpopt = PSO(score, minValues, maxValues, nParticles, nParams, nIterations,std::vector<double>(nIterations, 0.7298), 1.49618, 1.49618,true); // WAS 150 ITERATIONS
+	//		if (tmpopt.cost < 5.0) // TODO: уточнить, какое значение должно быть.. was (5.0)
+	//		{
+	//			getOptData(tmpopt);
+	//			TVDShift = std::max(TVDShift, tmpopt.optVec[0]);
+	//			opts.push_back(tmpopt);
+	//			tt = well2CHCH(tmpopt.optVec, pinit, target1, target3);
+	//			int s = solve(tt);
+	//			const auto& points_c = allPointsCartesian(tt);
+	//			const auto& points_inc = allPointsMD(tt);
+	//			double length = allLength(tt);
+	//			double ddi = DDI(tt,points_c,false);
+	//			pCWells.push_back(points_c);
+	//			pMDWells.push_back(points_inc);
+	//			for (auto& y : tt)
+	//				delete y;
+	//			std::cout << "trajectory #" + std::to_string(i + 1) + " optimized in " + std::to_string(j + 1) + " iterations." << std::endl;
+	//			nlohmann::json j;
+	//			j["name"] = "well-" + std::to_string(i + 1);
+	//			j["pInit"] = pinit;
+	//			j["pT1"] = target1;
+	//			j["pT3"] = target3;
+	//			j["points"] = points_c;
+	//			j["PSO-history"] = tmpopt.costHist;
+	//			
+	//			auto& jOpt = j["opt-result"];
+	//			jOpt["reg"] = 2;
+	//			jOpt["cost"] = tmpopt.cost;
+	//			jOpt["DDI"] = ddi;
+	//			jOpt["length"] = length;
+	//			jOpt["opt-vec"] = tmpopt.optVec;
+	//			jOpt["VHold"] = tmpopt.optVec[0] * 900. + 100.;
+	//			jOpt["dls1"] = tmpopt.optVec[1];
+	//			jOpt["dls2"] = tmpopt.optVec[2];
+	//			jOpt["dls3"] = tmpopt.optVec[3];
+	//			jOpt["dls4"] = tmpopt.optVec[4];
+	//			auto& jSf = jOpt["separation"];
+	//			for (int k = 0; k < i; ++k)
+	//			{
+	//				nlohmann::json jt;
+	//				jt["name-ref"] = "well-" + std::to_string(i + 1);
+	//				jt["name-offset"] = jRes[k]["name"].get<std::string>();
+	//				jt["sf"] = sepFactor(points_c, points_inc, pCWells[k], pMDWells[k], 0, false);
+	//				jSf.push_back(jt);
+	//				
+	//			}
+	//			jOpt["inc"] = 180. * tmpopt.optVec[5];
+	//			jOpt["azi"] = 360. * tmpopt.optVec[6];
+	//			jOpt["NS"] = target1[0] + 1000. * (1. - 2. * tmpopt.optVec[7]);
+	//			jOpt["EW"] = target1[1] + 1000. * (1. - 2. * tmpopt.optVec[8]);
+
+	//			jRes.push_back(j);
+	//			
+	//			break;
+	//		}
+	//	}
+	//	/*
+	//	std::string ALONE_OPT = "testcase_wo_separation.json";
+	//	std::string COLRISK_OPT = "with_colrisk.json";
+	//	std::string OPT_L1 = "with_colrisk_l1.json";
+	//	std::string OPT_L2 = "with_colrisk_l2.json";
+	//	*/
+	//	
+	//	writeGG("../output/"+colriskOptDir+"colrisk_opt0.json", jRes);
+	//	//writeDataCartesian(pCWells[i], "../output/Cartesian/case1OneScore" + std::to_string(i + 1) + ".txt");
+	//}
+	//double sum_cost = 0.;
+	//for (auto x : opts)
+	//{
+	//	sum_cost += x.cost;
+	//	std::cout << x.cost<< ", ";
+	//}
+	//std::cout << sum_cost << "\n";
 }
 
 void OptimizeTogether(const std::vector<Eigen::Vector3d>& pinits, const std::vector<Eigen::Vector3d>& targets1, const std::vector<Eigen::Vector3d>& targets3)
