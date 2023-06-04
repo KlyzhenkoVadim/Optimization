@@ -20,7 +20,7 @@ double OneWellScore(std::vector<TrajectoryTemplate*>& mainWell, double penalty) 
 	IdealLength = (mainWell.back()->pointT1 - mainWell[0]->pointInitial).norm() + (mainWell.back()->pointT3 - mainWell.back()->pointT1).norm();
 	if (IdealLength < std::numeric_limits<double>::epsilon())
 		return 0.;
-	mainDDI = DDI(mainWell, mainPCartesian);
+	mainDDI = DDI(mainWell, mainPCartesian,true,15.);// todo: make default
 	//double mainERD = ERD(mainPCartesian);
 	return mainLength / IdealLength + /*mainERD*/mainDDI;
 }
@@ -48,9 +48,9 @@ std::vector<TrajectoryTemplate*> well2CHCH(const std::vector<double>& x, const E
 	//tmpT3 += Eigen::Vector3d{0, 0, -500};//todo: delete
 	well.push_back(new Hold(pinit, 0, 0, hold0, typeHold::TVD)); // !!!
 	well.back()->getTarget1Point();
-	well.push_back(new CurveHoldCurveHold(well.back()->pointT1, 0, 0, R1, R2, tmpT3,inc,azi,BETA));
+	well.push_back(new CurveHoldCurveHold(well.back()->pointT1, 0, 0, R1, R2, tmpT3,inc,azi,BETA,0.001,50));
 	well.back()->getTarget3Point();
-	well.push_back(new CurveHoldCurveHold(well.back()->pointT3, inc, azi, R3, R4, pT1, pT3));
+	well.push_back(new CurveHoldCurveHold(well.back()->pointT3, inc, azi, R3, R4, pT1, pT3,0.001,50));
 	return well;
 }
 
@@ -100,9 +100,13 @@ void OptimizeHorizontals(const std::vector<Eigen::Vector3d>& pinits, const std::
 	}
 	const size_t size = targets1.size();
 	const size_t nParams = 9;
-	const size_t nParticles = /*5 * nParams*/ 50; // 100
-	const size_t nIterations = 150;
-	
+	const size_t nParticles = /*5 * nParams*/ 40; // 100
+	const size_t nIterations = 400;
+	const double l_reg = .6;
+	const size_t p_reg = 2;
+
+
+
 	std::vector<std::vector<Eigen::Vector3d>> pCWells;
 	std::vector<std::vector<Eigen::Vector4d>> pMDWells;
 
@@ -114,12 +118,15 @@ void OptimizeHorizontals(const std::vector<Eigen::Vector3d>& pinits, const std::
 	std::vector<double> x_reg;
 	x_reg.resize(nParams);
 
-	double l_reg = 0.01;
+
+
 	auto regNorm = [](const std::vector<double>& x, const std::vector<double>& x_reg,int p)
 	{
 		size_t size = x.size();
 		assert(size == x_reg.size());
 		double res = 0.;
+		if (p == 0)
+			return 0.;
 		for (size_t i = 0; i < size; ++i)
 		{
 			if (p == 1)
@@ -140,7 +147,7 @@ void OptimizeHorizontals(const std::vector<Eigen::Vector3d>& pinits, const std::
 		{
 			delete x;
 		}
-		return score + l_reg * regNorm(x, x_reg,2);
+		return score + l_reg * regNorm(x, x_reg,p_reg);
 	};
 
 	auto onescore = [&](const std::vector<double>& x)
@@ -163,12 +170,13 @@ void OptimizeHorizontals(const std::vector<Eigen::Vector3d>& pinits, const std::
 	//FOR REGULARIZATION
 	for (size_t i = 0; i < target1.size(); ++i)
 	{
-		tmpopt = PSO(onescore, minValues, maxValues, nParticles, nParams, nIterations, std::vector<double>(nIterations, 0.7298), 1.49618, 1.49618);
+		tmpopt = PSO(onescore, minValues, maxValues, nParticles, nParams, 2*nIterations, std::vector<double>(2*nIterations, 0.7298), 1.49618, 1.49618);
 		arr_xreg.push_back(tmpopt.optVec);
 	}//FOR REGULARIZATION
 	
 	//std::vector<std::array<size_t, 3>> indexes{{0, 1, 2}, { 0, 2, 1 }, { 1,0,2 }, { 1,2,0 }, { 2,0,1 }, { 2,1,0 }};
-	std::vector<std::array<size_t, 3>> indexes{{0, 1, 2}};
+	std::vector<std::array<size_t, 3>> indexes{{0, 1, 2}, {1,2,0}};
+
 	for (const auto& num : indexes)
 	{
 		std::string name;
@@ -186,7 +194,7 @@ void OptimizeHorizontals(const std::vector<Eigen::Vector3d>& pinits, const std::
 			for (size_t j = 0; j < 500; ++j)
 			{
 				tmpopt = PSO(score, minValues, maxValues, nParticles, nParams, nIterations, std::vector<double>(nIterations, 0.7298), 1.49618, 1.49618, true); // WAS 150 ITERATIONS
-				if (tmpopt.cost < 6.0) // TODO: уточнить, какое значение должно быть.. was (5.0)
+				if (tmpopt.cost < 10.0) // TODO: уточнить, какое значение должно быть.. was (5.0)
 				{
 					getOptData(tmpopt);
 					TVDShift = std::max(TVDShift, tmpopt.optVec[0]);
@@ -212,9 +220,9 @@ void OptimizeHorizontals(const std::vector<Eigen::Vector3d>& pinits, const std::
 					j["PSO-history"] = tmpopt.costHist;
 
 					auto& jOpt = j["opt-result"];
-					jOpt["reg"] = 2;
+					jOpt["reg"] = p_reg;
 					jOpt["l-reg"] = l_reg;
-					jOpt["cost"] = tmpopt.cost;
+					jOpt["cost"] = tmpopt.cost - l_reg * regNorm(tmpopt.optVec,x_reg,p_reg);
 					jOpt["DDI"] = ddi;
 					jOpt["length"] = length;
 					jOpt["opt-vec"] = tmpopt.optVec;
@@ -248,7 +256,7 @@ void OptimizeHorizontals(const std::vector<Eigen::Vector3d>& pinits, const std::
 		pCWells.clear();
 		pMDWells.clear();
 
-		writeGG("../output/" + l2OptDir + "l2_opt" + name + ".json", jRes);
+		writeGG("../output/" + l2OptDir + "l2_2/" + "l2_opt" + name + ".json", jRes);
 				//writeDataCartesian(pCWells[i], "../output/Cartesian/case1OneScore" + std::to_string(i + 1) + ".txt");
 	}
 	//nlohmann::json jRes;
