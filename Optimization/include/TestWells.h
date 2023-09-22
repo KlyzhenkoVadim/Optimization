@@ -9,5 +9,5 @@ void writeInclinometry(const std::vector<Eigen::Vector4d>& pMD, std::string file
 
 void writeDataCartesian(std::vector<Eigen::Vector3d>& pointsCartesian, std::string filename);
 
-void getOptData(PSOvalueType op);
+void getOptData(PsoValueType op);
 

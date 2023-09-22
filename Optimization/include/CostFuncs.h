@@ -12,8 +12,8 @@ double DDI(std::vector<TrajectoryTemplate*>& well, const std::vector<Eigen::Vect
 
 double ERD(const std::vector<Eigen::Vector3d>& points);
 
-double orderScore1(std::vector<TrajectoryTemplate*>& mainWell, std::vector<std::vector<Eigen::Vector3d>>& pCTrajectories,
-	std::vector<std::vector<Eigen::Vector4d>>& pMDTrajectories,double SepFactorShift = 0,double penalty = 1000);
+double orderScore1(std::vector<TrajectoryTemplate*>& mainWell, const std::vector<std::vector<Eigen::Vector3d>>& pCTrajectories,
+	const std::vector<std::vector<Eigen::Vector4d>>& pMDTrajectories,double SepFactorShift = 0,double penalty = 1000);
 
 double scoreSolver(std::vector<TrajectoryTemplate*>& tmp, const WellTrajectoryConstraints& cs, double penalty = 1000);
 
