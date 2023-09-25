@@ -1,0 +1,6 @@
+[submodule "Optimization/extern/eigen"]
+	path = Optimization/extern/eigen
+	url = https://gitlab.com/libeigen/eigen.git
+[submodule "Optimization/extern/json"]
+	path = Optimization/extern/json
+	url = https://github.com/nlohmann/json.git

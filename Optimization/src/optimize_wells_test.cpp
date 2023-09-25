@@ -1,4 +1,7 @@
-#include "optimize_wells_test.h"
+#include <optimize_wells_test.h>
+#include <Hold.h>
+#include <Curve.h>
+#include <CurveHoldCurveHold.h>
 
 const int max_dim = 9;
 const int max_iter = 5;
@@ -79,12 +82,3 @@ void ddi_test()
 	//assert(abs(Tortuosity(well) - Tortuosity_sum(pmd)) < 1);
 }
 
-void test_WellTrajectorySolver()
-{
-	well_trajectory::WellTrajectorySolver ws;
-	well_trajectory::Point2d pinit{ 0,0 };
-	well_trajectory::Target target_{ 100,100,2000,1000,100,2000 };
-	ws.setData(pinit, target_);
-	ws.optimize();
-	getOptData(ws.getPSOdata());
-}

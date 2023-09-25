@@ -6,8 +6,12 @@ double PenaltyDLS(std::vector<TrajectoryTemplate*>& Well, double penalty) {
 	for (size_t i = 0; i < Well.size() - 1; ++i) {
 		Well[i]->getInitPoint(CoordinateSystem::MD);
 		Well[i]->getTarget1Point(CoordinateSystem::MD);
-		Eigen::Vector3d tprev{ Well[i]->pointInitialMD[1],Well[i]->pointInitialMD[2],Well[i]->pointInitialMD[3] };
-		Eigen::Vector3d tnext{ Well[i]->pointMDT1[1],Well[i]->pointMDT1[2],Well[i]->pointMDT1[3] };
+        Eigen::Vector3d tprev{Well[i]->pointInitialMD[1],
+                                Well[i]->pointInitialMD[2],
+                                Well[i]->pointInitialMD[3]};
+        Eigen::Vector3d tnext{Well[i]->pointMDT1[1],
+                                Well[i]->pointMDT1[2],
+                                Well[i]->pointMDT1[3]};
 		double length = Well[i]->pointMDT1[0] - Well[i]->pointInitialMD[0];
 		dotprod = tprev.dot(tnext) / tprev.norm() / tnext.norm();
 		if (length < EPSILON)
@@ -22,8 +26,8 @@ double PenaltyDLS(std::vector<TrajectoryTemplate*>& Well, double penalty) {
 	return 0;
 };
 
-double PenaltyIncWell(const std::vector<Eigen::Vector4d>& pMD, double incMin, double incMax, double penalty)
-{
+double PenaltyIncWell(const std::vector<Eigen::Vector4d>& pMD, double incMin,
+                      double incMax, double penalty) {
 	double value = 0, currInc = -1;
 	size_t size = pMD.size();
 	for (size_t i = 0; i < size; ++i)
@@ -40,7 +44,9 @@ double PenaltyIncWell(const std::vector<Eigen::Vector4d>& pMD, double incMin, do
 double PenaltyIncTarget(std::vector<TrajectoryTemplate*>& Well, double penalty) {
 	int s = solve(Well);
 	Well.back()->getTarget1Point(CoordinateSystem::MD);
-	Eigen::Vector3d tangent = { Well.back()->pointMDT1[1],Well.back()->pointMDT1[2],Well.back()->pointMDT1[3] };
+    Eigen::Vector3d tangent = {Well.back()->pointMDT1[1],
+                                Well.back()->pointMDT1[2],
+                                Well.back()->pointMDT1[3]};
 	std::pair<double, double> incAzi = CartesianToSpherical(tangent);
 	if (incAzi.first - 40 > EPSILON) {
 		return penalty;
@@ -52,8 +58,12 @@ double PenaltyAlphaTarget(std::vector<TrajectoryTemplate*>& Well, double penalty
 	int s = solve(Well);
 	Well.back()->getInitPoint(CoordinateSystem::MD);
 	Well.back()->getTarget1Point(CoordinateSystem::MD);
-	Eigen::Vector3d t1 = { Well.back()->pointInitialMD[1],Well.back()->pointInitialMD[2],Well.back()->pointInitialMD[3] };
-	Eigen::Vector3d t2 = { Well.back()->pointMDT1[1] ,Well.back()->pointMDT1[2] ,Well.back()->pointMDT1[3] };
+    Eigen::Vector3d t1 = {Well.back()->pointInitialMD[1],
+                            Well.back()->pointInitialMD[2],
+                            Well.back()->pointInitialMD[3]};
+    Eigen::Vector3d t2 = {Well.back()->pointMDT1[1],
+                            Well.back()->pointMDT1[2],
+                            Well.back()->pointMDT1[3]};
 	double dotprod = t1.dot(t2) / t1.norm() / t2.norm();
 	dotprod = fabs(dotprod - 1) < EPSILON ? 1 : dotprod;
 	double alpha = acos(dotprod);
@@ -80,7 +90,10 @@ int findTVD(const std::vector<Eigen::Vector3d>& pC, double TVD) {
 	return -(l + 1);
 }
 
-double PenaltyConstraint(std::vector<Constraint> cs, std::vector<Eigen::Vector3d>& pC, std::vector<Eigen::Vector4d>& pMD, double penalty) {
+double PenaltyConstraint(const std::vector<Constraint>& cs,
+                         const std::vector<Eigen::Vector3d>& pC,
+                         const std::vector<Eigen::Vector4d>& pMD,
+                         double penalty) {
 	int id = 0;
 	double pen = 0;
 	std::pair<double, double>  incAzi = { 0,0 };
@@ -91,13 +104,17 @@ double PenaltyConstraint(std::vector<Constraint> cs, std::vector<Eigen::Vector3d
 		}
 		Eigen::Vector3d tmpVec = { pMD[id][1],pMD[id][2],pMD[id][3] };
 		incAzi = CartesianToSpherical(tmpVec);
-		if (!(incAzi.first - cs[i].lMin.theta > -EPSILON && incAzi.first - cs[i].lMax.theta < EPSILON)) {
-			pen += penalty / cs.size() / 2;
-		}
-		if ((incAzi.first > EPSILON) && !((incAzi.second - cs[i].lMin.phi > -EPSILON && incAzi.second - cs[i].lMax.phi < EPSILON)
-			|| (incAzi.second - (cs[i].lMin.phi + 180) > -EPSILON && incAzi.second - (cs[i].lMax.phi + 180) < EPSILON))) {
-			pen += penalty / cs.size() / 2;
-		}
+        if (!(incAzi.first - cs[i].lMin.theta > -EPSILON &&
+                incAzi.first - cs[i].lMax.theta < EPSILON)) {
+                pen += penalty / cs.size() / 2;
+        }
+        if ((incAzi.first > EPSILON) &&
+            !((incAzi.second - cs[i].lMin.phi > -EPSILON &&
+                incAzi.second - cs[i].lMax.phi < EPSILON) ||
+                (incAzi.second - (cs[i].lMin.phi + 180) > -EPSILON &&
+                incAzi.second - (cs[i].lMax.phi + 180) < EPSILON))) {
+                pen += penalty / cs.size() / 2;
+        }
 	}
 	return pen;
 }
@@ -107,8 +124,8 @@ double PenaltyLength(double length, double MaxLength, double penalty) {
 	return answer;
 };
 
-double PenaltyAHDNSEW(const std::vector<Eigen::Vector3d>& pC, double EWMAX, double NSMAX, double penalty)
-{
+double PenaltyAHDNSEW(const std::vector<Eigen::Vector3d>& pC, double EWMAX,
+                      double NSMAX, double penalty) {
 	double value = 0, EW = 0, NS = 0;
 	for (size_t i = 1; i < pC.size(); ++i)
 	{
