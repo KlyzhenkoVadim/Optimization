@@ -14,8 +14,8 @@ double sepFactor(const std::vector<Eigen::Vector3d>& pCartesianW1,
 				const std::vector<Eigen::Vector4d>& pMDW2,
 				double TVDstart ,bool actFunc, double penalty) {
 	
-	size_t n = pCartesianW1.size(); // число точек референсной траектории
-	size_t m = pCartesianW2.size(); // число точек оффсетной траектории
+	size_t n = pCartesianW1.size(); // С‡РёСЃР»Рѕ С‚РѕС‡РµРє СЂРµС„РµСЂРµРЅСЃРЅРѕР№ С‚СЂР°РµРєС‚РѕСЂРёРё
+	size_t m = pCartesianW2.size(); // С‡РёСЃР»Рѕ С‚РѕС‡РµРє РѕС„С„СЃРµС‚РЅРѕР№ С‚СЂР°РµРєС‚РѕСЂРёРё
 	std::vector<std::vector<double>> distanceMatrix(n,std::vector<double>(m,1e3));
 	std::vector<std::vector<double>> scalarProdMatrix(n, std::vector<double>(m,0));
 	double sgm = 9e-3;
@@ -80,8 +80,8 @@ double sepFactor(const std::vector<Eigen::Vector3d>& pCartesianW1,
 			sepFactor = std::min(distanceMatrix[i][j], sepFactor);
 		}
 	}
-	// Если actFunc = true то фактор возвращается сигмоида 
-	// от фактора разделения, иначе сам фактор разделения.
+	// Р•СЃР»Рё actFunc = true С‚Рѕ С„Р°РєС‚РѕСЂ РІРѕР·РІСЂР°С‰Р°РµС‚СЃСЏ СЃРёРіРјРѕРёРґР° 
+	// РѕС‚ С„Р°РєС‚РѕСЂР° СЂР°Р·РґРµР»РµРЅРёСЏ, РёРЅР°С‡Рµ СЃР°Рј С„Р°РєС‚РѕСЂ СЂР°Р·РґРµР»РµРЅРёСЏ.
 	if (actFunc) {
 		return sigmoid(sepFactor, penalty, 10., 1.5);
 	}

@@ -46,7 +46,7 @@ double SeparationFactorNewton(std::vector<TrajectoryTemplate*>& well1, std::vect
 	{
 		return (FunctionWellPoint(t, well1) - FunctionWellPoint(s, well2)).norm() / (sgm * (L1 * t + L2 * s));
 	};
-	// TODO: Доделать до конца, и сравнить насколько быстро сходится
+	// TODO: Р”РѕРґРµР»Р°С‚СЊ РґРѕ РєРѕРЅС†Р°, Рё СЃСЂР°РІРЅРёС‚СЊ РЅР°СЃРєРѕР»СЊРєРѕ Р±С‹СЃС‚СЂРѕ СЃС…РѕРґРёС‚СЃСЏ
 }
 
 

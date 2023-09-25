@@ -225,7 +225,7 @@ void OptimizeHorizontals(const std::vector<Eigen::Vector3d>& pinits,
 				tmpopt = PSO(score, minValues, maxValues, nParticles,
                              nIterations, w, c, c, true);
 				double cost1 = tmpopt.cost - l_reg * regNorm(tmpopt.optVec, x_reg, p_reg);
-				if (cost1 < 5.0) // TODO: уточнить, какое значение должно быть.. was (5.0)
+				if (cost1 < 5.0) // TODO: СѓС‚РѕС‡РЅРёС‚СЊ, РєР°РєРѕРµ Р·РЅР°С‡РµРЅРёРµ РґРѕР»Р¶РЅРѕ Р±С‹С‚СЊ.. was (5.0)
 				{
 					getOptData(tmpopt);
 					TVDShift = std::max(TVDShift, tmpopt.optVec[0]);
