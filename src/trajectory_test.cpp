@@ -1,5 +1,12 @@
 #include "trajectory_test.h"
 
+#include "TrajectoryTemplate.h"
+#include "Hold.h"
+#include "Curve.h"
+#include "CurveHold.h"
+#include "CurveHoldCurveHold.h"
+#include "TestWells.h"
+
 void printvec(const Eigen::Vector3d& v)
 {
 	std::cout << "[ ";
@@ -58,7 +65,7 @@ void checkAnswer(std::vector<TrajectoryTemplate*>& well)
 	points_from_function.clear();
 }
 
-void test_tajectory_pspeed()
+void test_trajectory_pspeed()
 {
 	std::vector<Eigen::Vector3d> pfunc;
 	std::vector<Eigen::Vector3d> pC;
