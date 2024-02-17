@@ -29,6 +29,8 @@ struct PsoValueType
 * \param socCoef - гиперпараметр, "социальный" коэффициент;
 * \param indCoef - гиперпараметр, "индивидуальный" коэффициент;
 * \param isHistoryNeeded - если true, то записывается costHist.
+* \return PsoValueType результат оптимизации (целевую, оптимальный вектор 
+* и значение глобального минимума на каждой итерации)
 */
 PsoValueType PSO(std::function<double(const std::vector<double>&)> func,
     const std::vector<double>& minValues, const std::vector<double>& maxValues,

@@ -13,7 +13,8 @@ double sepFactor(const std::vector<Eigen::Vector3d>& pCartesianW1,
 				const std::vector<Eigen::Vector3d>& pCartesianW2,
 				const std::vector<Eigen::Vector4d>& pMDW2,
 				double TVDstart ,bool actFunc, double penalty) {
-	
+	//pCartesianW1.size() == pMDW1.size()
+	//&& pCartesianW2.size() == pMDW2.size();
 	size_t n = pCartesianW1.size(); // число точек референсной траектории
 	size_t m = pCartesianW2.size(); // число точек оффсетной траектории
 	std::vector<std::vector<double>> distanceMatrix(n,std::vector<double>(m,1e3));
@@ -24,31 +25,32 @@ double sepFactor(const std::vector<Eigen::Vector3d>& pCartesianW1,
 	double eps = 1e-6;
 	bool flg = true;
 	double sepFactor = 1e3;
-	size_t StartW1 = n - 1;
-	size_t StartW2 = m - 1;
-	size_t k;
+	size_t w1StartIndex = n - 1;
+	size_t w2StartIndex = m - 1;
 	Eigen::Vector3d diffVector, tangentW1;
 
 	for (size_t i = 0; i < n; ++i) {
 		scalarProdMatrix[i][0] = -1.;
 	}	
-	
+	// Поиск точек на траектории W1 начиная с которой глубина больше TVDstart
+	// TODO: Можно было сделать через
+	// std::upper_bound(pCartesianW1.begin(),pCartesianW1.end(), [](const Eigen::Vector3d& v, double rhs)->bool {return v[2] > rhs;}
 	for (size_t i = 0; i < n; ++i) {
 		if (pCartesianW1[i][2] > TVDstart) {
-			StartW1 = i;
-			break;
-		}
-	}
-	
-	for (size_t j = 0; j < m; ++j) {
-		if (pCartesianW2[j][2] > TVDstart){
-			StartW2 = j;
+			w1StartIndex = i;
 			break;
 		}
 	}
 
-	k = StartW2 + 1; // k = 1;
-	for (size_t idxN = StartW1; idxN < n; ++idxN) {
+	for (size_t j = 0; j < m; ++j) {
+		if (pCartesianW2[j][2] > TVDstart){
+			w2StartIndex = j;
+			break;
+		}
+	}
+
+	size_t k = w2StartIndex + 1; // k = 1;
+	for (size_t idxN = w1StartIndex; idxN < n; ++idxN) {
 		for (size_t idxM = k - 1; idxM < m; ++idxM) {
 			diffVector = pCartesianW2[idxM] - pCartesianW1[idxN];
 			tangentW1 = { pMDW1[idxN][1], pMDW1[idxN][2], pMDW1[idxN][3] };
@@ -190,12 +192,12 @@ double orderScore1(
 	size_t size = pCTrajectories.size();
 
 	for (size_t idx = 0; idx < size; ++idx) {
-		auto p = pCTrajectories[idx];
-		auto incl = pMDTrajectories[idx];
+		//TODO: Заменить на поиск максимума по факторам разделения,
+		// а не по сигмоидам от них...
 		rSepFactor += std::max(
-			sepFactor(mainPCartesian,mainPMD,p,
-			incl, SepFactorShift),
-			sepFactor(p,incl,mainPCartesian,
+			sepFactor(mainPCartesian,mainPMD, pCTrajectories[idx],
+				pMDTrajectories[idx], SepFactorShift),
+			sepFactor(pCTrajectories[idx], pMDTrajectories[idx],mainPCartesian,
 				mainPMD,SepFactorShift));
 	}
 
@@ -204,6 +206,9 @@ double orderScore1(
 	return mainLength / IdealLength + rSepFactor + mainDDI;
 }
 
+/**
+ * @TODO Удалить (не используется). 
+*/
 double scoreSolver(std::vector<TrajectoryTemplate*>& tmp,
                    const WellTrajectoryConstraints& cs, double penalty) {
 		double mainLength, mainDDI, IdealLength;;

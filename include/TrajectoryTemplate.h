@@ -31,6 +31,9 @@ constexpr double EPSILON = 1e-9;
 
 using interpolatedValueType = std::pair<std::vector<double>, std::vector<Eigen::Vector3d>>;
 
+// TODO: Выделить, какие из виртуальных методов будут константными (!!!)
+// (Почти все, кроме, кажется, solve() (!!!!)
+
 /**
 * @brief TrajectoryTemplate - абстрактный базовый класс шаблона траектории.
 * Его наследуют конкретные реализации шаблонов Hold,Curve,CurveHold,CurveHoldCurveHold.
@@ -147,6 +150,7 @@ public:
 /**
  * @brief Метод, позволяющий получить длину траектории как вектора шаблонов.
  * @param Well - вектор шаблонов построения
+ * @TODO: Well должен передаваться по константной ссылке(!!!!)
  */
 double allLength(const std::vector<TrajectoryTemplate*>& Well);
 /**
@@ -155,6 +159,7 @@ double allLength(const std::vector<TrajectoryTemplate*>& Well);
 * @return вектор декартовых координат.
 * @return Размер (???) если Well состоит из k шаблонов, каждый из которых имеет nums_i i = 1...k точек, то
 * @return размер вектора nums_1 + . . . + nums_k.
+* @TODO: Well должен передаваться по константной ссылке(!!!!)
 */
 std::vector<Eigen::Vector3d> allPointsCartesian(std::vector<TrajectoryTemplate*>& Well);
 /**
@@ -163,18 +168,23 @@ std::vector<Eigen::Vector3d> allPointsCartesian(std::vector<TrajectoryTemplate*>
 * @return вектор касательных векторов.
 * @return Размер (???) если Well состоит из k шаблонов, каждый из которых имеет nums_i i = 1...k точек, то
 * @return размер вектора nums_1 + . . . + nums_k.
+* @TODO: Well должен передаваться по константной ссылке(!!!!)
 */
 std::vector<Eigen::Vector4d> allPointsMD(std::vector<TrajectoryTemplate* >& Well);
 /**
 * @brief Аналог функции FunctionPoint для конкретных шаблонов, только вдоль всей траектории.
 * @param md - натуральный параметр ВСЕЙ траектории$
 * @param well - траектория, вектор шаблонов построения.
+* @return 3d координаты точки траектории при параметре md
+* @TODO: Well должен передаваться по константной ссылке(!!!!)
 */
 Eigen::Vector3d FunctionWellPoint(double md, std::vector<TrajectoryTemplate*>& well); // md[0,1]
 /**
 * @brief Аналог функции FunctionTangent для конкретных шаблонов, только вдоль всей траектории.
-* @param md - натуральный параметр ВСЕЙ траектории$
+* @param md - натуральный параметр ВСЕЙ траектории
 * @param well - траектория, вектор шаблонов построения.
+* @return 3d координаты касательного вектора при параметре md (норма вектора = 1)
+* @TODO: Well должен передаваться по константной ссылке(!!!!)
 */
 Eigen::Vector3d FunctionWellTangent(double md, std::vector<TrajectoryTemplate*>& well); // md[0,1]
 /**
