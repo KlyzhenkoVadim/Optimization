@@ -43,7 +43,7 @@ void horizontal_optimize_test()
 			x[i] = val[i];
 		std::vector<TrajectoryTemplate*> well = well2CHCH(x,pinit,target1,target3);
 		
-		double score_value = OneWellScore(well);
+		double score_value = oneWellScore(well);
 		for (auto x : well)
 			delete x;
 		return score_value;
@@ -57,7 +57,7 @@ void horizontal_optimize_test()
 	for (auto x : xBest)
 		std::cout << x << " ";
 	std::cout << "\n";
-	OptimizeHorizontal(pinit, target1, target3);
+	optimizeHorizontal(pinit, target1, target3);
 }
 
 void ddi_test()

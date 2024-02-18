@@ -196,7 +196,7 @@ void test_trajectory_points()
 	checkAnswer(well);
 	// CurveHold - Hold
 	CurveHold ch(Eigen::Vector3d{ 0,0,0 }, Eigen::Vector3d{ 500,600,600 }, 0, 0, 300);
-	auto [inc, azi] = CartesianToSpherical(ch.getTangent2());
+	auto [inc, azi] = cartesianToSpherical(ch.getTangent2());
 	well = {new CurveHold(Eigen::Vector3d{ 0,0,0 }, Eigen::Vector3d{ 500,600,600 }, 0, 0, 300)
 		, new Hold(Eigen::Vector3d{500,600,600},inc,azi,100) };
 	checkAnswer(well);

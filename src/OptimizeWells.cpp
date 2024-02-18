@@ -10,12 +10,12 @@
 #include "Penalties.h"
 
 
-double DlsToRadius(double dls) // dls - grad/10m
+double dlsToRadius(double dls) // dls - grad/10m
 {
 	return dls < EPSILON ? 1. / EPSILON : 1800. / PI / dls;
 }
 
-double OneWellScore(std::vector<TrajectoryTemplate*>& mainWell, double penalty) {
+double oneWellScore(std::vector<TrajectoryTemplate*>& mainWell, double penalty) {
 	double mainLength, mainDDI;
 	int condition = solve(mainWell);
 	if (condition != 0) {
@@ -44,10 +44,10 @@ std::vector<TrajectoryTemplate*> well2CHCH(const std::vector<double>& x,
 	well.reserve(3);
 	double hold0 = 100. + 900. * x[0];
 
-	double R1 = DlsToRadius(x[1]);
-	double R2 = DlsToRadius(x[2]);
-	double R3 = DlsToRadius(x[3]);
-	double R4 = DlsToRadius(x[4]);
+	double R1 = dlsToRadius(x[1]);
+	double R2 = dlsToRadius(x[2]);
+	double R3 = dlsToRadius(x[3]);
+	double R4 = dlsToRadius(x[4]);
 
 	double inc = 180. * x[5];
 	double azi = 360. * x[6];
@@ -67,13 +67,13 @@ std::vector<TrajectoryTemplate*> well2CHCH(const std::vector<double>& x,
 	return well;
 }
 
-void OptimizeHorizontal(const Eigen::Vector3d& pinit,
+void optimizeHorizontal(const Eigen::Vector3d& pinit,
                         const Eigen::Vector3d& pT1,
                         const Eigen::Vector3d& pT3) {
     std::function<double(const std::vector<double>& x)> score =
             [&](const std::vector<double>& x) {
 		std::vector<TrajectoryTemplate*> tt = well2CHCH(x, pinit, pT1, pT3);
-		double score = OneWellScore(tt);
+		double score = oneWellScore(tt);
 		for (auto& x : tt)
 		{
 			delete x;
@@ -94,7 +94,7 @@ void OptimizeHorizontal(const Eigen::Vector3d& pinit,
 	getOptData(opt);
 }
 
-void OptimizeHorizontals(const std::vector<Eigen::Vector3d>& pinits,
+void optimizeHorizontals(const std::vector<Eigen::Vector3d>& pinits,
                          const std::vector<Eigen::Vector3d>& targets1,
                          const std::vector<Eigen::Vector3d>& targets3) {
 	const std::string aloneOptDir{"alone_optimization/"};
@@ -166,7 +166,7 @@ void OptimizeHorizontals(const std::vector<Eigen::Vector3d>& pinits,
 	{
 		std::vector<TrajectoryTemplate*> tt = well2CHCH(x, pinit, target1,
 														target3);
-		double score = OneWellScore(tt);
+		double score = oneWellScore(tt);
 		for (auto& y : tt)
 		{
 			delete y;
@@ -290,7 +290,7 @@ void OptimizeHorizontals(const std::vector<Eigen::Vector3d>& pinits,
 	}
 }
 
-void OptimizeTogether(const std::vector<Eigen::Vector3d>& pinits,
+void optimizeTogether(const std::vector<Eigen::Vector3d>& pinits,
                       const std::vector<Eigen::Vector3d>& targets1,
                       const std::vector<Eigen::Vector3d>& targets3) {
 	Eigen::Vector3d pinit = pinits[0];
@@ -344,7 +344,7 @@ void OptimizeTogether(const std::vector<Eigen::Vector3d>& pinits,
 		int condition = solve(tt);
 		if (!condition)
 			return 1000.;
-		double score = OneWellScore(tt,1000);
+		double score = oneWellScore(tt,1000);
 		for (auto& y : tt)
 		{
 			delete y;
@@ -458,8 +458,8 @@ void aloneOpt()
 	auto horizontalProfile = [&](const std::vector<double>& x)
 	{//x[0] - hold, x[1] - dls1 , x[2] - dls2
 		double hold = x[0];
-		double r1 = DlsToRadius(x[1]);
-		double r2 = DlsToRadius(x[2]);
+		double r1 = dlsToRadius(x[1]);
+		double r2 = dlsToRadius(x[2]);
 		std::vector<TrajectoryTemplate*> trajectory;
 		trajectory.reserve(3);
 		trajectory.push_back(new Hold(pinit, 0, 0, hold));
@@ -472,7 +472,7 @@ void aloneOpt()
 	auto well = [&](const std::vector<double>& x)
 	{
 		double hold = x[0];
-		double r = DlsToRadius(x[1]);
+		double r = dlsToRadius(x[1]);
 		std::vector<TrajectoryTemplate*> tt;
 		tt.reserve(2);
 		tt.push_back(new Hold(pinit, 0., 0., hold));
@@ -484,7 +484,7 @@ void aloneOpt()
 	auto score = [&](const std::vector<double>& x)
 	{
 		auto tt = well(x);
-		double result = OneWellScore(tt,35);
+		double result = oneWellScore(tt,35);
 		for (auto& t : tt)
 		{
 			delete t;
@@ -523,4 +523,35 @@ void aloneOpt()
 	
 	jt["points"] = points;
 	writeGG("../output/cost_graph/2.json", jt);
+}
+
+void checkCorrectnessOfUpperBound() {
+	std::vector<TrajectoryTemplate*> traj{ new Hold(Eigen::Vector3d{0,0,0},Eigen::Vector3d{0,0,499},51) };
+	const int condition = solve(traj);
+	assert(condition == 0);
+	std::vector<Eigen::Vector3d> points = allPointsCartesian(traj);
+	int iid = 0;
+	for (const auto &pi : points) {
+		std::cout << iid  << ": " << pi.x() << "," << pi.y() << "," << pi.z() << "\n";
+		iid += 1;
+	}
+	std::cout << points.size() << "\n";
+	double tvdShift = 500;
+	
+	const std::vector<Eigen::Vector3d>::iterator it = std::upper_bound(points.begin(), points.end(), tvdShift,
+		[](double rhs, const Eigen::Vector3d& value)->bool {return value.z() - rhs > -std::numeric_limits<double>::epsilon(); });
+	if (it == points.end()) {
+		std::cout << "NOT FOUND\n";
+	}
+	size_t idxUpperBound = it - points.begin();
+
+	std::cout << idxUpperBound << "\n";
+	size_t idx = -1;
+	for (size_t i = 0; i < points.size(); ++i) {
+		if (points[i][2] > tvdShift) {
+			idx = i;
+			break;
+		}
+	}
+	std::cout << idx;
 }

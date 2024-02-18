@@ -65,7 +65,7 @@ void testCase1()
 		targets3[i] << j["T3"][0].get<double>(),
 			j["T3"][1].get<double>(), j["T3"][2].get<double>();
 	}
-	OptimizeHorizontals(pinits, targets1, targets3);
+	optimizeHorizontals(pinits, targets1, targets3);
 	//OptimizeTogether(pinits, targets1, targets3);
 }
 
@@ -75,8 +75,10 @@ int main()
 		target4001 = { 5803529,682498,2900 }, target4003 = { 5803536,683257,2900 }, target4000 = { 5803409,683700,2900 };
 	std::vector<Vec3d> targets3 = { target4001,target4003 }, targets1 = { target40R,target4000 };
 	OptimizeHorizontals(pInit, targets1, targets3);*/
-	//testCase1();
-	aloneOpt();
+	testCase1();
+	//aloneOpt();
 	//well2_example();
+	//checkCorrectnessOfUpperBound();
+
 	return 0;
 }

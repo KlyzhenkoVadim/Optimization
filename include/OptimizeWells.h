@@ -9,7 +9,7 @@
 
 #include <TrajectoryTemplate.h>
 
-double OneWellScore(std::vector<TrajectoryTemplate*>& mainWell,
+double oneWellScore(std::vector<TrajectoryTemplate*>& mainWell,
                     double penalty = 1000);
 
 /*
@@ -40,7 +40,7 @@ std::vector<TrajectoryTemplate*> well2CHCH(const std::vector<double>& x,
 * \param pT1 - 3д вектор цели “1 траектории (фиксирован)
 * \param pT3 - 3д вектор цели “3 траектории (фиксирован)
 */
-void OptimizeHorizontal(const Eigen::Vector3d& pinit,
+void optimizeHorizontal(const Eigen::Vector3d& pinit,
                         const Eigen::Vector3d& pT1, const Eigen::Vector3d& pT3);
 
 /*
@@ -51,7 +51,7 @@ void OptimizeHorizontal(const Eigen::Vector3d& pinit,
 * \param pT1 - вектор 3д векторов цели “1 траектории (фиксирован)
 * \param pT3 - вектор 3д векторов цели “3 траектории (фиксирован)
 */
-void OptimizeHorizontals(const std::vector<Eigen::Vector3d>& pinits,
+void optimizeHorizontals(const std::vector<Eigen::Vector3d>& pinits,
                          const std::vector<Eigen::Vector3d>& targets1,
                          const std::vector<Eigen::Vector3d>& targets3);
 /*
@@ -61,7 +61,7 @@ void OptimizeHorizontals(const std::vector<Eigen::Vector3d>& pinits,
 * \param pT1 - вектор 3д векторов цели “1 траектории (фиксирован)
 * \param pT3 - вектор 3д векторов цели “3 траектории (фиксирован)
 */
-void OptimizeTogether(const std::vector<Eigen::Vector3d>& pinits,
+void optimizeTogether(const std::vector<Eigen::Vector3d>& pinits,
                       const std::vector<Eigen::Vector3d>& targets1,
                       const std::vector<Eigen::Vector3d>& targets3);
 
@@ -71,3 +71,5 @@ void testHorizontal(const Eigen::VectorXd& x,
 void writeGG(const std::string& filename, const nlohmann::json& jresults);
 
 void aloneOpt();
+
+void checkCorrectnessOfUpperBound();

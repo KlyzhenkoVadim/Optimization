@@ -19,9 +19,7 @@ double sepFactor(const std::vector<Eigen::Vector3d>& pCartesianW1,
 	size_t m = pCartesianW2.size(); // число точек оффсетной траектории
 	std::vector<std::vector<double>> distanceMatrix(n,std::vector<double>(m,1e3));
 	std::vector<std::vector<double>> scalarProdMatrix(n, std::vector<double>(m,0));
-	double sgm = 9e-3;
-	sgm = sgm * 2.; // TODO: DELETE
-	//sgm = 1.5 * sgm;
+	double sgm = 1.8e-2;
 	double eps = 1e-6;
 	bool flg = true;
 	double sepFactor = 1e3;
@@ -32,22 +30,23 @@ double sepFactor(const std::vector<Eigen::Vector3d>& pCartesianW1,
 	for (size_t i = 0; i < n; ++i) {
 		scalarProdMatrix[i][0] = -1.;
 	}	
-	// Поиск точек на траектории W1 начиная с которой глубина больше TVDstart
-	// TODO: Можно было сделать через
-	// std::upper_bound(pCartesianW1.begin(),pCartesianW1.end(), [](const Eigen::Vector3d& v, double rhs)->bool {return v[2] > rhs;}
-	for (size_t i = 0; i < n; ++i) {
-		if (pCartesianW1[i][2] > TVDstart) {
-			w1StartIndex = i;
-			break;
-		}
-	}
 
-	for (size_t j = 0; j < m; ++j) {
-		if (pCartesianW2[j][2] > TVDstart){
-			w2StartIndex = j;
-			break;
-		}
+	// Поиск точек на траектории W1 начиная с которой глубина больше, либо равно TVDstart
+	const auto& wIt1 = std::upper_bound(pCartesianW1.begin(), pCartesianW1.end(), TVDstart,
+		[](double rhs, const Eigen::Vector3d& value)->bool {return value.z() - rhs > -std::numeric_limits<double>::epsilon(); });
+	if (wIt1 == pCartesianW1.end()) {
+		//TODO: Перепроверить, верно ли
+		return actFunc ? 0. : 1. / EPSILON;
 	}
+	w1StartIndex = wIt1 - pCartesianW1.begin();
+	// Поиск точек на траектории W1 начиная с которой глубина больше, либо равно TVDstart
+	const auto& wIt2 = std::upper_bound(pCartesianW2.begin(), pCartesianW2.end(), TVDstart,
+		[](double rhs, const Eigen::Vector3d& value)-> bool {return value.z() - rhs > -std::numeric_limits<double>::epsilon(); });
+	if (wIt2 == pCartesianW2.end()) {
+		//TODO: Перепроверить, верно ли
+		return actFunc ? 0. : 1. / EPSILON;
+	}
+	w2StartIndex = wIt2 - pCartesianW2.begin();
 
 	size_t k = w2StartIndex + 1; // k = 1;
 	for (size_t idxN = w1StartIndex; idxN < n; ++idxN) {
@@ -110,7 +109,7 @@ double dls(const Eigen::Vector3d& tangent1, const Eigen::Vector3d& tangent2) {
 	return (180. / PI) * acos(dotProd);
 }
 
-double Tortuosity(std::vector<TrajectoryTemplate*>& well) {
+double tortuosity(std::vector<TrajectoryTemplate*>& well) {
 	double tortuos = 0.;
 	for (size_t i = 0; i < well.size(); ++i) 
 	{
@@ -122,7 +121,7 @@ double Tortuosity(std::vector<TrajectoryTemplate*>& well) {
 double DDI(std::vector<TrajectoryTemplate*>& well,
            const std::vector<Eigen::Vector3d>& pCartesian, bool actFunc,
            double penalty) {
-	double tortuos = Tortuosity(well); 
+	double tortuos = tortuosity(well); 
 	double DDI;
 	std::vector<double> pX, pY;
 	size_t size = pCartesian.size();

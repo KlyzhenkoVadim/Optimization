@@ -18,7 +18,7 @@ Eigen::Vector3d calcTangentVector(double azimuth, double inclination);
 * @return std::pair<double,double> - где first - зенитный угол(°), 
 * second - азимутальный угол(°)
 */
-std::pair<double, double> CartesianToSpherical(Eigen::Vector3d t);
+std::pair<double, double> cartesianToSpherical(Eigen::Vector3d t);
 /**
 * @brief Выбор системы координат для интерполяции
 * @param CARTESIAN - NS,EW,TVD - точка на траектории

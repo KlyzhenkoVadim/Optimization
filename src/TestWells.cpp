@@ -27,7 +27,7 @@ void writeInclinometry(const std::vector<Eigen::Vector4d>& pMD,
 	output.open(filename);
 	output << "md, inc, azi\n";
 	for (size_t i = 0; i < pMD.size(); ++i) {
-		std::pair<double, double> incAzi = CartesianToSpherical(
+		std::pair<double, double> incAzi = cartesianToSpherical(
 			Eigen::Vector3d{pMD[i][1], pMD[i][2], pMD[i][3]});
 		output << pMD[i][0] << "," << incAzi.first << ","
 				<< incAzi.second << std::endl;

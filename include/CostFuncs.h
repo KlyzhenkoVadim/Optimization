@@ -73,4 +73,4 @@ double dls(Eigen::Vector3d& tangent1, Eigen::Vector3d& tangent2);
  * @param well вектор TrajectoryTemplate* траектории.
  * @return 
 */
-double Tortuosity(std::vector<TrajectoryTemplate*>& well);
+double tortuosity(std::vector<TrajectoryTemplate*>& well);

@@ -185,7 +185,7 @@ int solve(std::vector<TrajectoryTemplate*>& Well) {
     return numErrors;
 }
 
-std::pair<double, double> CartesianToSpherical(Eigen::Vector3d t) {
+std::pair<double, double> cartesianToSpherical(Eigen::Vector3d t) {
     t.normalize(); // отнормируем на всякий случай.
     double theta = acos(t[2]); // это из сферической СК.
     double phi;

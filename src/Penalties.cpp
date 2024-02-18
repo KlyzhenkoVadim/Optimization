@@ -33,7 +33,7 @@ double PenaltyIncWell(const std::vector<Eigen::Vector4d>& pMD, double incMin,
 	for (size_t i = 0; i < size; ++i)
 	{
 		auto p = pMD[i];
-		currInc = CartesianToSpherical(Eigen::Vector3d{ p[1],p[2],p[3] }).first;
+		currInc = cartesianToSpherical(Eigen::Vector3d{ p[1],p[2],p[3] }).first;
 		if (currInc - incMin > -EPSILON && currInc - incMax < EPSILON)
 			continue;
 		value += penalty / size;
@@ -47,7 +47,7 @@ double PenaltyIncTarget(std::vector<TrajectoryTemplate*>& Well, double penalty) 
     Eigen::Vector3d tangent = {Well.back()->pointMDT1[1],
                                 Well.back()->pointMDT1[2],
                                 Well.back()->pointMDT1[3]};
-	std::pair<double, double> incAzi = CartesianToSpherical(tangent);
+	std::pair<double, double> incAzi = cartesianToSpherical(tangent);
 	if (incAzi.first - 40 > EPSILON) {
 		return penalty;
 	}
@@ -103,7 +103,7 @@ double PenaltyConstraint(const std::vector<Constraint>& cs,
 			id = -id - 2;
 		}
 		Eigen::Vector3d tmpVec = { pMD[id][1],pMD[id][2],pMD[id][3] };
-		incAzi = CartesianToSpherical(tmpVec);
+		incAzi = cartesianToSpherical(tmpVec);
         if (!(incAzi.first - cs[i].lMin.theta > -EPSILON &&
                 incAzi.first - cs[i].lMax.theta < EPSILON)) {
                 pen += penalty / cs.size() / 2;
